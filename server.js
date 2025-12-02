@@ -9,12 +9,14 @@ const server = http.createServer(app);
 // Улучшенные настройки CORS для публичного доступа
 const io = socketIo(server, {
     cors: {
-        origin: "*",
+        origin: "*", // Разрешаем все источники для тестирования
         methods: ["GET", "POST"],
         credentials: false
     },
     transports: ['websocket', 'polling'],
-    allowEIO3: true
+    allowEIO3: true,
+    pingTimeout: 60000,
+    pingInterval: 25000
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -23,6 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     next();
 });
 
@@ -49,7 +52,14 @@ setInterval(() => {
 }, 5 * 60 * 1000);
 
 io.on('connection', (socket) => {
-    console.log('🔗 Новое подключение:', socket.id);
+    console.log('🔗 Новое подключение:', socket.id, 'from', socket.handshake.headers.origin || socket.handshake.address);
+
+    // Отправляем подтверждение подключения
+    socket.emit('connection_confirmed', { 
+        message: 'Connected to server',
+        socketId: socket.id,
+        timestamp: new Date().toISOString()
+    });
 
     // Получить список доступных лобби
     socket.on('get_lobbies', () => {
@@ -57,7 +67,8 @@ io.on('connection', (socket) => {
             id,
             playerCount: Object.keys(lobby.players).length,
             created: lobby.created,
-            players: Object.values(lobby.players).map(p => p.name)
+            players: Object.values(lobby.players).map(p => p.name),
+            cityProgress: lobby.cityProgress
         }));
         
         socket.emit('lobby_list', lobbyList);
@@ -67,12 +78,17 @@ io.on('connection', (socket) => {
     socket.on('join-room', (data) => {
         const { roomId, playerName, isNewRoom = false } = data;
         
+        console.log(`🎮 Запрос на присоединение: ${playerName} к комнате ${roomId}, новый: ${isNewRoom}`);
+        
         // Проверяем имя игрока
         if (!playerName || playerName.trim().length < 2) {
             socket.emit('room-error', 'Имя должно содержать минимум 2 символа');
             return;
         }
 
+        // Очищаем имя от лишних пробелов
+        const cleanPlayerName = playerName.trim();
+        
         let targetLobbyId = roomId;
         
         // Создаем новое лобби если нужно
@@ -96,60 +112,80 @@ io.on('connection', (socket) => {
 
         const lobby = lobbies.get(targetLobbyId);
         
-        // Проверяем нет ли игрока с таким именем
-        const existingPlayer = Object.values(lobby.players).find(p => p.name === playerName);
+        if (!lobby) {
+            socket.emit('room-error', 'Лобби не найдено');
+            return;
+        }
+        
+        // Проверяем нет ли игрока с таким именем (игнорируем регистр)
+        const existingPlayer = Object.values(lobby.players).find(p => 
+            p.name.toLowerCase() === cleanPlayerName.toLowerCase() && p.connected
+        );
         if (existingPlayer) {
             socket.emit('room-error', 'Игрок с таким именем уже есть в лобби');
             return;
         }
 
         // Проверяем лимит игроков
-        if (Object.keys(lobby.players).length >= lobby.maxPlayers) {
-            socket.emit('room-error', 'Лобби заполнено');
+        const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
+        if (activePlayers >= lobby.maxPlayers) {
+            socket.emit('room-error', 'Лобби заполнено (максимум 6 игроков)');
             return;
         }
 
         const playerId = socket.id;
         const player = {
             id: playerId,
-            name: playerName,
-            position: 0,
+            name: cleanPlayerName,
+            position: 1,
             city: "tver",
             coins: 100,
             cleaningPoints: 0,
             buildings: [],
             level: 1,
             completedTasks: 0,
-            color: getPlayerColor(Object.keys(lobby.players).length),
+            color: getPlayerColor(activePlayers),
             currentTask: null,
             currentDifficulty: "easy",
-            connected: true
+            connected: true,
+            joinedAt: new Date().toISOString()
         };
 
         // Добавляем игрока
         lobby.players[playerId] = player;
         socket.playerId = playerId;
         socket.lobbyId = targetLobbyId;
+        socket.playerName = cleanPlayerName;
         
+        // Присоединяемся к комнате
         socket.join(targetLobbyId);
         
+        console.log(`✅ ${cleanPlayerName} присоединился к лобби ${targetLobbyId}`);
+        console.log(`👥 Лобби ${targetLobbyId}: ${activePlayers + 1}/${lobby.maxPlayers} игроков`);
+        
         // Отправляем успешное присоединение
-        socket.emit('join-success', player);
+        socket.emit('join-success', { 
+            ...player,
+            roomId: targetLobbyId
+        });
 
         // Отправляем состояние лобби всем игрокам в комнате
         io.to(targetLobbyId).emit('room_state', {
             players: lobby.players,
-            cityProgress: lobby.cityProgress
+            cityProgress: lobby.cityProgress,
+            roomId: targetLobbyId
         });
 
-        // Уведомляем других игроков
+        // Уведомляем других игроков о новом игроке
         socket.to(targetLobbyId).emit('player_joined', {
             playerId,
             player
         });
 
-        console.log(`🎮 ${playerName} присоединился к лобби ${targetLobbyId}`);
-        console.log(`👥 Лобби ${targetLobbyId}: ${Object.keys(lobby.players).length}/6 игроков`);
+        // Отправляем историю сообщений новому игроку
+        if (lobby.messages) {
+            socket.emit('chat_history', lobby.messages.slice(-50)); // Последние 50 сообщений
+        }
     });
 
     // Чат
@@ -158,12 +194,30 @@ io.on('connection', (socket) => {
             const lobby = lobbies.get(socket.lobbyId);
             const player = lobby.players[socket.playerId];
             
-            io.to(socket.lobbyId).emit('new_chat_message', {
+            if (!player) return;
+            
+            // Ограничиваем длину сообщения
+            const message = String(data.message || '').substring(0, 500);
+            
+            // Создаем объект сообщения
+            const chatMessage = {
                 playerId: socket.playerId,
                 playerName: player.name,
-                message: data.message,
-                timestamp: new Date().toISOString()
-            });
+                message: message,
+                timestamp: new Date().toISOString(),
+                color: player.color
+            };
+            
+            // Сохраняем сообщение в истории лобби
+            if (!lobby.messages) {
+                lobby.messages = [];
+            }
+            lobby.messages.push(chatMessage);
+            
+            // Отправляем сообщение всем в комнате
+            io.to(socket.lobbyId).emit('new_chat_message', chatMessage);
+            
+            console.log(`💬 ${player.name} в ${socket.lobbyId}: ${message.substring(0, 50)}...`);
         }
     });
 
@@ -175,7 +229,19 @@ io.on('connection', (socket) => {
                 lobby.players[socket.playerId].position = data.newPosition;
                 lobby.players[socket.playerId].currentTask = data.task;
                 
-                socket.to(socket.lobbyId).emit('player_dice_roll', data);
+                // Отправляем обновленное состояние
+                io.to(socket.lobbyId).emit('room_state', {
+                    players: lobby.players,
+                    cityProgress: lobby.cityProgress
+                });
+                
+                // Отправляем событие броска кубика
+                socket.to(socket.lobbyId).emit('player_dice_roll', {
+                    ...data,
+                    playerId: socket.playerId
+                });
+                
+                console.log(`🎲 ${lobby.players[socket.playerId].name} бросил кубик: ${data.diceValue}`);
             }
         }
     });
@@ -185,7 +251,17 @@ io.on('connection', (socket) => {
             const lobby = lobbies.get(socket.lobbyId);
             if (lobby) {
                 lobby.cityProgress[data.cityKey] = data.progress;
+                
+                // Отправляем обновление всем игрокам
                 io.to(socket.lobbyId).emit('progress_updated', data);
+                
+                // Отправляем полное состояние комнаты
+                io.to(socket.lobbyId).emit('room_state', {
+                    players: lobby.players,
+                    cityProgress: lobby.cityProgress
+                });
+                
+                console.log(`📈 Прогресс ${data.cityKey}: ${data.progress}%`);
             }
         }
     });
@@ -196,6 +272,12 @@ io.on('connection', (socket) => {
             if (lobby && lobby.players[socket.playerId]) {
                 // Обновляем данные игрока
                 Object.assign(lobby.players[socket.playerId], data);
+                
+                // Отправляем обновленное состояние всем
+                io.to(socket.lobbyId).emit('room_state', {
+                    players: lobby.players,
+                    cityProgress: lobby.cityProgress
+                });
             }
         }
     });
@@ -218,7 +300,19 @@ io.on('connection', (socket) => {
                     playerName: playerName
                 });
 
+                // Отправляем обновленное состояние
+                io.to(socket.lobbyId).emit('room_state', {
+                    players: lobby.players,
+                    cityProgress: lobby.cityProgress
+                });
+
                 console.log(`🚪 ${playerName} покинул лобби ${socket.lobbyId}`);
+                
+                // Удаляем лобби если оно пустое
+                const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
+                if (activePlayers === 0) {
+                    console.log(`🗑️ Лобби ${socket.lobbyId} пустое, готово к удалению`);
+                }
             }
         }
     });
@@ -226,18 +320,49 @@ io.on('connection', (socket) => {
     // Пинг для проверки связи
     socket.on('ping', (cb) => {
         if (typeof cb === 'function') {
-            cb({ pong: Date.now(), lobbyId: socket.lobbyId });
+            cb({ 
+                pong: Date.now(), 
+                lobbyId: socket.lobbyId,
+                playerId: socket.playerId,
+                serverTime: new Date().toISOString()
+            });
+        }
+    });
+
+    // Запрос состояния комнаты
+    socket.on('get_room_state', () => {
+        if (socket.lobbyId) {
+            const lobby = lobbies.get(socket.lobbyId);
+            if (lobby) {
+                socket.emit('room_state', {
+                    players: lobby.players,
+                    cityProgress: lobby.cityProgress,
+                    roomId: socket.lobbyId
+                });
+            }
         }
     });
 });
 
 // Вспомогательные функции
 function generateLobbyId() {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
 }
 
 function getPlayerColor(index) {
-    const colors = ['#4ecdc4', '#ff6b6b', '#2ecc71', '#f39c12', '#9b59b6', '#3498db'];
+    const colors = [
+        '#4ecdc4', // Бирюзовый
+        '#ff6b6b', // Красный
+        '#2ecc71', // Зеленый
+        '#f39c12', // Оранжевый
+        '#9b59b6', // Фиолетовый
+        '#3498db'  // Синий
+    ];
     return colors[index % colors.length];
 }
 
@@ -248,5 +373,6 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`📍 Порт: ${PORT}`);
     console.log(`🌐 Доступна по адресу: http://localhost:${PORT}`);
     console.log(`🌐 Режим: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🕒 Время запуска: ${new Date().toLocaleString()}`);
     console.log('='.repeat(60));
 });
