@@ -1,5 +1,12 @@
 // ==================== СОЕДИНЕНИЕ С СЕРВЕРОМ ====================
-const socket = io();
+// Подключаемся к серверу без указания хоста (автоматически использует текущий домен)
+const socket = io({
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
+});
+
 let isConnected = false;
 let currentRoomId = null;
 
@@ -29,18 +36,25 @@ socket.on('connect', () => {
     console.log('✅ Подключено к серверу');
     isConnected = true;
     updateConnectionStatus('connected', '✅ Подключено к серверу');
+    showNotification('Успешно подключено к игровому серверу', 'success');
 });
 
 socket.on('disconnect', () => {
     console.log('❌ Отключено от сервера');
     isConnected = false;
     updateConnectionStatus('error', '❌ Не подключено к серверу');
+    showNotification('Потеряно соединение с сервером', 'error');
 });
 
 socket.on('connect_error', (error) => {
     console.log('❌ Ошибка подключения:', error);
     isConnected = false;
     updateConnectionStatus('error', '❌ Ошибка подключения');
+    showNotification('Ошибка подключения к серверу', 'error');
+});
+
+socket.on('connection_confirmed', (data) => {
+    console.log('✅ Подтверждение подключения от сервера:', data);
 });
 
 // Успешное присоединение к комнате
@@ -64,18 +78,18 @@ socket.on('room_state', (roomData) => {
     updateRoomState(roomData);
 });
 
-// Новый игрок присоединился
+// Новый игрок присоединился - ТОЛЬКО в журнал
 socket.on('player_joined', (data) => {
     console.log('👥 Новый игрок:', data.player.name);
     gameState.players[data.playerId] = data.player;
     updatePlayersList();
     updatePlayerMarkers();
     
-    // Только в журнал, не в чат
+    // ТОЛЬКО в журнал, не в чат (как просили)
     addLogEntry(`Игрок "${data.player.name}" присоединился к игре!`);
 });
 
-// Игрок покинул
+// Игрок покинул - ТОЛЬКО в журнал
 socket.on('player_left', (data) => {
     console.log('🚪 Игрок покинул:', data.playerName);
     if (gameState.players[data.playerId]) {
@@ -84,21 +98,31 @@ socket.on('player_left', (data) => {
     updatePlayersList();
     updatePlayerMarkers();
     
+    // ТОЛЬКО в журнал, не в чат (как просили)
     addLogEntry(`Игрок "${data.playerName}" покинул игру.`);
 });
 
-// Обновление чата - ТОЛЬКО сообщения игроков
+// Обновление чата - ТОЛЬКО сообщения игроков (как просили)
 socket.on('new_chat_message', (data) => {
     addChatMessage(data.playerName, data.message);
 });
 
-// Бросок кубика другого игрока
+socket.on('chat_history', (messages) => {
+    console.log('💬 Получена история чата:', messages.length, 'сообщений');
+    chatMessages.innerHTML = '';
+    messages.forEach(msg => {
+        addChatMessage(msg.playerName, msg.message);
+    });
+});
+
+// Бросок кубика другого игрока - ТОЛЬКО в журнал
 socket.on('player_dice_roll', (data) => {
     if (gameState.players[data.playerId] && data.playerId !== gameState.currentPlayerId) {
         gameState.players[data.playerId].position = data.newPosition;
         gameState.players[data.playerId].currentTask = data.task;
         updatePlayerMarkers();
         
+        // ТОЛЬКО в журнал (как просили)
         addLogEntry(`Игрок "${gameState.players[data.playerId].name}" бросил кубик: ${data.diceValue}`);
     }
 });
@@ -107,6 +131,7 @@ socket.on('player_dice_roll', (data) => {
 socket.on('progress_updated', (data) => {
     gameState.cityProgress[data.cityKey] = data.progress;
     createCurrentCityProgress();
+    addLogEntry(`Прогресс очищения города обновлен: ${data.progress}%`);
 });
 
 // Игровые данные
@@ -117,54 +142,54 @@ const gameData = {
             cells: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 
             position: 0,
             description: "Стартовый город",
-            history: "Тверь — один из древнейших городов России, основанный в 1135 году.",
-            problem: "Основные экологические проблемы Твери — загрязнение воздуха промышленными предприятиями.",
-            task: "Ваша задача — помочь городу справиться с экологическими проблемами."
+            history: "Тверь — один из древнейших городов России, основанный в 1135 году. Расположена на берегах рек Волга, Тверца и Тьмака.",
+            problem: "Основные экологические проблемы Твери — загрязнение воздуха промышленными предприятиями и транспортными выбросами.",
+            task: "Ваша задача — помочь городу справиться с экологическими проблемами путем посадки деревьев и внедрения чистых технологий."
         },
         kineshma: { 
             name: "Кинешма", 
             cells: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], 
             position: 1,
             description: "Город на Волге",
-            history: "Кинешма — старинный город на Волге, известный с 1504 года.",
-            problem: "Главная экологическая проблема Кинешмы — загрязнение Волги.",
-            task: "Помогите очистить берега Волги."
+            history: "Кинешма — старинный город на Волге, известный с 1504 года. Важный промышленный и культурный центр Ивановской области.",
+            problem: "Главная экологическая проблема Кинешмы — загрязнение Волги промышленными стоками и бытовыми отходами.",
+            task: "Помогите очистить берега Волги от мусора и организовать систему переработки отходов."
         },
         naberezhnye_chelny: { 
             name: "Набережные Челны", 
             cells: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43], 
             position: 2,
             description: "Город автомобилестроителей",
-            history: "Набережные Челны — молодой город, основанный в 1930 году.",
-            problem: "Основные экологические проблемы — загрязнение воздуха автомобильными выбросами.",
-            task: "Помогите внедрить экологичные технологии на автозаводе."
+            history: "Набережные Челны — молодой город, основанный в 1930 году. Крупный центр автомобильной промышленности России.",
+            problem: "Основные экологические проблемы — загрязнение воздуха автомобильными выбросами и промышленными предприятиями.",
+            task: "Помогите внедрить экологичные технологии на автозаводе и развить общественный транспорт."
         },
         kazan: { 
             name: "Казань", 
             cells: [47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58], 
             position: 3,
             description: "Столица Татарстана",
-            history: "Казань — тысячелетний город, столица Республики Татарстан.",
-            problem: "Основные экологические проблемы Казани — высокий уровень загрязнения воздуха.",
-            task: "Ваша задача — помочь внедрить экологичные технологии."
+            history: "Казань — тысячелетний город, столица Республики Татарстан. Крупный культурный, экономический и научный центр России.",
+            problem: "Основные экологические проблемы Казани — высокий уровень загрязнения воздуха, транспортные пробки, утилизация отходов.",
+            task: "Ваша задача — помочь внедрить экологичные технологии, развить велоинфраструктуру и систему переработки мусора."
         },
         volgograd: { 
             name: "Волгоград", 
             cells: [66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77], 
             position: 4,
             description: "Город-герой",
-            history: "Волгоград — город-герой с богатой историей.",
-            problem: "Волгоград страдает от сильного промышленного загрязнения.",
-            task: "Помогите снизить промышленное загрязнение."
+            history: "Волгоград — город-герой с богатой историей, известный Сталинградской битвой. Крупный промышленный центр на Волге.",
+            problem: "Волгоград страдает от сильного промышленного загрязнения, особенно в районах металлургических и химических заводов.",
+            task: "Помогите снизить промышленное загрязнение путем модернизации предприятий и создания зеленых зон."
         },
         astrakhan: { 
             name: "Астрахань", 
             cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93], 
             position: 5,
             description: "Конечная точка маршрута",
-            history: "Астрахань — древний город в дельте Волги.",
-            problem: "Ключевые экологические проблемы Астрахани — снижение биоразнообразия.",
-            task: "Ваша финальная задача — помочь сохранить уникальную экосистему."
+            history: "Астрахань — древний город в дельте Волги, основанный в 1558 году. Важный рыболовный и транспортный узел.",
+            problem: "Ключевые экологические проблемы Астрахани — снижение биоразнообразия, загрязнение вод дельты Волги, опустынивание.",
+            task: "Ваша финальная задача — помочь сохранить уникальную экосистему дельты Волги и восстановить природное равновесие."
         }
     },
     tasks: {
@@ -191,10 +216,10 @@ const gameData = {
                 type: "quiz",
                 question: "Какой из этих материалов разлагается дольше всего?",
                 options: [
-                    {text: "Бумага", correct: false},
-                    {text: "Пластиковая бутылка", correct: true},
-                    {text: "Банан", correct: false},
-                    {text: "Хлопковая футболка", correct: false}
+                    {text: "Бумага (2-5 недель)", correct: false},
+                    {text: "Пластиковая бутылка (450+ лет)", correct: true},
+                    {text: "Банан (3-4 недели)", correct: false},
+                    {text: "Хлопковая футболка (5-6 месяцев)", correct: false}
                 ]
             },
             {
@@ -207,7 +232,7 @@ const gameData = {
         ],
         medium: [
             {
-                description: "Очистите реку от мусора",
+                description: "Очистите реку от 5 единиц мусора",
                 type: "clean",
                 goal: 5,
                 items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
@@ -220,7 +245,7 @@ const gameData = {
                     {text: "Развитие, удовлетворяющее потребности настоящего без ущерба для будущего", correct: true},
                     {text: "Быстрое экономическое развитие", correct: false},
                     {text: "Развитие только сельского хозяйства", correct: false},
-                    {text: "Развитие промышленности", correct: false}
+                    {text: "Развитие промышленности без ограничений", correct: false}
                 ]
             },
             {
@@ -237,9 +262,9 @@ const gameData = {
                 question: "Что такое углеродный след?",
                 options: [
                     {text: "Количество парниковых газов, производимых деятельностью человека", correct: true},
-                    {text: "След от угля", correct: false},
+                    {text: "След от угля на земле", correct: false},
                     {text: "Количество деревьев для поглощения CO2", correct: false},
-                    {text: "Уровень загрязнения воздуха", correct: false}
+                    {text: "Уровень загрязнения воздуха в городе", correct: false}
                 ]
             },
             {
@@ -410,6 +435,9 @@ function initializeGame(playerData) {
     setTimeout(() => {
         showCityModal(gameState.currentPlayer.city);
     }, 1000);
+    
+    // Запрашиваем состояние комнаты
+    socket.emit('get_room_state');
 }
 
 // Функция обновления состояния комнаты
@@ -435,7 +463,7 @@ function updateRoomState(roomData) {
     }
 }
 
-// Функция обновления чата
+// Функция обновления чата - ТОЛЬКО сообщения игроков (как просили)
 function addChatMessage(sender, message) {
     const messageElement = document.createElement('div');
     messageElement.className = 'chat-message';
@@ -496,7 +524,7 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Создание карты с шестигранниками
+// Создание карты с шестигранниками (как просили)
 function createMap() {
     mapGrid.innerHTML = '';
     
@@ -590,7 +618,7 @@ function createMap() {
     updatePlayerMarkers();
 }
 
-// Обновление маркеров игроков
+// Обновление маркеров игроков для шестигранников
 function updatePlayerMarkers() {
     document.querySelectorAll('.player-marker').forEach(marker => marker.remove());
     
@@ -786,6 +814,7 @@ function createBuildingsList() {
                 const newProgress = Math.min(100, currentCityProgress + 15);
                 updateCityProgress(gameState.currentPlayer.city, newProgress);
                 
+                // ТОЛЬКО в журнал, а в чат отправляем сообщение от игрока (как просили)
                 addLogEntry(`Вы построили "${building.name}"! Получено ${building.points} баллов очищения.`);
                 addChatMessage(gameState.currentPlayer.name, `Построил "${building.name}"!`);
                 
@@ -873,7 +902,7 @@ function updateDifficultyButtons() {
     }
 }
 
-// Добавление записи в журнал
+// Добавление записи в журнал (все игровые события здесь)
 function addLogEntry(message) {
     const entry = document.createElement('div');
     entry.className = 'log-entry';
@@ -1044,111 +1073,6 @@ function createSortTask(task) {
     initializeSorting(task.items.length);
 }
 
-// Создание задания на очистку
-function createCleanupTask(task) {
-    taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Кликните по мусору, чтобы очистить реку:</p>
-        <div class="river-container" style="width: 100%; height: 300px; background: linear-gradient(to bottom, #3498db, #2980b9); border-radius: 8px; position: relative; margin: 15px 0; overflow: hidden; cursor: crosshair;">
-            ${task.items.map((item, index) => {
-                const left = Math.random() * 80 + 10;
-                const top = Math.random() * 70 + 15;
-                return `<div class="cleanup-item" data-index="${index}" style="position: absolute; left: ${left}%; top: ${top}%; font-size: 2rem; cursor: pointer; transform: rotate(${Math.random() * 30 - 15}deg);">${item}</div>`;
-            }).join('')}
-        </div>
-        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Очищено: <span id="cleanupCount">0</span>/${task.goal}</p>
-    `;
-    
-    initializeCleanup(task.goal);
-}
-
-// Создание задания-пазла
-function createPuzzleTask(task) {
-    const pieces = task.image.split('');
-    const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
-    
-    taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Соберите пазл в правильном порядке:</p>
-        <div class="puzzle-target" style="display: flex; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-height: 100px;">
-            ${pieces.map((piece, index) => 
-                `<div class="puzzle-target-slot" data-index="${index}" style="width: 50px; height: 50px; border: 2px dashed #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center;"></div>`
-            ).join('')}
-        </div>
-        <div class="puzzle-pieces" style="display: flex; flex-wrap: wrap; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-            ${shuffledPieces.map((piece, index) => 
-                `<div class="puzzle-piece" data-piece="${piece}" draggable="true" style="width: 50px; height: 50px; border: 2px solid #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: grab; background: white;">${piece}</div>`
-            ).join('')}
-        </div>
-        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Собрано: <span id="puzzleCount">0</span>/${pieces.length}</p>
-    `;
-    
-    initializePuzzle(pieces.length);
-}
-
-// Создание задания "Найди отличия"
-function createSpotDifferenceTask(task) {
-    const differences = Array.from({length: task.differences}, (_, i) => i + 1);
-    
-    taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Найдите ${task.differences} отличия:</p>
-        <div class="difference-container" style="display: flex; gap: 20px; margin: 20px 0; justify-content: center;">
-            <div class="difference-image" style="position: relative;">
-                <div style="font-size: 3rem; padding: 20px; background: white; border-radius: 8px;">${task.image1}</div>
-                ${differences.map((_, index) => {
-                    const left = Math.random() * 70 + 15;
-                    const top = Math.random() * 60 + 20;
-                    return `<div class="difference-spot" data-index="${index}" style="position: absolute; left: ${left}%; top: ${top}%; width: 20px; height: 20px; border-radius: 50%; background: rgba(255, 0, 0, 0.3); cursor: pointer; display: none;"></div>`;
-                }).join('')}
-            </div>
-            <div class="difference-image" style="position: relative;">
-                <div style="font-size: 3rem; padding: 20px; background: white; border-radius: 8px;">${task.image2}</div>
-            </div>
-        </div>
-        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Найдено отличий: <span id="differenceCount">0</span>/${task.differences}</p>
-        <button class="game-btn small" id="showDifferencesBtn" style="margin-top: 10px;">Показать отличия</button>
-    `;
-    
-    initializeSpotDifference(task.differences);
-}
-
-// Создание задания на последовательность
-function createPuzzleSequenceTask(task) {
-    const shuffledSequence = [...task.sequence].sort(() => Math.random() - 0.5);
-    
-    taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Расположите элементы в правильной последовательности:</p>
-        <div class="sequence-target" style="display: flex; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-height: 100px;">
-            ${task.correctOrder.map((_, index) => 
-                `<div class="sequence-slot" data-index="${index}" style="width: 60px; height: 60px; border: 2px dashed #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center;"></div>`
-            ).join('')}
-        </div>
-        <div class="sequence-pieces" style="display: flex; flex-wrap: wrap; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-            ${shuffledSequence.map((piece, index) => 
-                `<div class="sequence-piece" data-piece="${piece}" draggable="true" style="width: 60px; height: 60px; border: 2px solid #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: grab; background: white;">${piece}</div>`
-            ).join('')}
-        </div>
-        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Правильно размещено: <span id="sequenceCount">0</span>/${task.correctOrder.length}</p>
-    `;
-    
-    initializeSequence(task.correctOrder);
-}
-
-// Создание задания по умолчанию
-function createDefaultTask(task) {
-    taskArea.innerHTML = `
-        <p>Задание "${task.description}"</p>
-        <p>Для демонстрации нажмите кнопку "Проверить выполнение"</p>
-        <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-            <p><strong>Демонстрация задания:</strong></p>
-            <p>Здесь будет интерактивная часть задания</p>
-        </div>
-    `;
-    checkTaskBtn.disabled = false;
-}
-
 // Инициализация перетаскивания
 function initializeDragAndDrop(goal) {
     const draggables = taskArea.querySelectorAll('.draggable-item');
@@ -1251,6 +1175,24 @@ function initializeSorting(totalItems) {
     });
 }
 
+// Создание задания на очистку
+function createCleanupTask(task) {
+    taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Кликните по мусору, чтобы очистить реку:</p>
+        <div class="river-container" style="width: 100%; height: 300px; background: linear-gradient(to bottom, #3498db, #2980b9); border-radius: 8px; position: relative; margin: 15px 0; overflow: hidden; cursor: crosshair;">
+            ${task.items.map((item, index) => {
+                const left = Math.random() * 80 + 10;
+                const top = Math.random() * 70 + 15;
+                return `<div class="cleanup-item" data-index="${index}" style="position: absolute; left: ${left}%; top: ${top}%; font-size: 2rem; cursor: pointer; transform: rotate(${Math.random() * 30 - 15}deg);">${item}</div>`;
+            }).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Очищено: <span id="cleanupCount">0</span>/${task.goal}</p>
+    `;
+    
+    initializeCleanup(task.goal);
+}
+
 // Инициализация очистки
 function initializeCleanup(goal) {
     const cleanupItems = taskArea.querySelectorAll('.cleanup-item');
@@ -1274,18 +1216,30 @@ function initializeCleanup(goal) {
             }
         });
     });
+}
+
+// Создание задания-пазла
+function createPuzzleTask(task) {
+    const pieces = task.image.split('');
+    const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
     
-    // Кнопка показа отличий
-    const showDiffBtn = taskArea.querySelector('#showDifferencesBtn');
-    if (showDiffBtn) {
-        showDiffBtn.addEventListener('click', function() {
-            const diffSpots = taskArea.querySelectorAll('.difference-spot');
-            diffSpots.forEach(spot => {
-                spot.style.display = 'block';
-            });
-            this.disabled = true;
-        });
-    }
+    taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Соберите пазл в правильном порядке:</p>
+        <div class="puzzle-target" style="display: flex; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-height: 100px;">
+            ${pieces.map((piece, index) => 
+                `<div class="puzzle-target-slot" data-index="${index}" style="width: 50px; height: 50px; border: 2px dashed #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center;"></div>`
+            ).join('')}
+        </div>
+        <div class="puzzle-pieces" style="display: flex; flex-wrap: wrap; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            ${shuffledPieces.map((piece, index) => 
+                `<div class="puzzle-piece" data-piece="${piece}" draggable="true" style="width: 50px; height: 50px; border: 2px solid #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: grab; background: white;">${piece}</div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Собрано: <span id="puzzleCount">0</span>/${pieces.length}</p>
+    `;
+    
+    initializePuzzle(pieces.length);
 }
 
 // Инициализация пазла
@@ -1335,6 +1289,33 @@ function initializePuzzle(totalPieces) {
     });
 }
 
+// Создание задания "Найди отличия"
+function createSpotDifferenceTask(task) {
+    const differences = Array.from({length: task.differences}, (_, i) => i + 1);
+    
+    taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Найдите ${task.differences} отличия:</p>
+        <div class="difference-container" style="display: flex; gap: 20px; margin: 20px 0; justify-content: center;">
+            <div class="difference-image" style="position: relative;">
+                <div style="font-size: 3rem; padding: 20px; background: white; border-radius: 8px;">${task.image1}</div>
+                ${differences.map((_, index) => {
+                    const left = Math.random() * 70 + 15;
+                    const top = Math.random() * 60 + 20;
+                    return `<div class="difference-spot" data-index="${index}" style="position: absolute; left: ${left}%; top: ${top}%; width: 20px; height: 20px; border-radius: 50%; background: rgba(255, 0, 0, 0.3); cursor: pointer; display: none;"></div>`;
+                }).join('')}
+            </div>
+            <div class="difference-image" style="position: relative;">
+                <div style="font-size: 3rem; padding: 20px; background: white; border-radius: 8px;">${task.image2}</div>
+            </div>
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Найдено отличий: <span id="differenceCount">0</span>/${task.differences}</p>
+        <button class="game-btn small" id="showDifferencesBtn" style="margin-top: 10px;">Показать отличия</button>
+    `;
+    
+    initializeSpotDifference(task.differences);
+}
+
 // Инициализация "Найди отличия"
 function initializeSpotDifference(totalDifferences) {
     const differenceSpots = taskArea.querySelectorAll('.difference-spot');
@@ -1368,6 +1349,29 @@ function initializeSpotDifference(totalDifferences) {
             this.disabled = true;
         });
     }
+}
+
+// Создание задания на последовательность
+function createPuzzleSequenceTask(task) {
+    const shuffledSequence = [...task.sequence].sort(() => Math.random() - 0.5);
+    
+    taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Расположите элементы в правильной последовательности:</p>
+        <div class="sequence-target" style="display: flex; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-height: 100px;">
+            ${task.correctOrder.map((_, index) => 
+                `<div class="sequence-slot" data-index="${index}" style="width: 60px; height: 60px; border: 2px dashed #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center;"></div>`
+            ).join('')}
+        </div>
+        <div class="sequence-pieces" style="display: flex; flex-wrap: wrap; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            ${shuffledSequence.map((piece, index) => 
+                `<div class="sequence-piece" data-piece="${piece}" draggable="true" style="width: 60px; height: 60px; border: 2px solid #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: grab; background: white;">${piece}</div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Правильно размещено: <span id="sequenceCount">0</span>/${task.correctOrder.length}</p>
+    `;
+    
+    initializeSequence(task.correctOrder);
 }
 
 // Инициализация последовательности
@@ -1418,6 +1422,19 @@ function initializeSequence(correctOrder) {
     });
 }
 
+// Создание задания по умолчанию
+function createDefaultTask(task) {
+    taskArea.innerHTML = `
+        <p>Задание "${task.description}"</p>
+        <p>Для демонстрации нажмите кнопку "Проверить выполнение"</p>
+        <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <p><strong>Демонстрация задания:</strong></p>
+            <p>Здесь будет интерактивная часть задания</p>
+        </div>
+    `;
+    checkTaskBtn.disabled = false;
+}
+
 // Завершение интерактивного задания
 function completeInteractiveTask() {
     if (!gameState.currentTask) return;
@@ -1466,6 +1483,7 @@ function completeInteractiveTask() {
     buildBtn.disabled = false;
     rollDiceBtn.disabled = false;
     
+    // ТОЛЬКО в журнал (как просили), а в чат отправляем сообщение от игрока
     addLogEntry(`Вы выполнили задание и получили ${coinsEarned} монет и ${expEarned} опыта!`);
     addChatMessage(gameState.currentPlayer.name, `Выполнил задание!`);
     
@@ -1573,6 +1591,7 @@ rollDiceBtn.addEventListener('click', () => {
             completeTaskBtn.disabled = false;
         }
         
+        // ТОЛЬКО в журнал (как просили)
         addLogEntry(`Вы бросили кубик и выпало: ${value}. Новое положение: ${gameState.currentPlayer.position}`);
         
         updatePlayerMarkers();
@@ -1632,6 +1651,7 @@ function moveToCity(cityKey) {
         }
     });
     
+    // ТОЛЬКО в журнал (как просили)
     addLogEntry(`Вы прибыли в город: ${gameData.cities[cityKey].name}`);
     
     if (gameState.cityProgress[cityKey] >= 100) {
@@ -1717,7 +1737,7 @@ chatInput.addEventListener('keypress', (e) => {
 inviteBtn.addEventListener('click', () => {
     const roomNumber = currentRoomId || gameState.roomId;
     if (roomNumber) {
-        const inviteText = `Присоединяйтесь к моей комнате в игре "Юный эколог"! Номер комнаты: ${roomNumber}`;
+        const inviteText = `Присоединяйтесь к моей комнате в игре "Юный эколог"! Номер комнаты: ${roomNumber}\nИгра доступна по адресу: ${window.location.origin}`;
         
         showNotification(`Номер комнаты: ${roomNumber} (скопировано в буфер обмена)`, 'info');
         
@@ -1808,4 +1828,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Инициализация кнопки постройки
     buildBtn.disabled = false;
+    
+    // Тестирование подключения
+    setTimeout(() => {
+        if (!isConnected) {
+            showNotification('Не удалось подключиться к серверу. Проверьте запущен ли server.js', 'error');
+            updateConnectionStatus('error', '❌ Нет подключения');
+        }
+    }, 5000);
 });
