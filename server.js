@@ -17,16 +17,19 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Хранилище комнат
-const rooms = {};
-const chatHistory = {};
-
-// Обслуживание статических файлов - ИСПРАВЛЕНО
-// Используем текущую директорию вместо 'public'
+// ВАЖНО: Указываем правильный путь для статических файлов
+// Используем __dirname для текущей директории
 app.use(express.static(__dirname));
 
-// Маршрут для главной страницы
+// Маршрут для главной страницы - ВАЖНО: используем path.join
 app.get('/', (req, res) => {
+    const indexPath = path.join(__dirname, 'index.html');
+    console.log('Путь к index.html:', indexPath);
+    res.sendFile(indexPath);
+});
+
+// Альтернативный маршрут для index.html
+app.get('/index.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -36,7 +39,8 @@ app.get('/api/status', (req, res) => {
         status: 'ok', 
         rooms: Object.keys(rooms).length,
         timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        version: '1.0.0',
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
@@ -44,6 +48,10 @@ app.get('/api/status', (req, res) => {
 app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
+
+// Хранилище комнат
+const rooms = {};
+const chatHistory = {};
 
 // Socket.IO обработчики
 io.on('connection', (socket) => {
@@ -296,30 +304,43 @@ io.on('connection', (socket) => {
 });
 
 // ВАЖНО: Используем порт из переменных окружения для Render
-// Render сам устанавливает PORT в переменные окружения
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, '0.0.0.0', () => {
+    console.log('========================================');
     console.log(`🚀 Сервер запущен на порту ${PORT}`);
-    console.log(`🌐 Доступен по адресу: http://localhost:${PORT}`);
+    console.log(`🌐 Локальный адрес: http://localhost:${PORT}`);
     console.log(`📊 API статуса: http://localhost:${PORT}/api/status`);
-    console.log(`❤️ Health check: http://localhost:${PORT}/health`);
+    console.log(`❤️  Health check: http://localhost:${PORT}/health`);
+    console.log('========================================');
     
-    // Для Render.com
-    if (process.env.RENDER) {
-        console.log(`🌍 Внешний URL: https://${process.env.RENDER_SERVICE_NAME}.onrender.com`);
+    // Логирование окружения для отладки
+    console.log('Информация о окружении:');
+    console.log('- NODE_ENV:', process.env.NODE_ENV || 'development');
+    console.log('- Текущая директория:', __dirname);
+    console.log('- Файлы в директории:');
+    
+    // Проверяем наличие index.html
+    const fs = require('fs');
+    const indexPath = path.join(__dirname, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        console.log('- ✅ index.html найден по пути:', indexPath);
+    } else {
+        console.log('- ❌ index.html НЕ найден! Ищем файлы...');
+        try {
+            const files = fs.readdirSync(__dirname);
+            console.log('- Доступные файлы:', files);
+        } catch (err) {
+            console.log('- Ошибка чтения директории:', err.message);
+        }
     }
 });
 
 // Обработка ошибок сервера
 server.on('error', (error) => {
+    console.error('❌ Ошибка сервера:', error);
     if (error.code === 'EADDRINUSE') {
-        console.error(`❌ Порт ${PORT} занят. Попробуйте другой порт:`);
-        console.log('  1. Установите переменную окружения PORT=другой_порт');
-        console.log('  2. Или измените значение по умолчанию в server.js');
-        process.exit(1);
-    } else {
-        console.error('❌ Ошибка сервера:', error);
+        console.error(`Порт ${PORT} занят. Попробуйте другой порт.`);
     }
 });
 
