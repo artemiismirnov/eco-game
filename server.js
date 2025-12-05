@@ -5,374 +5,148 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
+const io = socketIo(server);
 
-// Улучшенные настройки CORS для публичного доступа
-const io = socketIo(server, {
-    cors: {
-        origin: "*", // Разрешаем все источники для тестирования
-        methods: ["GET", "POST"],
-        credentials: false
-    },
-    transports: ['websocket', 'polling'],
-    allowEIO3: true,
-    pingTimeout: 60000,
-    pingInterval: 25000
-});
+// Раздаем статические файлы
+app.use(express.static(path.join(__dirname)));
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Добавляем middleware для безопасности
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    next();
-});
-
-// Хранилище лобби
-const lobbies = new Map();
-
-// Автоматическая очистка пустых лобби каждые 5 минут
-setInterval(() => {
-    const now = Date.now();
-    let cleaned = 0;
-    
-    for (const [lobbyId, lobby] of lobbies.entries()) {
-        // Удаляем лобби, пустые более 30 минут
-        if (Object.keys(lobby.players).length === 0 && 
-            now - new Date(lobby.created).getTime() > 30 * 60 * 1000) {
-            lobbies.delete(lobbyId);
-            cleaned++;
-        }
-    }
-    
-    if (cleaned > 0) {
-        console.log(`🧹 Очищено ${cleaned} пустых лобби`);
-    }
-}, 5 * 60 * 1000);
+// Хранилище комнат
+const rooms = new Map();
 
 io.on('connection', (socket) => {
-    console.log('🔗 Новое подключение:', socket.id, 'from', socket.handshake.headers.origin || socket.handshake.address);
+    console.log('✅ Новый пользователь подключился:', socket.id);
 
-    // Отправляем подтверждение подключения
-    socket.emit('connection_confirmed', { 
-        message: 'Connected to server',
-        socketId: socket.id,
-        timestamp: new Date().toISOString()
-    });
-
-    // Получить список доступных лобби
-    socket.on('get_lobbies', () => {
-        const lobbyList = Array.from(lobbies.entries()).map(([id, lobby]) => ({
-            id,
-            playerCount: Object.keys(lobby.players).length,
-            created: lobby.created,
-            players: Object.values(lobby.players).map(p => p.name),
-            cityProgress: lobby.cityProgress
-        }));
-        
-        socket.emit('lobby_list', lobbyList);
-    });
-
-    // Создать или присоединиться к лобби
     socket.on('join-room', (data) => {
-        const { roomId, playerName, isNewRoom = false } = data;
+        const { roomId, playerId, playerName, isNewRoom } = data;
         
-        console.log(`🎮 Запрос на присоединение: ${playerName} к комнате ${roomId}, новый: ${isNewRoom}`);
+        console.log(`🎮 Игрок ${playerName} присоединяется к комнате ${roomId}`);
         
-        // Проверяем имя игрока
-        if (!playerName || playerName.trim().length < 2) {
-            socket.emit('room-error', 'Имя должно содержать минимум 2 символа');
-            return;
-        }
-
-        // Очищаем имя от лишних пробелов
-        const cleanPlayerName = playerName.trim();
-        
-        let targetLobbyId = roomId;
-        
-        // Создаем новое лобби если нужно
-        if (isNewRoom || !lobbies.has(roomId)) {
-            targetLobbyId = generateLobbyId();
-            lobbies.set(targetLobbyId, {
-                players: {},
-                cityProgress: { 
-                    tver: 0, 
-                    kineshma: 0, 
-                    naberezhnye_chelny: 0, 
-                    kazan: 0, 
-                    volgograd: 0, 
-                    astrakhan: 0 
+        // Если комната не существует и это создание новой
+        if (!rooms.has(roomId) && isNewRoom) {
+            rooms.set(roomId, {
+                players: new Map(),
+                cityProgress: {
+                    tver: 0, kineshma: 0, naberezhnye_chelny: 0,
+                    kazan: 0, volgograd: 0, astrakhan: 0
                 },
-                created: new Date().toISOString(),
-                maxPlayers: 6
+                messages: []
             });
-            console.log(`🆕 Создано лобби: ${targetLobbyId}`);
-        }
-
-        const lobby = lobbies.get(targetLobbyId);
-        
-        if (!lobby) {
-            socket.emit('room-error', 'Лобби не найдено');
-            return;
         }
         
-        // Проверяем нет ли игрока с таким именем (игнорируем регистр)
-        const existingPlayer = Object.values(lobby.players).find(p => 
-            p.name.toLowerCase() === cleanPlayerName.toLowerCase() && p.connected
-        );
-        if (existingPlayer) {
-            socket.emit('room-error', 'Игрок с таким именем уже есть в лобби');
-            return;
-        }
-
-        // Проверяем лимит игроков
-        const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
-        if (activePlayers >= lobby.maxPlayers) {
-            socket.emit('room-error', 'Лобби заполнено (максимум 6 игроков)');
-            return;
-        }
-
-        const playerId = socket.id;
-        const player = {
-            id: playerId,
-            name: cleanPlayerName,
-            position: 1,
-            city: "tver",
-            coins: 100,
-            cleaningPoints: 0,
-            buildings: [],
-            level: 1,
-            completedTasks: 0,
-            color: getPlayerColor(activePlayers),
-            currentTask: null,
-            currentDifficulty: "easy",
-            connected: true,
-            joinedAt: new Date().toISOString()
-        };
-
-        // Добавляем игрока
-        lobby.players[playerId] = player;
-        socket.playerId = playerId;
-        socket.lobbyId = targetLobbyId;
-        socket.playerName = cleanPlayerName;
-        
-        // Присоединяемся к комнате
-        socket.join(targetLobbyId);
-        
-        console.log(`✅ ${cleanPlayerName} присоединился к лобби ${targetLobbyId}`);
-        console.log(`👥 Лобби ${targetLobbyId}: ${activePlayers + 1}/${lobby.maxPlayers} игроков`);
-        
-        // Отправляем успешное присоединение
-        socket.emit('join-success', { 
-            ...player,
-            roomId: targetLobbyId
-        });
-
-        // Отправляем состояние лобби всем игрокам в комнате
-        io.to(targetLobbyId).emit('room_state', {
-            players: lobby.players,
-            cityProgress: lobby.cityProgress,
-            roomId: targetLobbyId
-        });
-
-        // Уведомляем других игроков о новом игроке
-        socket.to(targetLobbyId).emit('player_joined', {
-            playerId,
-            player
-        });
-
-        // Отправляем историю сообщений новому игроку
-        if (lobby.messages) {
-            socket.emit('chat_history', lobby.messages.slice(-50)); // Последние 50 сообщений
+        // Если комната существует или была создана
+        if (rooms.has(roomId)) {
+            const room = rooms.get(roomId);
+            
+            // Добавляем игрока в комнату
+            room.players.set(playerId, {
+                id: playerId,
+                name: playerName,
+                position: 0,
+                city: "tver",
+                coins: 100,
+                cleaningPoints: 0,
+                buildings: [],
+                level: 1,
+                completedTasks: 0,
+                color: getRandomColor()
+            });
+            
+            // Присоединяем сокет к комнате
+            socket.join(roomId);
+            
+            // Отправляем успешное присоединение
+            socket.emit('join-success', room.players.get(playerId));
+            
+            // Обновляем всех игроков в комнате
+            io.to(roomId).emit('room-update', {
+                players: Array.from(room.players.values()),
+                cityProgress: room.cityProgress,
+                messages: room.messages
+            });
+            
+            console.log(`✅ Игрок ${playerName} присоединился к комнате ${roomId}`);
+        } else {
+            socket.emit('room-error', 'Комната не существует!');
         }
     });
-
-    // Чат
-    socket.on('chat_message', (data) => {
-        if (socket.lobbyId && socket.playerId) {
-            const lobby = lobbies.get(socket.lobbyId);
-            const player = lobby.players[socket.playerId];
-            
-            if (!player) return;
-            
-            // Ограничиваем длину сообщения
-            const message = String(data.message || '').substring(0, 500);
-            
-            // Создаем объект сообщения
-            const chatMessage = {
-                playerId: socket.playerId,
-                playerName: player.name,
+    
+    socket.on('player-update', (playerData) => {
+        // Находим комнату игрока
+        for (let [roomId, room] of rooms) {
+            if (room.players.has(playerData.id)) {
+                // Обновляем данные игрока
+                room.players.set(playerData.id, playerData);
+                
+                // Рассылаем обновление всем в комнате
+                io.to(roomId).emit('room-update', {
+                    players: Array.from(room.players.values()),
+                    cityProgress: room.cityProgress,
+                    messages: room.messages
+                });
+                break;
+            }
+        }
+    });
+    
+    socket.on('chat-message', (data) => {
+        const { playerId, message } = data;
+        
+        // Находим комнату и игрока
+        for (let [roomId, room] of rooms) {
+            if (room.players.has(playerId)) {
+                const player = room.players.get(playerId);
+                const chatMessage = {
+                    sender: player.name,
+                    message: message,
+                    type: 'chat',
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Сохраняем сообщение
+                room.messages.push(chatMessage);
+                if (room.messages.length > 50) room.messages.shift();
+                
+                // Рассылаем сообщение
+                io.to(roomId).emit('chat-update', room.messages);
+                break;
+            }
+        }
+    });
+    
+    socket.on('system-message', (message) => {
+        // Находим комнату сокета
+        const roomId = Array.from(socket.rooms).find(room => room !== socket.id);
+        if (roomId && rooms.has(roomId)) {
+            const room = rooms.get(roomId);
+            const systemMessage = {
+                sender: 'Система',
                 message: message,
-                timestamp: new Date().toISOString(),
-                color: player.color
+                type: 'system',
+                timestamp: new Date().toISOString()
             };
             
-            // Сохраняем сообщение в истории лобби
-            if (!lobby.messages) {
-                lobby.messages = [];
-            }
-            lobby.messages.push(chatMessage);
+            room.messages.push(systemMessage);
+            if (room.messages.length > 50) room.messages.shift();
             
-            // Отправляем сообщение всем в комнате
-            io.to(socket.lobbyId).emit('new_chat_message', chatMessage);
-            
-            console.log(`💬 ${player.name} в ${socket.lobbyId}: ${message.substring(0, 50)}...`);
+            io.to(roomId).emit('chat-update', room.messages);
         }
     });
-
-    // Игровые события
-    socket.on('dice_roll', (data) => {
-        if (socket.lobbyId && socket.playerId) {
-            const lobby = lobbies.get(socket.lobbyId);
-            if (lobby && lobby.players[socket.playerId]) {
-                lobby.players[socket.playerId].position = data.newPosition;
-                lobby.players[socket.playerId].currentTask = data.task;
-                
-                // Отправляем обновленное состояние
-                io.to(socket.lobbyId).emit('room_state', {
-                    players: lobby.players,
-                    cityProgress: lobby.cityProgress
-                });
-                
-                // Отправляем событие броска кубика
-                socket.to(socket.lobbyId).emit('player_dice_roll', {
-                    ...data,
-                    playerId: socket.playerId
-                });
-                
-                console.log(`🎲 ${lobby.players[socket.playerId].name} бросил кубик: ${data.diceValue}`);
-            }
-        }
-    });
-
-    socket.on('update_progress', (data) => {
-        if (socket.lobbyId) {
-            const lobby = lobbies.get(socket.lobbyId);
-            if (lobby) {
-                lobby.cityProgress[data.cityKey] = data.progress;
-                
-                // Отправляем обновление всем игрокам
-                io.to(socket.lobbyId).emit('progress_updated', data);
-                
-                // Отправляем полное состояние комнаты
-                io.to(socket.lobbyId).emit('room_state', {
-                    players: lobby.players,
-                    cityProgress: lobby.cityProgress
-                });
-                
-                console.log(`📈 Прогресс ${data.cityKey}: ${data.progress}%`);
-            }
-        }
-    });
-
-    socket.on('player-update', (data) => {
-        if (socket.lobbyId && socket.playerId) {
-            const lobby = lobbies.get(socket.lobbyId);
-            if (lobby && lobby.players[socket.playerId]) {
-                // Обновляем данные игрока
-                Object.assign(lobby.players[socket.playerId], data);
-                
-                // Отправляем обновленное состояние всем
-                io.to(socket.lobbyId).emit('room_state', {
-                    players: lobby.players,
-                    cityProgress: lobby.cityProgress
-                });
-            }
-        }
-    });
-
-    // Отслеживание активности
-    socket.on('disconnect', (reason) => {
-        console.log('❌ Отключение:', socket.id, reason);
-        
-        if (socket.lobbyId && socket.playerId) {
-            const lobby = lobbies.get(socket.lobbyId);
-            if (lobby && lobby.players[socket.playerId]) {
-                const playerName = lobby.players[socket.playerId].name;
-                
-                // Помечаем игрока как отключенного
-                lobby.players[socket.playerId].connected = false;
-                
-                // Уведомляем других игроков
-                socket.to(socket.lobbyId).emit('player_left', {
-                    playerId: socket.playerId,
-                    playerName: playerName
-                });
-
-                // Отправляем обновленное состояние
-                io.to(socket.lobbyId).emit('room_state', {
-                    players: lobby.players,
-                    cityProgress: lobby.cityProgress
-                });
-
-                console.log(`🚪 ${playerName} покинул лобби ${socket.lobbyId}`);
-                
-                // Удаляем лобби если оно пустое
-                const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
-                if (activePlayers === 0) {
-                    console.log(`🗑️ Лобби ${socket.lobbyId} пустое, готово к удалению`);
-                }
-            }
-        }
-    });
-
-    // Пинг для проверки связи
-    socket.on('ping', (cb) => {
-        if (typeof cb === 'function') {
-            cb({ 
-                pong: Date.now(), 
-                lobbyId: socket.lobbyId,
-                playerId: socket.playerId,
-                serverTime: new Date().toISOString()
-            });
-        }
-    });
-
-    // Запрос состояния комнаты
-    socket.on('get_room_state', () => {
-        if (socket.lobbyId) {
-            const lobby = lobbies.get(socket.lobbyId);
-            if (lobby) {
-                socket.emit('room_state', {
-                    players: lobby.players,
-                    cityProgress: lobby.cityProgress,
-                    roomId: socket.lobbyId
-                });
-            }
-        }
+    
+    socket.on('disconnect', () => {
+        console.log('❌ Пользователь отключился:', socket.id);
     });
 });
 
-// Вспомогательные функции
-function generateLobbyId() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-}
-
-function getPlayerColor(index) {
+function getRandomColor() {
     const colors = [
-        '#4ecdc4', // Бирюзовый
-        '#ff6b6b', // Красный
-        '#2ecc71', // Зеленый
-        '#f39c12', // Оранжевый
-        '#9b59b6', // Фиолетовый
-        '#3498db'  // Синий
+        '#4ecdc4', '#ff6b6b', '#2ecc71', '#f39c12', '#9b59b6',
+        '#1abc9c', '#e74c3c', '#3498db', '#e67e22', '#34495e'
     ];
-    return colors[index % colors.length];
+    return colors[Math.floor(Math.random() * colors.length)];
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log('='.repeat(60));
-    console.log('🎮 ЭКО-ИГРА ЗАПУЩЕНА!');
-    console.log(`📍 Порт: ${PORT}`);
-    console.log(`🌐 Доступна по адресу: http://localhost:${PORT}`);
-    console.log(`🌐 Режим: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🕒 Время запуска: ${new Date().toLocaleString()}`);
-    console.log('='.repeat(60));
+server.listen(PORT, () => {
+    console.log(`🚀 Сервер запущен на порту ${PORT}`);
+    console.log(`📁 Откройте http://localhost:${PORT} в браузере`);
 });
