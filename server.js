@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const cors = require('cors');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,36 +18,96 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// ВАЖНО: Указываем правильный путь для статических файлов
-// Используем __dirname для текущей директории
-app.use(express.static(__dirname));
+// ВАЖНО: Получаем корневую директорию проекта
+const projectRoot = __dirname;
 
-// Маршрут для главной страницы - ВАЖНО: используем path.join
+// Проверяем, в какой директории мы находимся и ищем index.html
+console.log('Текущая директория:', projectRoot);
+console.log('Содержимое директории:');
+
+try {
+    const files = fs.readdirSync(projectRoot);
+    console.log('Файлы:', files);
+    
+    // Проверим разные возможные пути к index.html
+    const possiblePaths = [
+        path.join(projectRoot, 'index.html'),
+        path.join(projectRoot, 'src', 'index.html'),
+        path.join(projectRoot, 'public', 'index.html')
+    ];
+    
+    for (const filePath of possiblePaths) {
+        if (fs.existsSync(filePath)) {
+            console.log(`✅ Найден index.html по пути: ${filePath}`);
+        }
+    }
+} catch (err) {
+    console.error('Ошибка при чтении директории:', err.message);
+}
+
+// Обслуживание статических файлов из текущей директории
+app.use(express.static(projectRoot));
+
+// Также обслуживаем статические файлы из возможных подпапок
+app.use(express.static(path.join(projectRoot, 'src')));
+app.use(express.static(path.join(projectRoot, 'public')));
+
+// Главный маршрут - пробуем найти index.html в разных местах
 app.get('/', (req, res) => {
-    const indexPath = path.join(__dirname, 'index.html');
-    console.log('Путь к index.html:', indexPath);
-    res.sendFile(indexPath);
+    const possiblePaths = [
+        path.join(projectRoot, 'index.html'),
+        path.join(projectRoot, 'src', 'index.html'),
+        path.join(projectRoot, 'public', 'index.html')
+    ];
+    
+    for (const filePath of possiblePaths) {
+        if (fs.existsSync(filePath)) {
+            console.log(`Отправляем index.html по пути: ${filePath}`);
+            return res.sendFile(filePath);
+        }
+    }
+    
+    // Если файл не найден, возвращаем ошибку
+    res.status(404).send(`
+        <html>
+            <head><title>Ошибка 404</title></head>
+            <body style="font-family: Arial; padding: 20px;">
+                <h1>Ошибка 404: index.html не найден</h1>
+                <p>Текущая директория: ${projectRoot}</p>
+                <p>Проверьте, что файл index.html загружен в репозиторий.</p>
+            </body>
+        </html>
+    `);
 });
 
-// Альтернативный маршрут для index.html
+// Явный маршрут для index.html
 app.get('/index.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    const filePath = path.join(projectRoot, 'index.html');
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('index.html не найден');
+    }
 });
 
 // API для проверки статуса сервера
 app.get('/api/status', (req, res) => {
     res.json({ 
         status: 'ok', 
-        rooms: Object.keys(rooms).length,
         timestamp: new Date().toISOString(),
         version: '1.0.0',
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        projectRoot: projectRoot,
+        port: process.env.PORT || 3000
     });
 });
 
 // Health check для Render
 app.get('/health', (req, res) => {
-    res.status(200).send('OK');
+    res.status(200).json({ 
+        status: 'healthy',
+        uptime: process.uptime()
+    });
 });
 
 // Хранилище комнат
@@ -314,24 +375,27 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`❤️  Health check: http://localhost:${PORT}/health`);
     console.log('========================================');
     
-    // Логирование окружения для отладки
-    console.log('Информация о окружении:');
-    console.log('- NODE_ENV:', process.env.NODE_ENV || 'development');
-    console.log('- Текущая директория:', __dirname);
-    console.log('- Файлы в директории:');
-    
-    // Проверяем наличие index.html
-    const fs = require('fs');
-    const indexPath = path.join(__dirname, 'index.html');
+    // Проверяем наличие index.html еще раз при запуске
+    const indexPath = path.join(projectRoot, 'index.html');
     if (fs.existsSync(indexPath)) {
-        console.log('- ✅ index.html найден по пути:', indexPath);
+        console.log(`✅ index.html найден: ${indexPath}`);
     } else {
-        console.log('- ❌ index.html НЕ найден! Ищем файлы...');
-        try {
-            const files = fs.readdirSync(__dirname);
-            console.log('- Доступные файлы:', files);
-        } catch (err) {
-            console.log('- Ошибка чтения директории:', err.message);
+        console.log(`⚠️  index.html не найден в корне. Ищем в других местах...`);
+        
+        // Проверяем возможные пути
+        const possiblePaths = [
+            path.join(projectRoot, 'index.html'),
+            path.join(projectRoot, 'src', 'index.html'),
+            path.join(projectRoot, 'public', 'index.html'),
+            '/opt/render/project/src/index.html',
+            '/opt/render/project/index.html'
+        ];
+        
+        for (const filePath of possiblePaths) {
+            if (fs.existsSync(filePath)) {
+                console.log(`✅ Найден index.html по пути: ${filePath}`);
+                break;
+            }
         }
     }
 });
