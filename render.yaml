@@ -1,11 +1,9 @@
 services:
   - type: web
-    name: eco-game
+    name: ecogame
     env: node
-    plan: free
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: node src/server.js
     envVars:
-      - key: NODE_ENV
-        value: production
-    healthCheckPath: /api/status
+      - key: PORT
+        value: 10000
