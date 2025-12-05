@@ -3,7 +3,21 @@ services:
     name: ecogame
     env: node
     buildCommand: npm install
-    startCommand: node src/server.js
+    startCommand: node server.js
     envVars:
       - key: PORT
         value: 10000
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /health
+    autoDeploy: true
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "*"
+      - path: /*
+        name: Access-Control-Allow-Methods
+        value: "GET, POST, OPTIONS"
+      - path: /*
+        name: Access-Control-Allow-Headers
+        value: "Content-Type"
