@@ -1462,7 +1462,7 @@
                             </div>
                             <div class="stat">
                                 <span class="stat-label">Позиция:</span>
-                                <span class="stat-value" id="currentPosition">0</span>
+                                <span class="stat-value" id="currentPosition">1</span>
                             </div>
                             <div class="stat">
                                 <span class="stat-label">Монеты:</span>
@@ -2027,7 +2027,8 @@
             if (socket.connected && gameState.currentPlayer) {
                 socket.emit('player_position_update', {
                     position: position,
-                    city: city
+                    city: city,
+                    playerName: gameState.currentPlayer.name
                 });
                 console.log(`📤 Отправлена позиция на сервер: ${position}, город: ${city}`);
             }
@@ -2096,11 +2097,20 @@
             // Обновляем подсказку
             const tooltip = marker.querySelector('.player-tooltip');
             if (tooltip) {
-                tooltip.textContent = `${playerName} (поз. ${position})`;
+                // Определяем город для этой позиции
+                let currentCityName = '';
+                for (const cityKey in gameData.cities) {
+                    if (gameData.cities[cityKey].cells.includes(cellNumber)) {
+                        currentCityName = gameData.cities[cityKey].name;
+                        break;
+                    }
+                }
+                
+                tooltip.textContent = `${playerName} (поз. ${cellNumber}, ${currentCityName || 'в пути'})`;
             }
             
             // Обновляем в списке игроков
-            updatePlayerInList(playerId, position, playerName);
+            updatePlayerInList(playerId, cellNumber, playerName);
         }
         
         // Функция для получения случайного цвета для игрока
@@ -2227,6 +2237,34 @@
             gameState.currentPlayer = playerData;
             gameState.currentPlayerId = socket.id;
             
+            // Устанавливаем начальную позицию (клетка 1) если ее нет
+            if (!gameState.currentPlayer.position || gameState.currentPlayer.position < 1) {
+                gameState.currentPlayer.position = 1;
+                console.log('Установлена начальная позиция: 1');
+            }
+            
+            // Устанавливаем начальный город (Тверь) если его нет
+            if (!gameState.currentPlayer.city) {
+                gameState.currentPlayer.city = 'tver';
+            }
+            
+            // Устанавливаем начальные значения если их нет
+            if (!gameState.currentPlayer.coins) {
+                gameState.currentPlayer.coins = 100;
+            }
+            if (!gameState.currentPlayer.cleaningPoints) {
+                gameState.currentPlayer.cleaningPoints = 0;
+            }
+            if (!gameState.currentPlayer.level) {
+                gameState.currentPlayer.level = 1;
+            }
+            if (!gameState.currentPlayer.completedTasks) {
+                gameState.currentPlayer.completedTasks = 0;
+            }
+            if (!gameState.currentPlayer.buildings) {
+                gameState.currentPlayer.buildings = [];
+            }
+            
             elements.authSection.style.display = 'none';
             elements.gameContent.style.display = 'block';
             updatePlayerUI();
@@ -2238,7 +2276,10 @@
             updateDifficultyButtons();
             
             // В журнал, не в чат
-            addLogEntry(`Добро пожаловать в игру, ${playerData.name}!`);
+            addLogEntry(`Добро пожаловать в игру, ${playerData.name}! Ваша стартовая позиция: клетка 1.`);
+            
+            // Отправляем начальную позицию
+            sendPlayerPositionToServer(gameState.currentPlayer.position, gameState.currentPlayer.city);
             
             setTimeout(() => {
                 showCityModal(gameState.currentPlayer.city);
@@ -2250,6 +2291,9 @@
         function updateRoomState(roomData) {
             gameState.players = roomData.players;
             gameState.cityProgress = roomData.cityProgress || {};
+            
+            // Исправляем позиции всех игроков если они неверные
+            checkAndFixPlayerPositions();
             
             updatePlayersList();
             updatePlayerMarkers();
@@ -2401,12 +2445,14 @@
                 }
                 
                 const statusIcon = player.connected ? '🟢' : '🔴';
+                const playerPosition = player.position || 1;
                 
                 playerItem.innerHTML = `
                     <span>${statusIcon} ${player.name} 
                         ${playerId === gameState.currentPlayerId ? '<span style="color: var(--secondary);">(Вы)</span>' : ''}
+                        <span class="player-position" style="color: var(--secondary); margin-left: 5px;">(поз. ${playerPosition})</span>
                     </span>
-                    <span>${player.cleaningPoints} баллов <span class="player-position">(поз. ${player.position || 1})</span></span>
+                    <span>${player.cleaningPoints || 0} баллов</span>
                 `;
                 
                 elements.playersContainer.appendChild(playerItem);
@@ -2417,10 +2463,10 @@
             if (gameState.currentPlayer) {
                 elements.playerName.textContent = gameState.currentPlayer.name;
                 elements.currentCity.textContent = gameData.cities[gameState.currentPlayer.city]?.name || 'Тверь';
-                elements.currentPosition.textContent = gameState.currentPlayer.position;
-                elements.coinsCount.textContent = gameState.currentPlayer.coins;
-                elements.cleaningPoints.textContent = gameState.currentPlayer.cleaningPoints;
-                elements.playerLevel.textContent = gameState.currentPlayer.level;
+                elements.currentPosition.textContent = gameState.currentPlayer.position || 1;
+                elements.coinsCount.textContent = gameState.currentPlayer.coins || 100;
+                elements.cleaningPoints.textContent = gameState.currentPlayer.cleaningPoints || 0;
+                elements.playerLevel.textContent = gameState.currentPlayer.level || 1;
             }
         }
         
@@ -2899,9 +2945,15 @@
                 elements.diceValue.querySelector('.dice-value').textContent = value;
                 elements.diceValue.classList.remove('rolling');
                 
-                gameState.currentPlayer.position += value;
-                if (gameState.currentPlayer.position > 94) {
+                // Правильный расчет новой позиции: текущая позиция + значение кубика
+                // Стартовая позиция 1 уже считается как клетка
+                const currentPosition = gameState.currentPlayer.position || 1;
+                const newPosition = currentPosition + value;
+                
+                if (newPosition > 94) {
                     gameState.currentPlayer.position = 94;
+                } else {
+                    gameState.currentPlayer.position = newPosition;
                 }
                 
                 updatePlayerUI();
@@ -2918,7 +2970,7 @@
                 }
                 
                 // В журнал, не в чат
-                addLogEntry(`Вы бросили кубик и выпало: ${value}. Новое положение: ${gameState.currentPlayer.position}`);
+                addLogEntry(`Вы бросили кубик и выпало: ${value}. Новое положение: ${gameState.currentPlayer.position} (было ${currentPosition} + ${value} = ${newPosition})`);
                 updatePlayerMarkers();
                 
                 socket.emit('dice_roll', {
@@ -2939,7 +2991,7 @@
                     }, 100);
                 }
                 
-                showNotification(`Вы переместились на ${value} клеток!`, 'success');
+                showNotification(`Вы переместились на ${value} клеток! Новая позиция: ${gameState.currentPlayer.position}`, 'success');
                 elements.buildBtn.disabled = false;
                 elements.rollDiceBtn.disabled = false;
             }, 1200);
@@ -3088,20 +3140,28 @@
         
         elements.stayBtn.addEventListener('click', () => {
             closeChoiceModal();
-            const currentCityData = gameData.cities[gameState.currentPlayer.city];
-            const firstCell = currentCityData.cells[0];
-            gameState.currentPlayer.position = firstCell;
-            updatePlayerUI();
-            updatePlayerMarkers();
+            const currentCityKey = gameState.currentPlayer.city;
+            const currentCityData = gameData.cities[currentCityKey];
             
-            // В журнал, не в чат
-            addLogEntry(`Вы остались в ${currentCityData.name} и вернулись в начало города.`);
-            
-            // Отправляем обновленную позицию
-            sendPlayerPositionToServer(gameState.currentPlayer.position, gameState.currentPlayer.city);
-            
-            savePlayerState();
-            showNotification(`Вы остались в ${currentCityData.name}!`, 'info');
+            if (currentCityData && currentCityData.cells && currentCityData.cells.length > 0) {
+                // Устанавливаем позицию на ПЕРВУЮ клетку текущего города
+                const firstCell = currentCityData.cells[0];
+                gameState.currentPlayer.position = firstCell;
+                
+                updatePlayerUI();
+                updatePlayerMarkers();
+                
+                // В журнал, не в чат
+                addLogEntry(`Вы остались в ${currentCityData.name} и вернулись на позицию ${firstCell}.`);
+                
+                // Отправляем обновленную позицию
+                sendPlayerPositionToServer(gameState.currentPlayer.position, gameState.currentPlayer.city);
+                
+                savePlayerState();
+                showNotification(`Вы остались в ${currentCityData.name}!`, 'info');
+            } else {
+                showNotification('Ошибка: не удалось определить текущий город', 'error');
+            }
         });
         
         elements.moveForwardBtn.addEventListener('click', () => {
@@ -3138,65 +3198,20 @@
             }
         });
         
-        // ==================== ПЕРИОДИЧЕСКАЯ СИНХРОНИЗАЦИЯ ====================
+        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
         
-        // Автоматическая синхронизация каждые 30 секунд
-        setInterval(() => {
-            if (socket.connected && gameState.currentPlayer) {
-                // Отправляем свою текущую позицию
-                sendPlayerPositionToServer(
-                    gameState.currentPlayer.position,
-                    gameState.currentPlayer.city
-                );
-                
-                // Раз в 2 минуты запрашиваем полную синхронизацию
-                if (Math.random() < 0.25) { // 25% шанс
-                    requestAllPlayersPositions();
+        // Проверка и исправление позиций всех игроков
+        function checkAndFixPlayerPositions() {
+            for (const playerId in gameState.players) {
+                const player = gameState.players[playerId];
+                if (!player.position || player.position < 1) {
+                    player.position = 1;
+                    console.log(`Исправлена позиция игрока ${player.name}: ${player.position}`);
                 }
             }
-        }, 30000); // 30 секунд
+        }
         
-        // Синхронизация при фокусе окна
-        window.addEventListener('focus', () => {
-            if (socket.connected) {
-                setTimeout(() => {
-                    requestAllPlayersPositions();
-                }, 500);
-            }
-        });
-        
-        // Синхронизация при видимости страницы
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && socket.connected) {
-                setTimeout(() => {
-                    requestAllPlayersPositions();
-                }, 1000);
-            }
-        });
-        
-        window.addEventListener('beforeunload', () => {
-            if (isConnected && gameState.currentPlayer) {
-                gameState.currentPlayer.connected = false;
-                savePlayerState();
-            }
-        });
-        
-        // ==================== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            updateConnectionStatus('connecting', '🔄 Подключение к серверу...');
-            console.log('🎮 Игра "Юный эколог" загружена и готова!');
-            
-            elements.buildBtn.disabled = false;
-            
-            setTimeout(() => {
-                if (!isConnected) {
-                    showNotification('Не удалось подключиться к серверу. Проверьте запущен ли server.js', 'error');
-                    updateConnectionStatus('error', '❌ Нет подключения');
-                }
-            }, 5000);
-        });
-        
-        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ЗАДАНИЙ ====================
+        // ==================== ФУНКЦИИ ЗАДАНИЙ (ПРОДОЛЖЕНИЕ) ====================
         function createSortTask(task) {
             const binTypes = {
                 paper: { name: "Бумага", emoji: "📄", color: "#3498db" },
@@ -3468,6 +3483,64 @@
                 });
             });
         }
+        
+        // ==================== ПЕРИОДИЧЕСКАЯ СИНХРОНИЗАЦИЯ ====================
+        
+        // Автоматическая синхронизация каждые 30 секунд
+        setInterval(() => {
+            if (socket.connected && gameState.currentPlayer) {
+                // Отправляем свою текущую позицию
+                sendPlayerPositionToServer(
+                    gameState.currentPlayer.position,
+                    gameState.currentPlayer.city
+                );
+                
+                // Раз в 2 минуты запрашиваем полную синхронизацию
+                if (Math.random() < 0.25) { // 25% шанс
+                    requestAllPlayersPositions();
+                }
+            }
+        }, 30000); // 30 секунд
+        
+        // Синхронизация при фокусе окна
+        window.addEventListener('focus', () => {
+            if (socket.connected) {
+                setTimeout(() => {
+                    requestAllPlayersPositions();
+                }, 500);
+            }
+        });
+        
+        // Синхронизация при видимости страницы
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && socket.connected) {
+                setTimeout(() => {
+                    requestAllPlayersPositions();
+                }, 1000);
+            }
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            if (isConnected && gameState.currentPlayer) {
+                gameState.currentPlayer.connected = false;
+                savePlayerState();
+            }
+        });
+        
+        // ==================== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            updateConnectionStatus('connecting', '🔄 Подключение к серверу...');
+            console.log('🎮 Игра "Юный эколог" загружена и готова!');
+            
+            elements.buildBtn.disabled = false;
+            
+            setTimeout(() => {
+                if (!isConnected) {
+                    showNotification('Не удалось подключиться к серверу. Проверьте запущен ли server.js', 'error');
+                    updateConnectionStatus('error', '❌ Нет подключения');
+                }
+            }, 5000);
+        });
         
         console.log('🎮 Игра "Юный эколог" полностью загружена!');
     </script>
