@@ -150,21 +150,21 @@
             letter-spacing: 0.3px;
         }
         
-        /* ==================== КНОПКА БЫСТРЫХ ДЕЙСТВИЙ ==================== */
-        .quick-actions {
+        /* ==================== ПАНЕЛЬ БЫСТРЫХ ДЕЙСТВИЙ ==================== */
+        .quick-actions-panel {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 20px;
+            right: 20px;
             z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 15px;
+            gap: 10px;
         }
         
         .quick-action-btn {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: var(--secondary);
             color: var(--dark);
@@ -173,33 +173,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-            transform: scale(0);
-            opacity: 0;
-        }
-        
-        .quick-action-btn.show {
-            transform: scale(1);
-            opacity: 1;
+            position: relative;
         }
         
         .quick-action-btn:hover {
-            background: #3eb4ab;
-            transform: scale(1.1);
-            box-shadow: 0 7px 25px rgba(0, 0, 0, 0.4);
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
         }
         
         .quick-action-btn:active {
-            transform: scale(0.95);
+            transform: translateY(1px) scale(0.95);
         }
         
         .quick-action-btn.main {
             background: var(--accent);
             color: white;
-            transform: scale(1);
-            opacity: 1;
             z-index: 10000;
         }
         
@@ -232,14 +223,14 @@
             color: white;
         }
         
-        .quick-action-label {
+        .quick-action-tooltip {
             position: absolute;
-            right: 70px;
+            right: 60px;
             background: rgba(0, 0, 0, 0.9);
             color: white;
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             white-space: nowrap;
             opacity: 0;
             transform: translateX(10px);
@@ -249,7 +240,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .quick-action-btn:hover .quick-action-label {
+        .quick-action-btn:hover .quick-action-tooltip {
             opacity: 1;
             transform: translateX(0);
         }
@@ -1332,15 +1323,21 @@
                 font-size: 1.1rem !important;
             }
             
-            .quick-actions {
-                bottom: 20px;
-                right: 20px;
+            .quick-actions-panel {
+                bottom: 15px;
+                right: 15px;
             }
             
             .quick-action-btn {
-                width: 55px;
-                height: 55px;
-                font-size: 1.3rem;
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+            
+            .quick-action-tooltip {
+                font-size: 0.7rem;
+                padding: 5px 8px;
+                right: 50px;
             }
         }
         
@@ -1376,21 +1373,21 @@
                 grid-template-columns: repeat(2, 1fr);
             }
             
-            .quick-actions {
-                bottom: 15px;
-                right: 15px;
+            .quick-actions-panel {
+                bottom: 10px;
+                right: 10px;
             }
             
             .quick-action-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2rem;
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
             }
             
-            .quick-action-label {
-                font-size: 0.75rem;
-                padding: 4px 8px;
-                right: 60px;
+            .quick-action-tooltip {
+                font-size: 0.65rem;
+                padding: 4px 6px;
+                right: 45px;
             }
         }
     </style>
@@ -1683,30 +1680,31 @@
         </div>
     </div>
 
-    <!-- Кнопки быстрых действий -->
-    <div class="quick-actions" id="quickActions">
-        <button class="quick-action-btn main" id="quickActionsMain" title="Быстрые действия">
-            <i class="fas fa-plus"></i>
-        </button>
+    <!-- Панель быстрых действий -->
+    <div class="quick-actions-panel" id="quickActionsPanel" style="display: none;">
         <button class="quick-action-btn dice" id="quickDiceBtn" title="Бросить кубик">
             <i class="fas fa-dice"></i>
-            <span class="quick-action-label">Бросить кубик</span>
+            <span class="quick-action-tooltip">Бросить кубик</span>
         </button>
         <button class="quick-action-btn build" id="quickBuildBtn" title="Построить объект">
             <i class="fas fa-hammer"></i>
-            <span class="quick-action-label">Построить</span>
+            <span class="quick-action-tooltip">Построить</span>
         </button>
         <button class="quick-action-btn chat" id="quickChatBtn" title="Открыть чат">
             <i class="fas fa-comments"></i>
-            <span class="quick-action-label">Чат</span>
+            <span class="quick-action-tooltip">Чат</span>
         </button>
         <button class="quick-action-btn tasks" id="quickTasksBtn" title="Задания">
             <i class="fas fa-tasks"></i>
-            <span class="quick-action-label">Задания</span>
+            <span class="quick-action-tooltip">Задания</span>
         </button>
         <button class="quick-action-btn invite" id="quickInviteBtn" title="Пригласить друзей">
             <i class="fas fa-user-plus"></i>
-            <span class="quick-action-label">Пригласить</span>
+            <span class="quick-action-tooltip">Пригласить</span>
+        </button>
+        <button class="quick-action-btn main" id="quickActionsMain" title="Быстрые действия">
+            <i class="fas fa-bolt"></i>
+            <span class="quick-action-tooltip">Быстрые действия</span>
         </button>
     </div>
 
@@ -1782,7 +1780,6 @@
         
         let isConnected = false;
         let currentRoomId = null;
-        let quickActionsVisible = false;
         
         // ==================== ЭЛЕМЕНТЫ DOM ====================
         const elements = {
@@ -1841,7 +1838,7 @@
             moveForwardBtn: document.getElementById('moveForwardBtn'),
             connectionStatusDot: document.getElementById('connectionStatusDot'),
             connectionStatusText: document.getElementById('connectionStatusText'),
-            quickActions: document.getElementById('quickActions'),
+            quickActionsPanel: document.getElementById('quickActionsPanel'),
             quickActionsMain: document.getElementById('quickActionsMain'),
             quickDiceBtn: document.getElementById('quickDiceBtn'),
             quickBuildBtn: document.getElementById('quickBuildBtn'),
@@ -2317,33 +2314,7 @@
             }
         }
         
-        // ==================== БЫСТРЫЕ ДЕЙСТВИЯ ====================
-        function toggleQuickActions() {
-            quickActionsVisible = !quickActionsVisible;
-            const actionButtons = document.querySelectorAll('.quick-action-btn:not(.main)');
-            
-            if (quickActionsVisible) {
-                actionButtons.forEach((btn, index) => {
-                    setTimeout(() => {
-                        btn.classList.add('show');
-                        btn.style.transform = 'scale(1)';
-                        btn.style.opacity = '1';
-                    }, index * 50);
-                });
-                elements.quickActionsMain.innerHTML = '<i class="fas fa-times"></i>';
-                elements.quickActionsMain.setAttribute('title', 'Закрыть меню');
-            } else {
-                actionButtons.forEach((btn, index) => {
-                    setTimeout(() => {
-                        btn.classList.remove('show');
-                        btn.style.transform = 'scale(0)';
-                        btn.style.opacity = '0';
-                    }, index * 30);
-                });
-                elements.quickActionsMain.innerHTML = '<i class="fas fa-plus"></i>';
-                elements.quickActionsMain.setAttribute('title', 'Быстрые действия');
-            }
-        }
+        // ==================== ФУНКЦИИ БЫСТРЫХ ДЕЙСТВИЙ ====================
         
         function scrollToDice() {
             // Прокручиваем к кнопке броска кубика
@@ -2354,14 +2325,16 @@
                     block: 'center' 
                 });
                 // Добавляем визуальный эффект
-                diceBtn.style.boxShadow = '0 0 20px rgba(255, 107, 107, 0.8)';
+                diceBtn.style.boxShadow = '0 0 20px rgba(231, 76, 60, 0.8)';
                 setTimeout(() => {
                     diceBtn.style.boxShadow = '0 4px 0 rgba(62, 180, 171, 0.8)';
                 }, 1000);
                 
                 // Нажимаем кнопку если игра активна
                 if (!gameState.gameOver && !gameState.taskInProgress) {
-                    diceBtn.click();
+                    setTimeout(() => {
+                        diceBtn.click();
+                    }, 500);
                 }
             }
         }
@@ -2393,7 +2366,9 @@
                 // Фокусируем поле ввода
                 const chatInput = elements.chatInput;
                 if (chatInput) {
-                    chatInput.focus();
+                    setTimeout(() => {
+                        chatInput.focus();
+                    }, 300);
                 }
                 // Добавляем визуальный эффект
                 chatSection.style.boxShadow = '0 0 20px rgba(52, 152, 219, 0.8)';
@@ -2486,7 +2461,7 @@
             
             elements.authSection.style.display = 'none';
             elements.gameContent.style.display = 'block';
-            elements.quickActions.style.display = 'flex';
+            elements.quickActionsPanel.style.display = 'flex';
             updatePlayerUI();
             elements.roomNumber.textContent = currentRoomId || gameState.roomId;
             
@@ -2494,12 +2469,6 @@
             createCitiesGrid();
             createBuildingsList();
             updateDifficultyButtons();
-            
-            // Устанавливаем стартовую позицию как 1
-            if (gameState.currentPlayer.position === undefined || gameState.currentPlayer.position === 0) {
-                gameState.currentPlayer.position = 1;
-                sendPlayerPositionToServer(1, 'tver');
-            }
             
             // В журнал, не в чат
             addLogEntry(`Добро пожаловать в игру, ${playerData.name}!`);
@@ -2919,6 +2888,122 @@
             elements.checkTaskBtn.disabled = true;
         }
         
+        function createQuizTask(task) {
+            elements.taskArea.innerHTML = `
+                <p><strong>${task.question}</strong></p>
+                <div class="quiz-options">
+                    ${task.options.map((option, index) => 
+                        `<div class="quiz-option" data-index="${index}" data-correct="${option.correct}">
+                            ${option.text}
+                        </div>`
+                    ).join('')}
+                </div>
+            `;
+            
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const isCorrect = this.dataset.correct === 'true';
+                    const allOptions = document.querySelectorAll('.quiz-option');
+                    
+                    allOptions.forEach(opt => {
+                        opt.style.pointerEvents = 'none';
+                        if (opt.dataset.correct === 'true') {
+                            opt.classList.add('correct');
+                        } else if (opt === this && !isCorrect) {
+                            opt.classList.add('incorrect');
+                        }
+                    });
+                    
+                    elements.taskResult.textContent = isCorrect ? 
+                        '✅ Правильно! Задание выполнено.' : 
+                        '❌ Неправильно. Попробуйте еще раз.';
+                    elements.taskResult.style.color = isCorrect ? '#2ecc71' : '#e74c3c';
+                    
+                    if (isCorrect) {
+                        elements.checkTaskBtn.disabled = false;
+                    }
+                });
+            });
+        }
+        
+        function createDragTask(task) {
+            elements.taskArea.innerHTML = `
+                <p><strong>${task.description}</strong></p>
+                <p>Перетащите ${task.goal} дерева в специальные зоны посадки:</p>
+                <div class="drag-container">
+                    <div class="drag-items" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                        ${task.items.map((item, index) => 
+                            `<div class="draggable-item" data-index="${index}" draggable="true" style="cursor: grab;">
+                                ${item}
+                            </div>`
+                        ).join('')}
+                    </div>
+                    <div class="drop-zones" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(46,204,113,0.1); border-radius: 8px;">
+                        ${Array.from({length: task.zones || task.goal}).map((_, index) => 
+                            `<div class="drop-zone" data-zone="${index}">
+                                Зона посадки ${index + 1}
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Перетащено: <span id="dragCount">0</span>/${task.goal}</p>
+            `;
+            
+            initializeDragAndDrop(task.goal);
+        }
+        
+        function initializeDragAndDrop(goal) {
+            const draggables = elements.taskArea.querySelectorAll('.draggable-item');
+            const dropZones = elements.taskArea.querySelectorAll('.drop-zone');
+            let draggedItem = null;
+            let placedCount = 0;
+            
+            draggables.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedItem = this;
+                    setTimeout(() => {
+                        this.style.opacity = '0.4';
+                    }, 0);
+                });
+                
+                item.addEventListener('dragend', function() {
+                    this.style.opacity = '1';
+                });
+            });
+            
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('hover');
+                });
+                
+                zone.addEventListener('dragleave', function() {
+                    this.classList.remove('hover');
+                });
+                
+                zone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('hover');
+                    
+                    if (draggedItem && !this.querySelector('.draggable-item')) {
+                        this.appendChild(draggedItem);
+                        draggedItem.style.position = 'static';
+                        draggedItem.style.cursor = 'default';
+                        draggedItem.draggable = false;
+                        placedCount++;
+                        
+                        document.getElementById('dragCount').textContent = placedCount;
+                        
+                        if (placedCount >= goal) {
+                            elements.checkTaskBtn.disabled = false;
+                            elements.taskResult.textContent = '✅ Отлично! Все деревья посажены!';
+                            elements.taskResult.style.color = '#2ecc71';
+                        }
+                    }
+                });
+            });
+        }
+        
         function completeInteractiveTask() {
             if (!gameState.currentTask) return;
             
@@ -3230,12 +3315,14 @@
         });
         
         // Обработчики для кнопок быстрых действий
-        elements.quickActionsMain.addEventListener('click', toggleQuickActions);
         elements.quickDiceBtn.addEventListener('click', scrollToDice);
         elements.quickBuildBtn.addEventListener('click', scrollToBuildings);
         elements.quickChatBtn.addEventListener('click', scrollToChat);
         elements.quickTasksBtn.addEventListener('click', scrollToTasks);
         elements.quickInviteBtn.addEventListener('click', copyInviteLink);
+        elements.quickActionsMain.addEventListener('click', () => {
+            showNotification('Быстрые действия доступны!', 'info');
+        });
         
         elements.cityModalCloseBtn.addEventListener('click', closeCityModal);
         elements.cityModal.addEventListener('click', (e) => {
@@ -3343,7 +3430,6 @@
             console.log('🎮 Игра "Юный эколог" загружена и готова!');
             
             elements.buildBtn.disabled = false;
-            elements.quickActions.style.display = 'none';
             
             setTimeout(() => {
                 if (!isConnected) {
@@ -3354,13 +3440,8 @@
         });
         
         // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ЗАДАНИЙ ====================
-        // ... (остальные функции заданий остаются без изменений)
-        // Полный код функций заданий слишком длинный, но они все включены
-        // Эти функции включают createQuizTask, createDragTask, createSortTask, 
-        // createCleanupTask, createPuzzleTask, createPuzzleSequenceTask и другие
+        // ... (остальные функции заданий остаются без изменений, они уже в вашем коде)
         
-        // ... (весь остальной код функций заданий остается без изменений)
-
         console.log('🎮 Игра "Юный эколог" полностью загружена!');
     </script>
 </body>
