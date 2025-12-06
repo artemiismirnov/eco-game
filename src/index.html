@@ -83,10 +83,38 @@
             transition: all 0.3s ease;
         }
         
-        .connection-status-mini:hover {
-            background: rgba(0, 0, 0, 0.95);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        /* Компактная версия статуса подключения */
+        .connection-status-compact {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .connection-status-compact:hover {
+            width: 160px;
+            border-radius: 25px;
+            padding: 0 15px;
+            justify-content: flex-start;
+        }
+        
+        .connection-status-compact:hover .connection-status-text {
+            opacity: 1;
+            transform: translateX(0);
+            width: auto;
+            margin-left: 8px;
         }
         
         .connection-dot {
@@ -96,6 +124,7 @@
             background: #7f8c8d;
             transition: all 0.3s ease;
             position: relative;
+            flex-shrink: 0;
         }
         
         .connection-dot::after {
@@ -148,6 +177,12 @@
             color: white;
             font-weight: 500;
             letter-spacing: 0.3px;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            width: 0;
+            overflow: hidden;
+            white-space: nowrap;
         }
         
         /* ==================== ШЕСТИГРАННИКИ ДЛЯ КАРТЫ ==================== */
@@ -1286,14 +1321,15 @@
                 flex-direction: column;
             }
             
-            .connection-status-mini {
+            .connection-status-compact {
                 top: 10px;
                 right: 10px;
-                padding: 6px 12px;
+                width: 35px;
+                height: 35px;
             }
             
-            .connection-status-text {
-                font-size: 0.75rem;
+            .connection-status-compact:hover {
+                width: 140px;
             }
             
             .connection-dot {
@@ -1392,6 +1428,18 @@
             .cities-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+            
+            .connection-status-compact {
+                top: 5px;
+                right: 5px;
+                width: 30px;
+                height: 30px;
+            }
+            
+            .connection-dot {
+                width: 10px;
+                height: 10px;
+            }
         }
     </style>
 </head>
@@ -1401,13 +1449,13 @@
         <header>
             <h1>Юный эколог</h1>
             <div class="subtitle">Многопользовательская экологическая игра</div>
-            
-            <!-- Статус подключения -->
-            <div class="connection-status-mini">
-                <div class="connection-dot" id="connectionStatusDot"></div>
-                <div class="connection-status-text" id="connectionStatusText">Подключение...</div>
-            </div>
         </header>
+        
+        <!-- Статус подключения (компактный) -->
+        <div class="connection-status-compact" id="connectionStatusCompact">
+            <div class="connection-dot" id="connectionStatusDot"></div>
+            <div class="connection-status-text" id="connectionStatusText">Подключение...</div>
+        </div>
         
         <!-- Информация об игре -->
         <section class="game-info" id="gameInfo">
@@ -1783,6 +1831,7 @@
         
         let isConnected = false;
         let currentRoomId = null;
+        let hasCurrentTask = false; // Флаг наличия активного задания
         
         // ==================== ЭЛЕМЕНТЫ DOM ====================
         const elements = {
@@ -1840,7 +1889,8 @@
             stayBtn: document.getElementById('stayBtn'),
             moveForwardBtn: document.getElementById('moveForwardBtn'),
             connectionStatusDot: document.getElementById('connectionStatusDot'),
-            connectionStatusText: document.getElementById('connectionStatusText')
+            connectionStatusText: document.getElementById('connectionStatusText'),
+            connectionStatusCompact: document.getElementById('connectionStatusCompact')
         };
         
         // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -2822,12 +2872,14 @@
                 
                 // Если кубик доступен для броска, вызываем его
                 setTimeout(() => {
-                    if (!elements.rollDiceBtn.disabled && !gameState.gameOver && !gameState.taskInProgress) {
+                    if (!elements.rollDiceBtn.disabled && !gameState.gameOver && !gameState.taskInProgress && !hasCurrentTask) {
                         elements.rollDiceBtn.click();
                     } else if (gameState.taskInProgress) {
                         showNotification('Завершите текущее задание перед броском кубика!', 'warning');
                     } else if (gameState.gameOver) {
                         showNotification('Игра завершена!', 'warning');
+                    } else if (hasCurrentTask) {
+                        showNotification('Сначала выполните текущее задание!', 'warning');
                     }
                 }, 500);
             });
@@ -2837,6 +2889,12 @@
                 quickActions.classList.remove('show');
                 quickActionsBtn.classList.remove('active');
                 quickActionsVisible = false;
+                
+                // Проверяем, доступна ли кнопка построить объект
+                if (elements.buildBtn.disabled) {
+                    showNotification('Сначала выполните задание, чтобы построить объект!', 'warning');
+                    return;
+                }
                 
                 // Прокручиваем к секции доступных объектов
                 setTimeout(() => {
@@ -2919,10 +2977,24 @@
                     quickDiceBtn.style.opacity = '0.5';
                     quickDiceBtn.style.cursor = 'not-allowed';
                     quickDiceBtn.title = 'Игра завершена';
+                    quickBuildBtn.style.opacity = '0.5';
+                    quickBuildBtn.style.cursor = 'not-allowed';
+                    quickBuildBtn.title = 'Игра завершена';
                 } else {
                     quickDiceBtn.style.opacity = '1';
                     quickDiceBtn.style.cursor = 'pointer';
                     quickDiceBtn.title = 'Бросить кубик';
+                    
+                    // Кнопка "Построить объект" доступна только если нет активного задания
+                    if (hasCurrentTask || gameState.taskInProgress) {
+                        quickBuildBtn.style.opacity = '0.5';
+                        quickBuildBtn.style.cursor = 'not-allowed';
+                        quickBuildBtn.title = 'Сначала выполните задание';
+                    } else {
+                        quickBuildBtn.style.opacity = '1';
+                        quickBuildBtn.style.cursor = 'pointer';
+                        quickBuildBtn.title = 'Построить объект';
+                    }
                 }
                 
                 // Обновляем видимость быстрых кнопок только в игровом режиме
@@ -2965,6 +3037,7 @@
             elements.taskArea.innerHTML = '';
             elements.taskResult.textContent = '';
             gameState.taskInProgress = true;
+            hasCurrentTask = true;
             
             gameState.dragItems = [];
             gameState.dropZones = [];
@@ -3151,6 +3224,7 @@
             elements.checkTaskBtn.disabled = true;
             elements.completeTaskBtn.disabled = true;
             gameState.taskInProgress = false;
+            hasCurrentTask = false;
             
             elements.buildBtn.disabled = false;
             elements.rollDiceBtn.disabled = false;
@@ -3159,6 +3233,9 @@
             
             savePlayerState();
             showNotification(`Задание выполнено! Вы получили ${coinsEarned} монет и ${expEarned} опыта!`, 'success');
+            
+            // Обновляем состояние быстрых кнопок
+            updateQuickButtons();
         }
         
         // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
@@ -3225,6 +3302,12 @@
         elements.rollDiceBtn.addEventListener('click', () => {
             if (gameState.gameOver || gameState.taskInProgress) return;
             
+            // Проверяем, есть ли активное задание
+            if (hasCurrentTask) {
+                showNotification('Сначала выполните текущее задание!', 'warning');
+                return;
+            }
+            
             elements.diceValue.classList.add('rolling');
             elements.diceValue.querySelector('.dice-value').textContent = '?';
             elements.rollDiceBtn.disabled = true;
@@ -3247,12 +3330,16 @@
                 
                 const randomTask = getRandomTask(gameState.currentDifficulty);
                 gameState.currentTask = randomTask;
+                hasCurrentTask = true;
                 
                 if (randomTask) {
                     elements.currentTask.style.display = 'block';
                     elements.taskDescription.textContent = randomTask.description;
                     elements.noTaskMessage.style.display = 'none';
                     elements.completeTaskBtn.disabled = false;
+                    
+                    // Блокируем кнопку броска кубика до выполнения задания
+                    elements.rollDiceBtn.disabled = true;
                 }
                 
                 // В журнал, не в чат
@@ -3277,9 +3364,8 @@
                     }, 100);
                 }
                 
-                showNotification(`Вы переместились на ${value} клеток!`, 'success');
-                elements.buildBtn.disabled = false;
-                elements.rollDiceBtn.disabled = false;
+                showNotification(`Вы переместились на ${value} клеток! Получено новое задание.`, 'success');
+                elements.buildBtn.disabled = true;
             }, 1200);
         });
         
