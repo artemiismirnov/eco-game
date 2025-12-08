@@ -9,6 +9,7 @@ const socket = io({
 
 let isConnected = false;
 let currentRoomId = null;
+let hasCurrentTask = false;
 
 // Минималистичный статус подключения - маленькая точка в углу
 function updateConnectionStatus(status, text) {
@@ -37,6 +38,21 @@ socket.on('connect', () => {
     isConnected = true;
     updateConnectionStatus('connected', '✅ Подключено к серверу');
     showNotification('Успешно подключено к игровому серверу', 'success');
+    
+    // Если мы были в игре до отключения, пытаемся переподключиться
+    if (gameState.currentPlayer && gameState.currentPlayer.name) {
+        const storedUsername = localStorage.getItem('lastUsername');
+        const storedRoomId = localStorage.getItem('lastRoomId');
+        
+        if (storedUsername && storedRoomId) {
+            console.log('🔄 Пытаемся переподключиться как:', storedUsername);
+            socket.emit('player_reconnected', {
+                roomId: storedRoomId,
+                playerName: storedUsername
+            });
+            showNotification('Переподключение...', 'info');
+        }
+    }
 });
 
 socket.on('disconnect', () => {
@@ -61,12 +77,25 @@ socket.on('connection_confirmed', (data) => {
 socket.on('join-success', (playerData) => {
     console.log('✅ Успешно присоединились к комнате', playerData);
     gameState.roomId = playerData.roomId || currentRoomId;
+    
+    // Сохраняем данные для возможного переподключения
+    if (playerData.name && playerData.roomId) {
+        localStorage.setItem('lastUsername', playerData.name);
+        localStorage.setItem('lastRoomId', playerData.roomId);
+        localStorage.setItem('lastPlayerData', JSON.stringify(playerData));
+    }
+    
     initializeGame(playerData);
 });
 
 // Ошибка присоединения к комнате
-socket.on('room-error', (message) => {
-    showNotification(message, 'error');
+socket.on('room-error', (data) => {
+    const message = data.message || data;
+    if (message.includes('[object Object]')) {
+        showNotification('Комнаты с таким номером не существует', 'error');
+    } else {
+        showNotification(message, 'error');
+    }
     // Возвращаем к форме авторизации
     authSection.style.display = 'block';
     gameContent.style.display = 'none';
@@ -134,12 +163,46 @@ socket.on('progress_updated', (data) => {
     addLogEntry(`Прогресс очищения города обновлен: ${data.progress}%`);
 });
 
+// Получение позиций всех игроков
+socket.on('all_players_positions', (data) => {
+    console.log('📍 Получены позиции всех игроков:', data);
+    
+    if (data.players) {
+        for (const playerId in data.players) {
+            const player = data.players[playerId];
+            if (playerId !== gameState.currentPlayerId && player.position) {
+                // Обновляем позицию игрока на карте
+                updatePlayerMarker(playerId, player.position, player.city, player.color, player.name);
+            }
+        }
+    }
+});
+
+// Обновление позиции игрока
+socket.on('player_position_update', (data) => {
+    if (data.playerId !== gameState.currentPlayerId) {
+        updatePlayerMarker(data.playerId, data.position, data.city, data.color, data.playerName);
+    }
+});
+
+// Игрок переподключился
+socket.on('player_reconnected', (data) => {
+    console.log('🔄 Игрок переподключился:', data.player.name);
+    if (gameState.players[data.playerId]) {
+        gameState.players[data.playerId] = data.player;
+        gameState.players[data.playerId].connected = true;
+        updatePlayersList();
+        updatePlayerMarkers();
+        addLogEntry(`Игрок "${data.player.name}" переподключился!`);
+    }
+});
+
 // Игровые данные
 const gameData = {
     cities: {
         tver: { 
             name: "Тверь", 
-            cells: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 
+            cells: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 
             position: 0,
             description: "Стартовый город",
             history: "Тверь — один из древнейших городов России, основанный в 1135 году. Расположена на берегах рек Волга, Тверца и Тьмака.",
@@ -184,7 +247,7 @@ const gameData = {
         },
         astrakhan: { 
             name: "Астрахань", 
-            cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93], 
+            cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92], 
             position: 5,
             description: "Конечная точка маршрута",
             history: "Астрахань — древний город в дельте Волги, основанный в 1558 году. Важный рыболовный и транспортный узел.",
@@ -228,6 +291,36 @@ const gameData = {
                 differences: 3,
                 image1: "🌳🏠🚗🌲🌼",
                 image2: "🌳🏠🚙🌲🌼"
+            },
+            {
+                description: "Что такое экология?",
+                type: "quiz",
+                question: "Что такое экология?",
+                options: [
+                    {text: "Наука о взаимоотношениях живых организмов с окружающей средой", correct: true},
+                    {text: "Наука о растениях", correct: false},
+                    {text: "Изучение погоды", correct: false},
+                    {text: "Наука о животных", correct: false}
+                ]
+            },
+            {
+                description: "Разделите мусор на 4 категории",
+                type: "sort",
+                items: [
+                    {name: "Яблоко", type: "organic", emoji: "🍎"},
+                    {name: "Газета", type: "paper", emoji: "📰"},
+                    {name: "Бутылка", type: "plastic", emoji: "🧴"},
+                    {name: "Батарейка", type: "battery", emoji: "🔋"},
+                    {name: "Стекло", type: "glass", emoji: "🥃"},
+                    {name: "Консервная банка", type: "metal", emoji: "🥫"}
+                ]
+            },
+            {
+                description: "Посадите 5 деревьев для очистки воздуха",
+                type: "drag",
+                goal: 5,
+                items: ["🌳", "🌳", "🌳", "🌳", "🌳", "🌳", "🌳"],
+                zones: 5
             }
         ],
         medium: [
@@ -253,6 +346,29 @@ const gameData = {
                 type: "puzzle",
                 pieces: 6,
                 image: "🌍♻️🌳💧🌞🌱"
+            },
+            {
+                description: "Что такое парниковый эффект?",
+                type: "quiz",
+                question: "Что такое парниковый эффект?",
+                options: [
+                    {text: "Удержание тепла в атмосфере Земли парниковыми газами", correct: true},
+                    {text: "Эффект от парников для растений", correct: false},
+                    {text: "Повышение температуры в городе", correct: false},
+                    {text: "Эффект от горячих источников", correct: false}
+                ]
+            },
+            {
+                description: "Очистите пляж от 8 единиц мусора",
+                type: "clean",
+                goal: 8,
+                items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🐚", "🐚", "🐚"]
+            },
+            {
+                description: "Соберите цепочку экологических действий",
+                type: "puzzle_sequence",
+                sequence: ["🌱", "🌳", "🏭", "💨", "🌍", "🔥"],
+                correctOrder: ["🌱", "🌳", "🏭", "💨", "🔥", "🌍"]
             }
         ],
         hard: [
@@ -272,6 +388,36 @@ const gameData = {
                 type: "puzzle_sequence",
                 sequence: ["🌱", "🌳", "🏭", "💨", "🌍", "🔥"],
                 correctOrder: ["🌱", "🌳", "🏭", "💨", "🔥", "🌍"]
+            },
+            {
+                description: "Что такое биоразнообразие?",
+                type: "quiz",
+                question: "Что такое биоразнообразие?",
+                options: [
+                    {text: "Разнообразие живых организмов во всех их проявлениях", correct: true},
+                    {text: "Разнообразие растений в саду", correct: false},
+                    {text: "Количество видов в зоопарке", correct: false},
+                    {text: "Разнообразие экосистем в городе", correct: false}
+                ]
+            },
+            {
+                description: "Создайте экологический город будущего",
+                type: "drag_complex",
+                goal: 7,
+                items: ["🌳", "♻️", "☀️", "💨", "🚲", "🚇", "🏢"],
+                zones: 7,
+                descriptions: ["Парк", "Перерабатывающий завод", "Солнечные панели", "Ветряки", "Велосипедные дорожки", "Общественный транспорт", "Эко-здания"]
+            },
+            {
+                description: "Что такое экологический след?",
+                type: "quiz",
+                question: "Что такое экологический след?",
+                options: [
+                    {text: "Мера воздействия человека на окружающую среду", correct: true},
+                    {text: "Следы животных в лесу", correct: false},
+                    {text: "Площадь земли для выращивания пищи", correct: false},
+                    {text: "Уровень загрязнения воды", correct: false}
+                ]
             }
         ]
     },
@@ -377,6 +523,7 @@ const hardBtn = document.getElementById('hardBtn');
 const difficultyBtns = document.querySelectorAll('.difficulty-btn');
 const logEntries = document.getElementById('logEntries');
 const buildingsSection = document.getElementById('buildingsSection');
+const buildingsContainer = document.getElementById('buildingsContainer');
 const notification = document.getElementById('notification');
 const cityModal = document.getElementById('cityModal');
 const cityModalTitle = document.getElementById('cityModalTitle');
@@ -387,7 +534,6 @@ const cityModalTask = document.getElementById('cityModalTask');
 const cityModalCloseBtn = document.getElementById('cityModalCloseBtn');
 const gameInfo = document.getElementById('gameInfo');
 const cityProgressContainer = document.getElementById('cityProgressContainer');
-const buildingsContainer = document.getElementById('buildingsContainer');
 const choiceModal = document.getElementById('choiceModal');
 const stayBtn = document.getElementById('stayBtn');
 const moveForwardBtn = document.getElementById('moveForwardBtn');
@@ -421,6 +567,17 @@ function initializeGame(playerData) {
     // Показываем игровой интерфейс
     authSection.style.display = 'none';
     gameContent.style.display = 'block';
+    
+    // Обновляем заголовок карты
+    document.querySelector('.game-board h2').textContent = 'Игровая карта';
+    document.querySelector('.game-board h2').style.textAlign = 'center';
+    
+    // Обновляем информацию об игре
+    document.querySelector('.game-info-content p').innerHTML = `
+        "Юный эколог" — это увлекательная многопользовательская игра, в которой вы становитесь защитником природы. 
+        Ваша задача — пройти маршрут по городам России, решая экологические проблемы и помогая природе.
+    `;
+    
     updatePlayerUI();
     roomNumber.textContent = currentRoomId || gameState.roomId;
     
@@ -438,6 +595,15 @@ function initializeGame(playerData) {
     
     // Запрашиваем состояние комнаты
     socket.emit('get_room_state');
+    
+    // Запрашиваем позиции всех игроков
+    socket.emit('request_all_positions');
+    
+    // Удаляем панель быстрых действий с главного экрана
+    const quickActionsBtn = document.getElementById('quickActionsBtn');
+    const quickActions = document.getElementById('quickActions');
+    if (quickActionsBtn) quickActionsBtn.style.display = 'none';
+    if (quickActions) quickActions.style.display = 'none';
 }
 
 // Функция обновления состояния комнаты
@@ -500,6 +666,79 @@ function sendChatMessage(message) {
     }
 }
 
+// Функция обновления маркера игрока
+function updatePlayerMarker(playerId, position, city, color, playerName) {
+    // Находим или создаем маркер
+    let marker = document.getElementById(`marker-${playerId}`);
+    
+    if (!marker) {
+        marker = document.createElement('div');
+        marker.className = 'player-marker';
+        marker.id = `marker-${playerId}`;
+        marker.setAttribute('data-player', playerName);
+        marker.style.background = color || getRandomColor(playerId);
+        marker.style.border = '2px solid white';
+        marker.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.7)';
+        
+        if (playerId === gameState.currentPlayerId) {
+            marker.innerHTML = '<i class="fas fa-user" style="font-size: 12px; color: white;"></i>';
+            marker.style.border = '3px solid white';
+            marker.style.boxShadow = '0 0 15px rgba(255, 255, 255, 0.8)';
+        } else {
+            marker.innerHTML = '<i class="fas fa-user" style="font-size: 10px; color: white;"></i>';
+        }
+        
+        // Добавляем всплывающую подсказку
+        const tooltip = document.createElement('div');
+        tooltip.className = 'player-tooltip';
+        tooltip.textContent = playerName;
+        tooltip.style.cssText = 'position: absolute; top: -30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none;';
+        marker.appendChild(tooltip);
+        
+        marker.addEventListener('mouseenter', () => {
+            tooltip.style.opacity = '1';
+        });
+        marker.addEventListener('mouseleave', () => {
+            tooltip.style.opacity = '0';
+        });
+        
+        mapGrid.appendChild(marker);
+    }
+    
+    // Обновляем позицию маркера
+    const cellNumber = position || 1;
+    const row = Math.floor((cellNumber - 1) / 10);
+    const col = (cellNumber - 1) % 10;
+    
+    const leftPercent = (col * 10) + 5;
+    const topPercent = (row * 10) + 5;
+    
+    // Смещение для четных строк (оптимизация для гексагональной сетки)
+    if (row % 2 === 1) {
+        marker.style.left = `${leftPercent + 2.5}%`;
+    } else {
+        marker.style.left = `${leftPercent}%`;
+    }
+    
+    marker.style.top = `${topPercent}%`;
+    
+    // Обновляем подсказку
+    const tooltip = marker.querySelector('.player-tooltip');
+    if (tooltip) {
+        tooltip.textContent = `${playerName} (поз. ${position})`;
+    }
+}
+
+// Функция для получения случайного цвета
+function getRandomColor(playerId) {
+    const colors = ['#4ecdc4', '#ff6b6b', '#ffe66d', '#1a535c', '#95e1d3', '#f08a5d'];
+    let hash = 0;
+    for (let i = 0; i < playerId.length; i++) {
+        hash = playerId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+}
+
 // ==================== ОСНОВНЫЕ ФУНКЦИИ ИГРЫ ====================
 
 // Показать уведомление
@@ -529,7 +768,7 @@ function createMap() {
     mapGrid.innerHTML = '';
     
     const riverCells = [14, 15, 16, 17, 30, 31, 44, 45, 46, 59, 60, 61, 62, 63, 64, 65, 78, 79, 80];
-    const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93];
+    const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92];
     
     for (let row = 0; row < 10; row++) {
         for (let col = 0; col < 10; col++) {
@@ -626,55 +865,7 @@ function updatePlayerMarkers() {
         const player = gameState.players[playerId];
         if (!player.connected) continue;
         
-        const marker = document.createElement('div');
-        marker.className = 'player-marker';
-        marker.id = `marker-${playerId}`;
-        marker.setAttribute('data-player', player.name);
-        
-        const cellNumber = player.position || 1;
-        const row = Math.floor((cellNumber - 1) / 10);
-        const col = (cellNumber - 1) % 10;
-        
-        // Более точное позиционирование для шестигранников
-        const leftPercent = (col * 10) + 5;
-        const topPercent = (row * 10) + 5;
-        
-        // Смещение для четных строк (оптимизация для гексагональной сетки)
-        if (row % 2 === 1) {
-            marker.style.left = `${leftPercent + 2.5}%`;
-        } else {
-            marker.style.left = `${leftPercent}%`;
-        }
-        
-        marker.style.top = `${topPercent}%`;
-        marker.style.background = player.color;
-        
-        // Добавляем иконку для текущего игрока
-        if (playerId === gameState.currentPlayerId) {
-            marker.innerHTML = '<i class="fas fa-user" style="font-size: 12px; color: white;"></i>';
-            marker.style.border = '3px solid white';
-            marker.style.boxShadow = '0 0 15px rgba(255, 255, 255, 0.8)';
-        } else {
-            marker.style.border = '2px solid white';
-            marker.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.7)';
-        }
-        
-        // Добавляем всплывающую подсказку с именем игрока
-        const tooltip = document.createElement('div');
-        tooltip.className = 'player-tooltip';
-        tooltip.textContent = player.name;
-        tooltip.style.cssText = 'position: absolute; top: -30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none;';
-        marker.appendChild(tooltip);
-        
-        // Показывать подсказку при наведении
-        marker.addEventListener('mouseenter', () => {
-            tooltip.style.opacity = '1';
-        });
-        marker.addEventListener('mouseleave', () => {
-            tooltip.style.opacity = '0';
-        });
-        
-        mapGrid.appendChild(marker);
+        updatePlayerMarker(playerId, player.position, player.city, player.color, player.name);
     }
 }
 
@@ -701,7 +892,7 @@ function updatePlayersList() {
             <span>${statusIcon} ${player.name} 
                 ${playerId === gameState.currentPlayerId ? '<span style="color: var(--secondary);">(Вы)</span>' : ''}
             </span>
-            <span>${player.cleaningPoints} баллов</span>
+            <span>${player.cleaningPoints || 0} баллов (поз. ${player.position || 1})</span>
         `;
         
         playersContainer.appendChild(playerItem);
@@ -713,10 +904,13 @@ function updatePlayerUI() {
     if (gameState.currentPlayer) {
         playerName.textContent = gameState.currentPlayer.name;
         currentCity.textContent = gameData.cities[gameState.currentPlayer.city]?.name || 'Тверь';
-        currentPosition.textContent = gameState.currentPlayer.position;
-        coinsCount.textContent = gameState.currentPlayer.coins;
-        cleaningPoints.textContent = gameState.currentPlayer.cleaningPoints;
-        playerLevel.textContent = gameState.currentPlayer.level;
+        currentPosition.textContent = gameState.currentPlayer.position || 1;
+        coinsCount.textContent = gameState.currentPlayer.coins || 100;
+        cleaningPoints.textContent = gameState.currentPlayer.cleaningPoints || 0;
+        playerLevel.textContent = gameState.currentPlayer.level || 1;
+        
+        // Обновляем плашку в левом верхнем углу
+        updatePlayerStatsBar();
     }
 }
 
@@ -792,7 +986,7 @@ function createBuildingsList() {
                 <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">${building.description}</div>
                 <div style="font-size: 0.8rem; color: var(--success); margin-top: 5px;">+${building.points} баллов очищения</div>
             </div>
-            <button class="game-btn buy-btn" data-building="${index}">Купить</button>
+            <button class="game-btn buy-btn" data-building="${index}">Купить 🏗️</button>
         `;
         
         buildingsContainer.appendChild(buildingItem);
@@ -806,6 +1000,7 @@ function createBuildingsList() {
             if (gameState.currentPlayer.coins >= building.cost) {
                 gameState.currentPlayer.coins -= building.cost;
                 gameState.currentPlayer.cleaningPoints += building.points;
+                if (!gameState.currentPlayer.buildings) gameState.currentPlayer.buildings = [];
                 gameState.currentPlayer.buildings.push(building.name);
                 
                 updatePlayerUI();
@@ -816,7 +1011,7 @@ function createBuildingsList() {
                 
                 // ТОЛЬКО в журнал, а в чат отправляем сообщение от игрока (как просили)
                 addLogEntry(`Вы построили "${building.name}"! Получено ${building.points} баллов очищения.`);
-                addChatMessage(gameState.currentPlayer.name, `Построил "${building.name}"!`);
+                addChatMessage(gameState.currentPlayer.name, `Построил "${building.name}"! 🏗️`);
                 
                 savePlayerState();
                 
@@ -827,10 +1022,13 @@ function createBuildingsList() {
                     showNotification(`🎊 Поздравляем! Вы достигли Астрахани и построили объект! Игра завершена.`, 'success');
                 }
                 
+                // Показываем уведомление о покупке
+                showNotification(`Вы построили "${building.name}" за ${building.cost} монет! Получено ${building.points} баллов очищения. 🎉`, 'success');
+                
                 // Обновляем список зданий
                 createBuildingsList();
             } else {
-                showNotification(`Недостаточно монет для постройки "${building.name}"!`, 'warning');
+                showNotification(`Недостаточно монет для постройки "${building.name}"! 💰`, 'warning');
             }
         });
     });
@@ -934,6 +1132,49 @@ function getRandomTask(difficulty) {
     return randomTask;
 }
 
+// Обновление плашки в левом верхнем углу
+function updatePlayerStatsBar() {
+    // Создаем или обновляем плашку
+    let statsBar = document.getElementById('playerStatsBar');
+    
+    if (!statsBar) {
+        statsBar = document.createElement('div');
+        statsBar.id = 'playerStatsBar';
+        statsBar.style.cssText = `
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 15px;
+            z-index: 999;
+            color: white;
+            font-size: 14px;
+            min-width: 150px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: none;
+        `;
+        document.body.appendChild(statsBar);
+    }
+    
+    if (gameContent.style.display === 'block') {
+        statsBar.style.display = 'block';
+        statsBar.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 10px; color: var(--secondary); text-align: center;">${gameState.currentPlayer?.name || 'Игрок'}</div>
+            <div style="margin-bottom: 5px;">💰 <strong>Монеты:</strong> ${gameState.currentPlayer?.coins || 0}</div>
+            <div style="margin-bottom: 5px;">⭐ <strong>Уровень:</strong> ${gameState.currentPlayer?.level || 1}</div>
+            <div style="margin-bottom: 5px;">🏆 <strong>Баллы:</strong> ${gameState.currentPlayer?.cleaningPoints || 0}</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                Позиция: ${gameState.currentPlayer?.position || 1}
+            </div>
+        `;
+    } else {
+        statsBar.style.display = 'none';
+    }
+}
+
 // ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ====================
 
 // Создание интерактивного задания
@@ -965,6 +1206,8 @@ function createInteractiveTask(task) {
         createSpotDifferenceTask(task);
     } else if (task.type === "puzzle_sequence") {
         createPuzzleSequenceTask(task);
+    } else if (task.type === "drag_complex") {
+        createDragComplexTask(task);
     } else {
         createDefaultTask(task);
     }
@@ -1017,22 +1260,50 @@ function createDragTask(task) {
         <p><strong>${task.description}</strong></p>
         <p>Перетащите ${task.goal} дерева в специальные зоны посадки:</p>
         <div class="drag-container">
-            <div class="drag-items" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <div class="drag-items" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; max-height: 200px; overflow-y: auto;">
                 ${task.items.map((item, index) => 
-                    `<div class="draggable-item" data-index="${index}" draggable="true" style="cursor: grab;">
+                    `<div class="draggable-item" data-index="${index}" draggable="true" style="cursor: grab; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: linear-gradient(135deg, #3498db, #2980b9); border-radius: 10px;">
                         ${item}
                     </div>`
                 ).join('')}
             </div>
-            <div class="drop-zones" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(46,204,113,0.1); border-radius: 8px;">
+            <div class="drop-zones" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(46,204,113,0.1); border-radius: 8px; max-height: 200px; overflow-y: auto;">
                 ${Array.from({length: task.zones || task.goal}).map((_, index) => 
-                    `<div class="drop-zone" data-zone="${index}">
-                        Зона посадки ${index + 1}
+                    `<div class="drop-zone" data-zone="${index}" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border: 3px dashed #2ecc71; border-radius: 10px; background: rgba(46, 204, 113, 0.1);">
+                        Зона ${index + 1}
                     </div>`
                 ).join('')}
             </div>
         </div>
         <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Перетащено: <span id="dragCount">0</span>/${task.goal}</p>
+    `;
+    
+    // Инициализация перетаскивания
+    initializeDragAndDrop(task.goal);
+}
+
+// Создание сложного задания на перетаскивание
+function createDragComplexTask(task) {
+    taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Создайте экологический город будущего, перетащив элементы в зоны:</p>
+        <div class="drag-container">
+            <div class="drag-items" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                ${task.items.map((item, index) => 
+                    `<div class="draggable-item" data-index="${index}" draggable="true" style="cursor: grab; width: 70px; height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2rem; background: linear-gradient(135deg, #3498db, #2980b9); border-radius: 10px;">
+                        ${item}<br><small style="font-size: 10px;">${task.descriptions?.[index] || ''}</small>
+                    </div>`
+                ).join('')}
+            </div>
+            <div class="drop-zones" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; padding: 15px; background: rgba(46,204,113,0.1); border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                ${Array.from({length: task.zones || task.goal}).map((_, index) => 
+                    `<div class="drop-zone" data-zone="${index}" style="width: 90px; height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px dashed #2ecc71; border-radius: 10px; background: rgba(46, 204, 113, 0.1); font-size: 12px; text-align: center;">
+                        ${task.descriptions?.[index] || `Зона ${index + 1}`}
+                    </div>`
+                ).join('')}
+            </div>
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Размещено: <span id="dragCount">0</span>/${task.goal}</p>
     `;
     
     // Инициализация перетаскивания
@@ -1045,24 +1316,28 @@ function createSortTask(task) {
         paper: { name: "Бумага", emoji: "📄", color: "#3498db" },
         plastic: { name: "Пластик", emoji: "🥤", color: "#e74c3c" },
         glass: { name: "Стекло", emoji: "🍶", color: "#2ecc71" },
-        battery: { name: "Батарейки", emoji: "🔋", color: "#f39c12" }
+        battery: { name: "Батарейки", emoji: "🔋", color: "#f39c12" },
+        metal: { name: "Металл", emoji: "🥫", color: "#9b59b6" },
+        organic: { name: "Органика", emoji: "🍎", color: "#e67e22" }
     };
     
     taskArea.innerHTML = `
         <p><strong>${task.description}</strong></p>
         <p>Перетащите мусор в правильные контейнеры:</p>
-        <div class="sorting-area" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin: 20px 0;">
-            ${Object.entries(binTypes).map(([type, data]) => 
-                `<div class="sort-bin" data-type="${type}" style="min-height: 150px; border: 2px solid ${data.color}; border-radius: 8px; padding: 10px; text-align: center;">
+        <div class="sorting-area" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin: 20px 0; max-height: 300px; overflow-y: auto;">
+            ${task.items.map(item => binTypes[item.type]).filter((value, index, self) => 
+                self.findIndex(v => v.name === value.name) === index
+            ).map((data, index) => 
+                `<div class="sort-bin" data-type="${Object.keys(binTypes).find(key => binTypes[key].name === data.name)}" style="min-height: 150px; border: 2px solid ${data.color}; border-radius: 8px; padding: 10px; text-align: center;">
                     <div style="font-size: 2rem; margin-bottom: 10px;">${data.emoji}</div>
                     <div style="font-weight: bold;">${data.name}</div>
                     <div class="sort-bin-content" style="min-height: 80px; margin-top: 10px;"></div>
                 </div>`
             ).join('')}
         </div>
-        <div class="sort-items" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+        <div class="sort-items" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; max-height: 200px; overflow-y: auto;">
             ${task.items.map((item, index) => 
-                `<div class="sort-item" data-index="${index}" data-type="${item.type}" draggable="true" style="cursor: grab; padding: 10px 15px; background: ${binTypes[item.type].color}; border-radius: 8px; color: white; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+                `<div class="sort-item" data-index="${index}" data-type="${item.type}" draggable="true" style="cursor: grab; padding: 10px 15px; background: ${binTypes[item.type]?.color || '#95a5a6'}; border-radius: 8px; color: white; font-weight: bold; display: flex; align-items: center; gap: 8px;">
                     ${item.emoji} ${item.name}
                 </div>`
             ).join('')}
@@ -1118,7 +1393,7 @@ function initializeDragAndDrop(goal) {
                 
                 if (placedCount >= goal) {
                     checkTaskBtn.disabled = false;
-                    taskResult.textContent = '✅ Отлично! Все деревья посажены!';
+                    taskResult.textContent = '✅ Отлично! Задание выполнено!';
                     taskResult.style.color = '#2ecc71';
                 }
             }
@@ -1226,7 +1501,7 @@ function createPuzzleTask(task) {
     taskArea.innerHTML = `
         <p><strong>${task.description}</strong></p>
         <p>Соберите пазл в правильном порядке:</p>
-        <div class="puzzle-target" style="display: flex; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-height: 100px;">
+        <div class="puzzle-target" style="display: flex; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-height: 100px; flex-wrap: wrap;">
             ${pieces.map((piece, index) => 
                 `<div class="puzzle-target-slot" data-index="${index}" style="width: 50px; height: 50px; border: 2px dashed #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center;"></div>`
             ).join('')}
@@ -1296,21 +1571,25 @@ function createSpotDifferenceTask(task) {
     taskArea.innerHTML = `
         <p><strong>${task.description}</strong></p>
         <p>Найдите ${task.differences} отличия:</p>
-        <div class="difference-container" style="display: flex; gap: 20px; margin: 20px 0; justify-content: center;">
-            <div class="difference-image" style="position: relative;">
-                <div style="font-size: 3rem; padding: 20px; background: white; border-radius: 8px;">${task.image1}</div>
-                ${differences.map((_, index) => {
-                    const left = Math.random() * 70 + 15;
-                    const top = Math.random() * 60 + 20;
-                    return `<div class="difference-spot" data-index="${index}" style="position: absolute; left: ${left}%; top: ${top}%; width: 20px; height: 20px; border-radius: 50%; background: rgba(255, 0, 0, 0.3); cursor: pointer; display: none;"></div>`;
-                }).join('')}
+        <div class="difference-container" style="display: flex; flex-direction: column; gap: 20px; margin: 20px 0; justify-content: center;">
+            <div class="difference-images" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <div class="difference-image" style="position: relative;">
+                    <div style="font-size: 3rem; padding: 20px; background: white; border-radius: 8px; text-align: center;">${task.image1}</div>
+                    ${differences.map((_, index) => {
+                        const left = Math.random() * 70 + 15;
+                        const top = Math.random() * 60 + 20;
+                        return `<div class="difference-spot" data-index="${index}" style="position: absolute; left: ${left}%; top: ${top}%; width: 20px; height: 20px; border-radius: 50%; background: rgba(255, 0, 0, 0.3); cursor: pointer; display: none;"></div>`;
+                    }).join('')}
+                </div>
+                <div class="difference-image" style="position: relative;">
+                    <div style="font-size: 3rem; padding: 20px; background: white; border-radius: 8px; text-align: center;">${task.image2}</div>
+                </div>
             </div>
-            <div class="difference-image" style="position: relative;">
-                <div style="font-size: 3rem; padding: 20px; background: white; border-radius: 8px;">${task.image2}</div>
+            <div style="text-align: center;">
+                <button class="game-btn small" id="showDifferencesBtn" style="margin-top: 10px;">Показать отличия 👁️</button>
             </div>
         </div>
-        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Найдено отличий: <span id="differenceCount">0</span>/${task.differences}</p>
-        <button class="game-btn small" id="showDifferencesBtn" style="margin-top: 10px;">Показать отличия</button>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">Найдено отличий: <span id="differenceCount">0</span>/${task.differences}</p>
     `;
     
     initializeSpotDifference(task.differences);
@@ -1358,7 +1637,7 @@ function createPuzzleSequenceTask(task) {
     taskArea.innerHTML = `
         <p><strong>${task.description}</strong></p>
         <p>Расположите элементы в правильной последовательности:</p>
-        <div class="sequence-target" style="display: flex; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-height: 100px;">
+        <div class="sequence-target" style="display: flex; gap: 5px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-height: 100px; flex-wrap: wrap;">
             ${task.correctOrder.map((_, index) => 
                 `<div class="sequence-slot" data-index="${index}" style="width: 60px; height: 60px; border: 2px dashed #3498db; border-radius: 8px; display: flex; align-items: center; justify-content: center;"></div>`
             ).join('')}
@@ -1469,9 +1748,9 @@ function completeInteractiveTask() {
         gameState.currentPlayer.level += 1;
         updatePlayerUI();
         addLogEntry(`🎉 Поздравляем! Вы повысили уровень до ${gameState.currentPlayer.level}!`);
-        addChatMessage(gameState.currentPlayer.name, `Достиг ${gameState.currentPlayer.level}-го уровня!`);
+        addChatMessage(gameState.currentPlayer.name, `Достиг ${gameState.currentPlayer.level}-го уровня! ⭐`);
         updateDifficultyButtons();
-        showNotification(`Поздравляем! Вы достигли ${gameState.currentPlayer.level}-го уровня!`, 'success');
+        showNotification(`Поздравляем! Вы достигли ${gameState.currentPlayer.level}-го уровня! ⭐`, 'success');
     }
     
     interactiveTask.style.display = 'none';
@@ -1479,16 +1758,17 @@ function completeInteractiveTask() {
     checkTaskBtn.disabled = true;
     completeTaskBtn.disabled = true;
     gameState.taskInProgress = false;
+    hasCurrentTask = false;
     
     buildBtn.disabled = false;
     rollDiceBtn.disabled = false;
     
     // ТОЛЬКО в журнал (как просили), а в чат отправляем сообщение от игрока
     addLogEntry(`Вы выполнили задание и получили ${coinsEarned} монет и ${expEarned} опыта!`);
-    addChatMessage(gameState.currentPlayer.name, `Выполнил задание!`);
+    addChatMessage(gameState.currentPlayer.name, `Выполнил задание! ✅`);
     
     savePlayerState();
-    showNotification(`Задание выполнено! Вы получили ${coinsEarned} монет и ${expEarned} опыта!`, 'success');
+    showNotification(`Задание выполнено! Вы получили ${coinsEarned} монет и ${expEarned} опыта! 🎉`, 'success');
 }
 
 // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
@@ -1702,7 +1982,7 @@ difficultyBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         if (btn.classList.contains('locked')) {
             const requiredLevel = gameData.difficultyRequirements[btn.id.replace('Btn', '')].level;
-            showNotification(`Для этой сложности требуется ${requiredLevel}-й уровень!`, 'warning');
+            showNotification(`Для этой сложности требуется ${requiredLevel}-й уровень! 🔒`, 'warning');
             return;
         }
         
@@ -1737,17 +2017,17 @@ chatInput.addEventListener('keypress', (e) => {
 inviteBtn.addEventListener('click', () => {
     const roomNumber = currentRoomId || gameState.roomId;
     if (roomNumber) {
-        const inviteText = `Присоединяйтесь к моей комнате в игре "Юный эколог"! Номер комнаты: ${roomNumber}\nИгра доступна по адресу: ${window.location.origin}`;
+        const inviteText = `Присоединяйтесь к моей комнате в игре "Юный эколог"! 🎮\n\nНомер комнаты: 🏷️ <strong>${roomNumber}</strong> 🏷️\n\nИгра доступна по адресу: ${window.location.origin}\n\nЖду вас в игре! 👋`;
         
-        showNotification(`Номер комнаты: ${roomNumber} (скопировано в буфер обмена)`, 'info');
+        showNotification(`Номер комнаты: ${roomNumber} (скопировано в буфер обмена) 📋`, 'info');
         
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(inviteText).then(() => {
-                showNotification('Приглашение скопировано в буфер обмена!', 'success');
+            navigator.clipboard.writeText(inviteText.replace(/<strong>|<\/strong>/g, '')).then(() => {
+                showNotification('Приглашение скопировано в буфер обмена! 📋', 'success');
             }).catch(() => {
                 // Fallback для старых браузеров
                 const textArea = document.createElement('textarea');
-                textArea.value = inviteText;
+                textArea.value = inviteText.replace(/<strong>|<\/strong>/g, '');
                 document.body.appendChild(textArea);
                 textArea.select();
                 document.execCommand('copy');
@@ -1789,16 +2069,15 @@ moveBtn.addEventListener('click', () => {
     if (gameState.gameOver) return;
     
     const currentCityKey = gameState.currentPlayer.city;
-    if (gameState.cityProgress[currentCityKey] < 100) {
-        showNotification(`Необходимо достичь 100% прогресса очищения в ${gameData.cities[currentCityKey].name} для перехода!`, 'warning');
-        return;
-    }
     
+    // Проверяем, можно ли перейти в следующий город
     const cityKeys = Object.keys(gameData.cities);
     const currentIndex = cityKeys.indexOf(currentCityKey);
     
     if (currentIndex < cityKeys.length - 1) {
         const nextCity = cityKeys[currentIndex + 1];
+        
+        // Разрешаем переход, даже если ушли дальше
         const nextPosition = gameData.cities[nextCity].cells[0];
         gameState.currentPlayer.position = nextPosition;
         moveToCity(nextCity);
@@ -1807,6 +2086,8 @@ moveBtn.addEventListener('click', () => {
             addLogEntry(`🏁 Вы достигли Астрахани! Постройте объект, чтобы завершить игру.`);
             showNotification(`🏁 Вы достигли Астрахани! Постройте объект, чтобы завершить игру.`, 'success');
         }
+    } else {
+        showNotification('Вы уже в последнем городе!', 'info');
     }
 });
 
@@ -1821,6 +2102,41 @@ window.addEventListener('beforeunload', () => {
     }
 });
 
+// Обработчик кнопки "Построить объект" - скролл к строительству
+buildBtn.addEventListener('click', () => {
+    // Прокручиваем к секции строительства
+    buildingsSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+    });
+    
+    // Добавляем подсветку
+    buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
+    buildingsSection.style.transition = 'box-shadow 0.5s';
+    setTimeout(() => {
+        buildingsSection.style.boxShadow = '';
+    }, 2000);
+});
+
+// Периодическая проверка подключения
+setInterval(() => {
+    if (isConnected && socket.connected) {
+        // Проверяем, можно ли что-то делать
+        if (gameState.currentPlayer && gameState.currentPlayer.connected === false) {
+            // Игрок отключен, пытаемся переподключиться
+            const storedUsername = localStorage.getItem('lastUsername');
+            const storedRoomId = localStorage.getItem('lastRoomId');
+            
+            if (storedUsername && storedRoomId) {
+                socket.emit('player_reconnected', {
+                    roomId: storedRoomId,
+                    playerName: storedUsername
+                });
+            }
+        }
+    }
+}, 10000); // Каждые 10 секунд
+
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', () => {
     updateConnectionStatus('connecting', '🔄 Подключение к серверу...');
@@ -1828,6 +2144,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Инициализация кнопки постройки
     buildBtn.disabled = false;
+    
+    // Обновляем плашку статистики
+    updatePlayerStatsBar();
     
     // Тестирование подключения
     setTimeout(() => {
