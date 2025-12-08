@@ -95,7 +95,7 @@ socket.on('join-success', (playerData) => {
 
 // Ошибка присоединения к комнате
 socket.on('room-error', (message) => {
-    showNotification(typeof message === 'object' ? message.message || 'Комнаты с таким номером не существует' : message, 'error');
+    showNotification(message || 'Комнаты с таким номером не существует', 'error');
     // Возвращаем к форме авторизации
     authSection.style.display = 'block';
     gameContent.style.display = 'none';
@@ -168,7 +168,7 @@ const gameData = {
     cities: {
         tver: { 
             name: "Тверь", 
-            cells: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], // Изменено с 1-13 на 2-13
+            cells: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
             position: 0,
             description: "Стартовый город",
             history: "Тверь — один из древнейших городов России, основанный в 1135 году. Расположена на берегах рек Волга, Тверца и Тьмака.",
@@ -213,7 +213,7 @@ const gameData = {
         },
         astrakhan: { 
             name: "Астрахань", 
-            cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92], // Изменено с 81-93 на 81-92
+            cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92],
             position: 5,
             description: "Конечная точка маршрута",
             history: "Астрахань — древний город в дельте Волги, основанный в 1558 году. Важный рыболовный и транспортный узел.",
@@ -588,6 +588,62 @@ function initializeGame(playerData) {
     
     // Запрашиваем состояние комнаты
     socket.emit('get_room_state');
+    
+    // Создаем плашку с монетами и уровнем в левом верхнем углу
+    createStatsBar();
+}
+
+// Функция создания плашки статистики
+function createStatsBar() {
+    // Удаляем старую плашку если есть
+    const oldStatsBar = document.getElementById('statsBar');
+    if (oldStatsBar) {
+        oldStatsBar.remove();
+    }
+    
+    const statsBar = document.createElement('div');
+    statsBar.id = 'statsBar';
+    statsBar.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(15px);
+        border-radius: 15px;
+        padding: 12px 20px;
+        display: flex;
+        gap: 25px;
+        z-index: 999;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        font-size: 0.9rem;
+    `;
+    
+    statsBar.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #f39c12; font-weight: bold;">💰</span>
+            <span>Монеты: <span id="statsCoins" style="font-weight: bold; color: #f39c12;">${gameState.currentPlayer?.coins || 0}</span></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #3498db; font-weight: bold;">⭐</span>
+            <span>Уровень: <span id="statsLevel" style="font-weight: bold; color: #3498db;">${gameState.currentPlayer?.level || 1}</span></span>
+        </div>
+    `;
+    
+    document.body.appendChild(statsBar);
+    
+    // Функция обновления плашки статистики
+    function updateStatsBar() {
+        if (gameState.currentPlayer) {
+            const statsCoins = document.getElementById('statsCoins');
+            const statsLevel = document.getElementById('statsLevel');
+            if (statsCoins) statsCoins.textContent = gameState.currentPlayer.coins || 0;
+            if (statsLevel) statsLevel.textContent = gameState.currentPlayer.level || 1;
+        }
+    }
+    
+    // Периодическое обновление статистики
+    setInterval(updateStatsBar, 1000);
 }
 
 // Функция обновления состояния комнаты
@@ -685,7 +741,9 @@ function createMap() {
     mapGrid.innerHTML = '';
     
     const riverCells = [14, 15, 16, 17, 30, 31, 44, 45, 46, 59, 60, 61, 62, 63, 64, 65, 78, 79, 80];
-    const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93];
+    const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93];
+    
+    let cellNumber = 1;
     
     for (let row = 0; row < 10; row++) {
         for (let col = 0; col < 10; col++) {
@@ -693,39 +751,35 @@ function createMap() {
             cell.className = 'map-cell hexagon';
             cell.style.position = 'relative';
             
-            const cellNumber = row * 10 + col + 1;
-            
             if (cellNumber > 94) {
                 cell.classList.add('empty');
                 cell.textContent = '';
                 mapGrid.appendChild(cell);
+                cellNumber++;
                 continue;
             }
             
             // Добавляем номер клетки
             const numberSpan = document.createElement('span');
             numberSpan.className = 'cell-number';
-            numberSpan.textContent = cellNumber;
             numberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; font-weight: bold; color: #333; z-index: 1;';
             
             if (cellNumber === 1) {
                 cell.classList.add('start');
                 cell.style.background = 'rgba(76, 175, 80, 0.8)';
-                cell.style.backgroundImage = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="%23007E33"/></svg>\')';
-                cell.style.backgroundRepeat = 'no-repeat';
-                cell.style.backgroundPosition = 'center';
-                cell.style.backgroundSize = '60%';
                 numberSpan.textContent = 'Старт';
                 numberSpan.style.color = 'white';
                 numberSpan.style.fontSize = '10px';
                 numberSpan.style.top = '70%';
+                
+                // Стартовая позиция - клетка 1
+                if (gameState.currentPlayer && (!gameState.currentPlayer.position || gameState.currentPlayer.position === 0)) {
+                    gameState.currentPlayer.position = 1;
+                    updatePlayerUI();
+                }
             } else if (cellNumber === 94) {
                 cell.classList.add('finish');
                 cell.style.background = 'rgba(244, 67, 54, 0.8)';
-                cell.style.backgroundImage = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><polygon points="10,0 13,6 20,7 15,12 16,20 10,16 4,20 5,12 0,7 7,6" fill="%23D32F2F"/></svg>\')';
-                cell.style.backgroundRepeat = 'no-repeat';
-                cell.style.backgroundPosition = 'center';
-                cell.style.backgroundSize = '60%';
                 numberSpan.textContent = 'Финиш';
                 numberSpan.style.color = 'white';
                 numberSpan.style.fontSize = '10px';
@@ -733,28 +787,21 @@ function createMap() {
             } else if (riverCells.includes(cellNumber)) {
                 cell.classList.add('river');
                 cell.style.background = 'rgba(33, 150, 243, 0.3)';
-                cell.style.backgroundImage = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M0,10 Q5,5 10,10 T20,10" stroke="%232196F3" fill="none" stroke-width="2"/></svg>\')';
-                cell.style.backgroundRepeat = 'no-repeat';
-                cell.style.backgroundPosition = 'center';
+                numberSpan.textContent = cellNumber;
                 numberSpan.style.color = '#2196F3';
             } else if (forestCells.includes(cellNumber)) {
                 cell.classList.add('forest');
                 cell.style.background = 'rgba(56, 142, 60, 0.3)';
-                cell.style.backgroundImage = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10,2 L12,7 L17,7 L13,10 L15,15 L10,12 L5,15 L7,10 L3,7 L8,7 Z" fill="%23388E3C"/></svg>\')';
-                cell.style.backgroundRepeat = 'no-repeat';
-                cell.style.backgroundPosition = 'center';
+                numberSpan.textContent = cellNumber;
                 numberSpan.style.color = '#388E3C';
             } else {
                 let isCity = false;
                 for (const cityKey in gameData.cities) {
                     if (gameData.cities[cityKey].cells.includes(cellNumber)) {
                         cell.classList.add('city');
-                        // Желтый цвет для всех клеток города (как просили)
+                        // Желтый цвет для всех клеток города
                         cell.style.background = 'rgba(255, 235, 59, 0.8)';
-                        cell.style.backgroundImage = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10 0L0 10h3v10h4v-6h6v6h4V10h3z" fill="%23FF9800"/></svg>\')';
-                        cell.style.backgroundRepeat = 'no-repeat';
-                        cell.style.backgroundPosition = 'center 5px';
-                        cell.style.backgroundSize = '15px';
+                        numberSpan.textContent = cellNumber;
                         numberSpan.style.top = '70%';
                         numberSpan.style.color = '#FF9800';
                         isCity = true;
@@ -763,12 +810,14 @@ function createMap() {
                 }
                 if (!isCity) {
                     cell.style.background = 'rgba(255, 255, 255, 0.7)';
+                    numberSpan.textContent = cellNumber;
                     numberSpan.style.color = '#666';
                 }
             }
             
             cell.appendChild(numberSpan);
             mapGrid.appendChild(cell);
+            cellNumber++;
         }
     }
     
@@ -874,6 +923,12 @@ function updatePlayerUI() {
         coinsCount.textContent = gameState.currentPlayer.coins || 0;
         cleaningPoints.textContent = gameState.currentPlayer.cleaningPoints || 0;
         playerLevel.textContent = gameState.currentPlayer.level || 1;
+        
+        // Обновляем плашку статистики
+        const statsCoins = document.getElementById('statsCoins');
+        const statsLevel = document.getElementById('statsLevel');
+        if (statsCoins) statsCoins.textContent = gameState.currentPlayer.coins || 0;
+        if (statsLevel) statsLevel.textContent = gameState.currentPlayer.level || 1;
     }
 }
 
@@ -972,7 +1027,7 @@ function createBuildingsList() {
                 const newProgress = Math.min(100, currentCityProgress + 15);
                 updateCityProgress(gameState.currentPlayer.city, newProgress);
                 
-                // ТОЛЬКО в журнал, а в чат отправляем сообщение от игрока (как просили)
+                // ТОЛЬКО в журнал
                 addLogEntry(`Вы построили "${building.name}"! Получено ${building.points} баллов очищения.`);
                 
                 // УВЕДОМЛЕНИЕ о покупке
@@ -1328,6 +1383,16 @@ function initializeDragAndDropEnhanced(goal) {
             if (nearestZone) {
                 nearestZone.classList.add('hover');
             }
+            
+            // Прокрутка при перетаскивании на мобильных
+            const viewportHeight = window.innerHeight;
+            if (touch.clientY < 100) {
+                // Прокрутка вверх
+                window.scrollBy(0, -10);
+            } else if (touch.clientY > viewportHeight - 100) {
+                // Прокрутка вниз
+                window.scrollBy(0, 10);
+            }
         });
         
         item.addEventListener('touchend', function(e) {
@@ -1450,7 +1515,128 @@ function createSortTask(task) {
     initializeSortingEnhanced(task.items.length);
 }
 
-// НОВЫЕ ТИПЫ ЗАДАНИЙ
+// Улучшенная инициализация сортировки для мобильных
+function initializeSortingEnhanced(totalItems) {
+    const sortItems = taskArea.querySelectorAll('.sort-item');
+    const sortBins = taskArea.querySelectorAll('.sort-bin');
+    let sortedCount = 0;
+    
+    sortItems.forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.type);
+        });
+        
+        // Touch events для мобильных
+        item.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = this.getBoundingClientRect();
+            
+            // Создаем копию для перетаскивания
+            const clone = this.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.left = (touch.clientX - rect.width/2) + 'px';
+            clone.style.top = (touch.clientY - rect.height/2) + 'px';
+            clone.style.zIndex = '1000';
+            clone.style.opacity = '0.8';
+            document.body.appendChild(clone);
+            
+            const touchMoveHandler = function(e) {
+                const touch = e.touches[0];
+                clone.style.left = (touch.clientX - rect.width/2) + 'px';
+                clone.style.top = (touch.clientY - rect.height/2) + 'px';
+                
+                // Прокрутка при перетаскивании
+                const viewportHeight = window.innerHeight;
+                if (touch.clientY < 100) {
+                    window.scrollBy(0, -10);
+                } else if (touch.clientY > viewportHeight - 100) {
+                    window.scrollBy(0, 10);
+                }
+            };
+            
+            const touchEndHandler = function(e) {
+                const touch = e.changedTouches[0];
+                
+                // Проверяем, над каким контейнером отпустили
+                sortBins.forEach(bin => {
+                    const binRect = bin.getBoundingClientRect();
+                    if (touch.clientX >= binRect.left && 
+                        touch.clientX <= binRect.right &&
+                        touch.clientY >= binRect.top && 
+                        touch.clientY <= binRect.bottom) {
+                        
+                        const itemType = item.dataset.type;
+                        const binType = bin.dataset.type;
+                        
+                        if (itemType === binType) {
+                            const binContent = bin.querySelector('.sort-bin-content');
+                            binContent.appendChild(item);
+                            item.style.margin = '3px';
+                            item.style.cursor = 'default';
+                            item.draggable = false;
+                            item.dataset.placed = 'true';
+                            
+                            sortedCount++;
+                            document.getElementById('sortCount').textContent = sortedCount;
+                            
+                            if (sortedCount >= totalItems) {
+                                checkTaskBtn.disabled = false;
+                                taskResult.textContent = '✅ Отлично! Весь мусор отсортирован!';
+                                taskResult.style.color = '#2ecc71';
+                            }
+                        }
+                    }
+                });
+                
+                document.body.removeChild(clone);
+                document.removeEventListener('touchmove', touchMoveHandler);
+                document.removeEventListener('touchend', touchEndHandler);
+            };
+            
+            document.addEventListener('touchmove', touchMoveHandler);
+            document.addEventListener('touchend', touchEndHandler);
+        });
+    });
+    
+    sortBins.forEach(bin => {
+        bin.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        bin.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const itemType = e.dataTransfer.getData('text/plain');
+            const binType = this.dataset.type;
+            
+            if (itemType === binType) {
+                const draggedItem = Array.from(sortItems).find(item => 
+                    item.dataset.type === itemType && !item.dataset.placed
+                );
+                
+                if (draggedItem) {
+                    const binContent = this.querySelector('.sort-bin-content');
+                    binContent.appendChild(draggedItem);
+                    draggedItem.style.margin = '5px';
+                    draggedItem.style.cursor = 'default';
+                    draggedItem.draggable = false;
+                    draggedItem.dataset.placed = 'true';
+                    
+                    sortedCount++;
+                    document.getElementById('sortCount').textContent = sortedCount;
+                    
+                    if (sortedCount >= totalItems) {
+                        checkTaskBtn.disabled = false;
+                        taskResult.textContent = '✅ Отлично! Весь мусор отсортирован!';
+                        taskResult.style.color = '#2ecc71';
+                    }
+                }
+            }
+        });
+    });
+}
+
+// ==================== НОВЫЕ ТИПЫ ЗАДАНИЙ ====================
 
 // Очистка пруда
 function createCleanPondTask(task) {
@@ -1625,6 +1811,14 @@ function initializeFlowerPlanting(goal) {
                 const touch = e.touches[0];
                 clone.style.left = (touch.clientX - rect.width/2) + 'px';
                 clone.style.top = (touch.clientY - rect.height/2) + 'px';
+                
+                // Прокрутка
+                const viewportHeight = window.innerHeight;
+                if (touch.clientY < 100) {
+                    window.scrollBy(0, -10);
+                } else if (touch.clientY > viewportHeight - 100) {
+                    window.scrollBy(0, 10);
+                }
             };
             
             const touchEndHandler = function(e) {
@@ -1777,170 +1971,6 @@ function createBirdFeederTask(task) {
     initializeBirdFeeder(task.correctOrder);
 }
 
-// Система компостирования
-function createCompostSystemTask(task) {
-    const shuffledItems = [...task.items].sort(() => Math.random() - 0.5);
-    
-    taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Расположите компоненты компоста в правильном порядке:</p>
-        <div class="compost-target" style="display: flex; flex-direction: column; gap: 10px; margin: 20px 0; padding: 15px; background: rgba(139, 195, 74, 0.1); border-radius: 12px; min-height: 200px;">
-            ${task.correctOrder.map((_, index) => 
-                `<div class="compost-slot" data-index="${index}" style="min-height: 50px; border: 2px dashed #8bc34a; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: rgba(255,255,255,0.5); margin-bottom: 5px;">
-                    Слой ${index + 1}
-                </div>`
-            ).join('')}
-        </div>
-        <p style="text-align: center; margin: 10px 0; font-size: 0.9rem; color: rgba(255,255,255,0.7);">Перетащите компоненты снизу в правильные слои</p>
-        <div class="compost-pieces" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 12px; justify-content: center;">
-            ${shuffledItems.map((item, index) => 
-                `<div class="compost-piece" data-piece="${item}" draggable="true" style="padding: 12px 15px; border: 2px solid #8bc34a; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: grab; background: rgba(139, 195, 74, 0.2);">${item}</div>`
-            ).join('')}
-        </div>
-        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">Размещено: <span id="compostCount" style="font-weight: bold;">0</span>/${task.correctOrder.length}</p>
-    `;
-    
-    initializeCompostSystem(task.correctOrder);
-}
-
-// Экологичный город
-function createEcoCityTask(task) {
-    const shuffledElements = [...task.elements].sort(() => Math.random() - 0.5);
-    
-    taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Расположите элементы экологичного города в правильном порядке:</p>
-        <div class="ecocity-target" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; padding: 15px; background: rgba(41, 128, 185, 0.1); border-radius: 12px; min-height: 150px;">
-            ${task.correctOrder.map((_, index) => 
-                `<div class="ecocity-slot" data-index="${index}" style="min-height: 80px; border: 2px dashed #2980b9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: rgba(255,255,255,0.5); padding: 10px; text-align: center;">
-                    Ячейка ${index + 1}
-                </div>`
-            ).join('')}
-        </div>
-        <p style="text-align: center; margin: 10px 0; font-size: 0.9rem; color: rgba(255,255,255,0.7);">Перетащите элементы снизу в правильные ячейки</p>
-        <div class="ecocity-pieces" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 12px; justify-content: center;">
-            ${shuffledElements.map((element, index) => 
-                `<div class="ecocity-piece" data-piece="${element}" draggable="true" style="width: 80px; height: 80px; border: 2px solid #2980b9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: grab; background: rgba(41, 128, 185, 0.2);">${element}</div>`
-            ).join('')}
-        </div>
-        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">Размещено: <span id="ecocityCount" style="font-weight: bold;">0</span>/${task.correctOrder.length}</p>
-    `;
-    
-    initializeEcoCity(task.correctOrder);
-}
-
-// Инициализация системы компостирования
-function initializeCompostSystem(correctOrder) {
-    const compostPieces = taskArea.querySelectorAll('.compost-piece');
-    const compostSlots = taskArea.querySelectorAll('.compost-slot');
-    let placedCount = 0;
-    
-    compostPieces.forEach(piece => {
-        piece.addEventListener('dragstart', function(e) {
-            e.dataTransfer.setData('text/plain', this.dataset.piece);
-        });
-    });
-    
-    compostSlots.forEach((slot, slotIndex) => {
-        slot.addEventListener('dragover', function(e) {
-            e.preventDefault();
-        });
-        
-        slot.addEventListener('drop', function(e) {
-            e.preventDefault();
-            const piece = e.dataTransfer.getData('text/plain');
-            const expectedPiece = correctOrder[slotIndex];
-            
-            if (!this.hasChildNodes() && piece === expectedPiece) {
-                const pieceElement = Array.from(compostPieces).find(p => 
-                    p.dataset.piece === piece && !p.dataset.placed
-                );
-                
-                if (pieceElement) {
-                    this.innerHTML = piece;
-                    this.style.fontSize = '1.8rem';
-                    this.style.color = 'white';
-                    this.style.display = 'flex';
-                    this.style.alignItems = 'center';
-                    this.style.justifyContent = 'center';
-                    this.style.border = '2px solid #2ecc71';
-                    this.style.background = 'rgba(139, 195, 74, 0.3)';
-                    
-                    pieceElement.style.opacity = '0.3';
-                    pieceElement.style.cursor = 'default';
-                    pieceElement.draggable = false;
-                    pieceElement.dataset.placed = 'true';
-                    
-                    placedCount++;
-                    document.getElementById('compostCount').textContent = placedCount;
-                    
-                    if (placedCount >= correctOrder.length) {
-                        checkTaskBtn.disabled = false;
-                        taskResult.textContent = '✅ Отлично! Система компостирования создана!';
-                        taskResult.style.color = '#2ecc71';
-                    }
-                }
-            }
-        });
-    });
-}
-
-// Инициализация экологического города
-function initializeEcoCity(correctOrder) {
-    const ecocityPieces = taskArea.querySelectorAll('.ecocity-piece');
-    const ecocitySlots = taskArea.querySelectorAll('.ecocity-slot');
-    let placedCount = 0;
-    
-    ecocityPieces.forEach(piece => {
-        piece.addEventListener('dragstart', function(e) {
-            e.dataTransfer.setData('text/plain', this.dataset.piece);
-        });
-    });
-    
-    ecocitySlots.forEach((slot, slotIndex) => {
-        slot.addEventListener('dragover', function(e) {
-            e.preventDefault();
-        });
-        
-        slot.addEventListener('drop', function(e) {
-            e.preventDefault();
-            const piece = e.dataTransfer.getData('text/plain');
-            const expectedPiece = correctOrder[slotIndex];
-            
-            if (!this.hasChildNodes() && piece === expectedPiece) {
-                const pieceElement = Array.from(ecocityPieces).find(p => 
-                    p.dataset.piece === piece && !p.dataset.placed
-                );
-                
-                if (pieceElement) {
-                    this.innerHTML = piece;
-                    this.style.fontSize = '1.8rem';
-                    this.style.color = 'white';
-                    this.style.display = 'flex';
-                    this.style.alignItems = 'center';
-                    this.style.justifyContent = 'center';
-                    this.style.border = '2px solid #2ecc71';
-                    this.style.background = 'rgba(41, 128, 185, 0.3)';
-                    
-                    pieceElement.style.opacity = '0.3';
-                    pieceElement.style.cursor = 'default';
-                    pieceElement.draggable = false;
-                    pieceElement.dataset.placed = 'true';
-                    
-                    placedCount++;
-                    document.getElementById('ecocityCount').textContent = placedCount;
-                    
-                    if (placedCount >= correctOrder.length) {
-                        checkTaskBtn.disabled = false;
-                        taskResult.textContent = '✅ Отлично! Экологичный город построен!';
-                        taskResult.style.color = '#2ecc71';
-                    }
-                }
-            }
-        });
-    });
-}
-
 // Инициализация кормушки для птиц
 function initializeBirdFeeder(correctOrder) {
     const birdfeederPieces = taskArea.querySelectorAll('.birdfeeder-piece');
@@ -1950,6 +1980,84 @@ function initializeBirdFeeder(correctOrder) {
     birdfeederPieces.forEach(piece => {
         piece.addEventListener('dragstart', function(e) {
             e.dataTransfer.setData('text/plain', this.dataset.piece);
+        });
+        
+        // Touch events для мобильных
+        piece.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = this.getBoundingClientRect();
+            
+            const clone = this.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.left = (touch.clientX - rect.width/2) + 'px';
+            clone.style.top = (touch.clientY - rect.height/2) + 'px';
+            clone.style.zIndex = '1000';
+            clone.style.opacity = '0.8';
+            document.body.appendChild(clone);
+            
+            const touchMoveHandler = function(e) {
+                const touch = e.touches[0];
+                clone.style.left = (touch.clientX - rect.width/2) + 'px';
+                clone.style.top = (touch.clientY - rect.height/2) + 'px';
+                
+                // Прокрутка
+                const viewportHeight = window.innerHeight;
+                if (touch.clientY < 100) {
+                    window.scrollBy(0, -10);
+                } else if (touch.clientY > viewportHeight - 100) {
+                    window.scrollBy(0, 10);
+                }
+            };
+            
+            const touchEndHandler = function(e) {
+                const touch = e.changedTouches[0];
+                
+                birdfeederSlots.forEach((slot, slotIndex) => {
+                    const slotRect = slot.getBoundingClientRect();
+                    if (touch.clientX >= slotRect.left && 
+                        touch.clientX <= slotRect.right &&
+                        touch.clientY >= slotRect.top && 
+                        touch.clientY <= slotRect.bottom &&
+                        !slot.hasChildNodes()) {
+                        
+                        const pieceValue = piece.dataset.piece;
+                        const expectedPiece = correctOrder[slotIndex];
+                        
+                        if (pieceValue === expectedPiece) {
+                            slot.innerHTML = pieceValue;
+                            slot.style.fontSize = '1.8rem';
+                            slot.style.color = 'white';
+                            slot.style.display = 'flex';
+                            slot.style.alignItems = 'center';
+                            slot.style.justifyContent = 'center';
+                            slot.style.border = '2px solid #2ecc71';
+                            slot.style.background = 'rgba(243, 156, 18, 0.3)';
+                            
+                            piece.style.opacity = '0.3';
+                            piece.style.cursor = 'default';
+                            piece.draggable = false;
+                            piece.dataset.placed = 'true';
+                            
+                            placedCount++;
+                            document.getElementById('birdfeederCount').textContent = placedCount;
+                            
+                            if (placedCount >= correctOrder.length) {
+                                checkTaskBtn.disabled = false;
+                                taskResult.textContent = '✅ Отлично! Кормушка для птиц готова!';
+                                taskResult.style.color = '#2ecc71';
+                            }
+                        }
+                    }
+                });
+                
+                document.body.removeChild(clone);
+                document.removeEventListener('touchmove', touchMoveHandler);
+                document.removeEventListener('touchend', touchEndHandler);
+            };
+            
+            document.addEventListener('touchmove', touchMoveHandler);
+            document.addEventListener('touchend', touchEndHandler);
         });
     });
     
@@ -1997,118 +2105,7 @@ function initializeBirdFeeder(correctOrder) {
     });
 }
 
-// Улучшенная инициализация сортировки для мобильных
-function initializeSortingEnhanced(totalItems) {
-    const sortItems = taskArea.querySelectorAll('.sort-item');
-    const sortBins = taskArea.querySelectorAll('.sort-bin');
-    let sortedCount = 0;
-    
-    sortItems.forEach(item => {
-        item.addEventListener('dragstart', function(e) {
-            e.dataTransfer.setData('text/plain', this.dataset.type);
-        });
-        
-        // Touch events для мобильных
-        item.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = this.getBoundingClientRect();
-            
-            // Создаем копию для перетаскивания
-            const clone = this.cloneNode(true);
-            clone.style.position = 'fixed';
-            clone.style.left = (touch.clientX - rect.width/2) + 'px';
-            clone.style.top = (touch.clientY - rect.height/2) + 'px';
-            clone.style.zIndex = '1000';
-            clone.style.opacity = '0.8';
-            document.body.appendChild(clone);
-            
-            const touchMoveHandler = function(e) {
-                const touch = e.touches[0];
-                clone.style.left = (touch.clientX - rect.width/2) + 'px';
-                clone.style.top = (touch.clientY - rect.height/2) + 'px';
-            };
-            
-            const touchEndHandler = function(e) {
-                const touch = e.changedTouches[0];
-                
-                // Проверяем, над каким контейнером отпустили
-                sortBins.forEach(bin => {
-                    const binRect = bin.getBoundingClientRect();
-                    if (touch.clientX >= binRect.left && 
-                        touch.clientX <= binRect.right &&
-                        touch.clientY >= binRect.top && 
-                        touch.clientY <= binRect.bottom) {
-                        
-                        const itemType = item.dataset.type;
-                        const binType = bin.dataset.type;
-                        
-                        if (itemType === binType) {
-                            const binContent = bin.querySelector('.sort-bin-content');
-                            binContent.appendChild(item);
-                            item.style.margin = '3px';
-                            item.style.cursor = 'default';
-                            item.draggable = false;
-                            item.dataset.placed = 'true';
-                            
-                            sortedCount++;
-                            document.getElementById('sortCount').textContent = sortedCount;
-                            
-                            if (sortedCount >= totalItems) {
-                                checkTaskBtn.disabled = false;
-                                taskResult.textContent = '✅ Отлично! Весь мусор отсортирован!';
-                                taskResult.style.color = '#2ecc71';
-                            }
-                        }
-                    }
-                });
-                
-                document.body.removeChild(clone);
-                document.removeEventListener('touchmove', touchMoveHandler);
-                document.removeEventListener('touchend', touchEndHandler);
-            };
-            
-            document.addEventListener('touchmove', touchMoveHandler);
-            document.addEventListener('touchend', touchEndHandler);
-        });
-    });
-    
-    sortBins.forEach(bin => {
-        bin.addEventListener('dragover', function(e) {
-            e.preventDefault();
-        });
-        
-        bin.addEventListener('drop', function(e) {
-            e.preventDefault();
-            const itemType = e.dataTransfer.getData('text/plain');
-            const binType = this.dataset.type;
-            
-            if (itemType === binType) {
-                const draggedItem = Array.from(sortItems).find(item => 
-                    item.dataset.type === itemType && !item.dataset.placed
-                );
-                
-                if (draggedItem) {
-                    const binContent = this.querySelector('.sort-bin-content');
-                    binContent.appendChild(draggedItem);
-                    draggedItem.style.margin = '5px';
-                    draggedItem.style.cursor = 'default';
-                    draggedItem.draggable = false;
-                    draggedItem.dataset.placed = 'true';
-                    
-                    sortedCount++;
-                    document.getElementById('sortCount').textContent = sortedCount;
-                    
-                    if (sortedCount >= totalItems) {
-                        checkTaskBtn.disabled = false;
-                        taskResult.textContent = '✅ Отлично! Весь мусор отсортирован!';
-                        taskResult.style.color = '#2ecc71';
-                    }
-                }
-            }
-        });
-    });
-}
+// ==================== ОСТАЛЬНЫЕ ФУНКЦИИ ЗАДАНИЙ ====================
 
 // Создание задания на очистку
 function createCleanupTask(task) {
@@ -2225,6 +2222,14 @@ function initializePuzzleEnhanced(totalPieces) {
                 const touch = e.touches[0];
                 clone.style.left = (touch.clientX - rect.width/2) + 'px';
                 clone.style.top = (touch.clientY - rect.height/2) + 'px';
+                
+                // Прокрутка
+                const viewportHeight = window.innerHeight;
+                if (touch.clientY < 100) {
+                    window.scrollBy(0, -10);
+                } else if (touch.clientY > viewportHeight - 100) {
+                    window.scrollBy(0, 10);
+                }
             };
             
             const touchEndHandler = function(e) {
@@ -2462,6 +2467,14 @@ function initializeSequenceEnhanced(correctOrder) {
                 const touch = e.touches[0];
                 clone.style.left = (touch.clientX - rect.width/2) + 'px';
                 clone.style.top = (touch.clientY - rect.height/2) + 'px';
+                
+                // Прокрутка
+                const viewportHeight = window.innerHeight;
+                if (touch.clientY < 100) {
+                    window.scrollBy(0, -10);
+                } else if (touch.clientY > viewportHeight - 100) {
+                    window.scrollBy(0, 10);
+                }
             };
             
             const touchEndHandler = function(e) {
@@ -2621,7 +2634,7 @@ function completeInteractiveTask() {
     buildBtn.disabled = false;
     rollDiceBtn.disabled = false;
     
-    // ТОЛЬКО в журнал (как просили), а в чат отправляем сообщение от игрока
+    // ТОЛЬКО в журнал
     addLogEntry(`Вы выполнили задание и получили ${coinsEarned} монет и ${expEarned} опыта!`);
     
     savePlayerState();
@@ -2730,7 +2743,7 @@ function initializeQuickActions() {
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         quickActionsBtn.style.display = 'flex';
     } else {
-        quickActionsBtn.style.display = 'none'; // Скрываем на десктопе по вашему запросу
+        quickActionsBtn.style.display = 'none'; // Скрываем на десктопе
     }
 }
 
@@ -2834,7 +2847,7 @@ rollDiceBtn.addEventListener('click', () => {
             completeTaskBtn.disabled = false;
         }
         
-        // ТОЛЬКО в журнал (как просили)
+        // ТОЛЬКО в журнал
         addLogEntry(`🎲 Вы бросили кубик и выпало: ${value}. Новое положение: ${gameState.currentPlayer.position}`);
         
         updatePlayerMarkers();
@@ -2894,7 +2907,7 @@ function moveToCity(cityKey) {
         }
     });
     
-    // ТОЛЬКО в журнал (как просили)
+    // ТОЛЬКО в журнал
     addLogEntry(`🏙️ Вы прибыли в город: ${gameData.cities[cityKey].name}`);
     
     // ПРОВЕРКА ДЛЯ ПЕРЕМЕЩЕНИЯ МЕЖДУ ГОРОДАМИ (даже если уже прошел дальше)
@@ -3126,7 +3139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mapTitle.style.textAlign = 'center';
     }
     
-    // Обновляем информацию об игре (убираем английские слова)
+    // Обновляем информацию об игре
     const gameInfoContent = document.querySelector('.game-info-content');
     if (gameInfoContent) {
         gameInfoContent.innerHTML = `
@@ -3155,49 +3168,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>Присоединяйтесь к игре и станьте настоящим защитником природы!</p>
         `;
     }
-    
-    // Создаем плашку с монетами и уровнем в левом верхнем углу
-    const statsBar = document.createElement('div');
-    statsBar.id = 'statsBar';
-    statsBar.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(15px);
-        border-radius: 15px;
-        padding: 12px 20px;
-        display: flex;
-        gap: 25px;
-        z-index: 999;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        font-size: 0.9rem;
-    `;
-    
-    statsBar.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: #f39c12; font-weight: bold;">💰</span>
-            <span>Монеты: <span id="statsCoins" style="font-weight: bold; color: #f39c12;">0</span></span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: #3498db; font-weight: bold;">⭐</span>
-            <span>Уровень: <span id="statsLevel" style="font-weight: bold; color: #3498db;">1</span></span>
-        </div>
-    `;
-    
-    document.body.appendChild(statsBar);
-    
-    // Функция обновления плашки статистики
-    function updateStatsBar() {
-        if (gameState.currentPlayer) {
-            document.getElementById('statsCoins').textContent = gameState.currentPlayer.coins || 0;
-            document.getElementById('statsLevel').textContent = gameState.currentPlayer.level || 1;
-        }
-    }
-    
-    // Периодическое обновление статистики
-    setInterval(updateStatsBar, 1000);
     
     // Тестирование подключения
     setTimeout(() => {
