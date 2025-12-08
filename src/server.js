@@ -116,18 +116,18 @@ io.on('connection', (socket) => {
             
             // Валидация
             if (!roomId || !playerName) {
-                socket.emit('room-error', { message: 'Неверные данные' });
+                socket.emit('room-error', 'Неверные данные');
                 return;
             }
             
             if (playerName.length > 20) {
-                socket.emit('room-error', { message: 'Имя слишком длинное (макс. 20 символов)' });
+                socket.emit('room-error', 'Имя слишком длинное (макс. 20 символов)');
                 return;
             }
             
             // Проверка существования комнаты
             if (!rooms[roomId] && !isNewRoom) {
-                socket.emit('room-error', { message: 'Комната не существует' });
+                socket.emit('room-error', 'Комнаты с таким номером не существует');
                 return;
             }
             
@@ -152,7 +152,7 @@ io.on('connection', (socket) => {
             
             // Проверка количества игроков
             if (Object.keys(rooms[roomId].players).length >= 6) {
-                socket.emit('room-error', { message: 'Комната заполнена (максимум 6 игроков)' });
+                socket.emit('room-error', 'Комната заполнена (максимум 6 игроков)');
                 return;
             }
             
@@ -234,7 +234,7 @@ io.on('connection', (socket) => {
             
         } catch (error) {
             console.error('Ошибка в join-room:', error);
-            socket.emit('room-error', { message: 'Внутренняя ошибка сервера' });
+            socket.emit('room-error', 'Внутренняя ошибка сервера');
         }
     });
     
@@ -310,12 +310,12 @@ io.on('connection', (socket) => {
                     
                     // Определяем город на основе позиции
                     const cityCells = {
-                        tver: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+                        tver: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
                         kineshma: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
                         naberezhnye_chelny: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43],
                         kazan: [47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58],
                         volgograd: [66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77],
-                        astrakhan: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93]
+                        astrakhan: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92]
                     };
                     
                     for (const [city, cells] of Object.entries(cityCells)) {
