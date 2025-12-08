@@ -20,13 +20,16 @@
   "author": "Ваше Имя",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.4",
-    "cors": "^2.8.5"
+    "express": "~4.18.2",
+    "socket.io": "~4.7.4",
+    "cors": "~2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
   },
   "engines": {
-    "node": ">=14.0.0",
-    "npm": ">=6.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "repository": {
     "type": "git",
