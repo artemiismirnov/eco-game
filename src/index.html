@@ -1952,7 +1952,7 @@
             cities: {
                 tver: { 
                     name: "Тверь", 
-                    cells: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 
+                    cells: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 
                     position: 0,
                     description: "Стартовый город",
                     history: "Тверь — один из древнейших городов России, основанный в 1135 году. Расположена на берегах рек Волга, Тверца и Тьмака.",
@@ -4550,7 +4550,7 @@
                     return;
                 }
                 
-                elements.difficultyBtns.forEach(b => b.classList.remove('active');
+                elements.difficultyBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 gameState.currentDifficulty = btn.classList.contains('easy') ? 'easy' : 
                                             btn.classList.contains('medium') ? 'medium' : 'hard';
