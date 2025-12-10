@@ -7,20 +7,18 @@ const cors = require('cors');
 const app = express();
 const server = http.createServer(app);
 
-// Настройки Socket.IO для мобильных устройств
 const io = new Server(server, {
     cors: {
-        origin: "*", // Разрешаем все домены
+        origin: "*",
         methods: ["GET", "POST"],
         credentials: false
     },
-    transports: ['websocket', 'polling'], // Поддержка всех транспортов
+    transports: ['websocket', 'polling'],
     pingTimeout: 60000,
     pingInterval: 25000,
     cookie: false
 });
 
-// CORS настройки
 app.use(cors({
     origin: "*",
     methods: ["GET", "POST", "OPTIONS"],
@@ -30,28 +28,23 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Отображаем текущую директорию для отладки
 console.log('='.repeat(60));
 console.log('🚀 Запуск сервера...');
 console.log(`📁 Текущая директория: ${__dirname}`);
 console.log(`📂 Корневая директория: ${process.cwd()}`);
 
-// Обслуживаем статические файлы из текущей директории (src)
 app.use(express.static(__dirname));
 
-// Главная страница
 app.get('/', (req, res) => {
     const indexPath = path.join(__dirname, 'index.html');
     console.log(`📤 Отправляю index.html: ${indexPath}`);
     res.sendFile(indexPath);
 });
 
-// Альтернативный маршрут для index.html
 app.get('/index.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// API для проверки статуса
 app.get('/api/status', (req, res) => {
     res.json({
         status: 'online',
@@ -64,7 +57,6 @@ app.get('/api/status', (req, res) => {
     });
 });
 
-// Health check для Render (обязательно!)
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'healthy',
@@ -73,7 +65,6 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Тестовый маршрут
 app.get('/api/test', (req, res) => {
     res.json({
         message: 'Сервер работает!',
@@ -83,11 +74,9 @@ app.get('/api/test', (req, res) => {
     });
 });
 
-// Хранилище данных игры
 const rooms = {};
 const chatHistory = {};
-
-// ==================== SOCKET.IO ОБРАБОТЧИКИ ====================
+const playerSessions = {}; // Для восстановления сессий
 
 io.on('connection', (socket) => {
     const clientIp = socket.handshake.address;
@@ -99,7 +88,6 @@ io.on('connection', (socket) => {
     console.log(`   📱 Устройство: ${isMobile ? 'Мобильное' : 'Десктоп'}`);
     console.log(`   🌐 User-Agent: ${userAgent.substring(0, 50)}...`);
     
-    // Отправляем подтверждение подключения
     socket.emit('connection_confirmed', {
         message: 'Подключено к игровому серверу "Юный эколог"',
         id: socket.id,
@@ -109,118 +97,25 @@ io.on('connection', (socket) => {
     
     // ========== ОБРАБОТЧИКИ ИГРЫ ==========
     
-    // Присоединение к комнате
     socket.on('join-room', (data) => {
         try {
             const { roomId, playerName, isNewRoom } = data;
             
-            // Валидация
             if (!roomId || !playerName) {
-                socket.emit('room-error', { message: 'Неверные данные' });
+                socket.emit('room-error', 'Неверные данные');
                 return;
             }
             
             if (playerName.length > 20) {
-                socket.emit('room-error', { message: 'Имя слишком длинное (макс. 20 символов)' });
+                socket.emit('room-error', 'Имя слишком длинное (макс. 20 символов)');
                 return;
             }
             
-            // Проверка существования комнаты
             if (!rooms[roomId] && !isNewRoom) {
-                socket.emit('room-error', { message: 'Комнаты с таким номером не существует' });
+                socket.emit('room-error', 'Комнаты с таким номером не существует');
                 return;
             }
             
-            // Проверка: если игрок с таким же именем уже есть в комнате и с того же IP/устройства
-            if (rooms[roomId]) {
-                const existingPlayer = Object.values(rooms[roomId].players).find(
-                    player => player.name === playerName && player.ip === clientIp
-                );
-                
-                if (existingPlayer && !existingPlayer.connected) {
-                    // Игрок переподключается - восстанавливаем его данные
-                    console.log(`🔄 Игрок "${playerName}" переподключается, восстанавливаем данные`);
-                    
-                    // Удаляем старый сокет если он существует
-                    const oldSocketId = existingPlayer.id;
-                    if (rooms[roomId].players[oldSocketId]) {
-                        delete rooms[roomId].players[oldSocketId];
-                    }
-                    
-                    // Обновляем ID сокета
-                    existingPlayer.id = socket.id;
-                    existingPlayer.connected = true;
-                    existingPlayer.reconnectedAt = new Date().toISOString();
-                    existingPlayer.lastActive = new Date().toISOString();
-                    
-                    rooms[roomId].players[socket.id] = existingPlayer;
-                    
-                    // Присоединение к комнате
-                    socket.join(roomId);
-                    
-                    // Отправка данных игроку
-                    socket.emit('join-success', {
-                        ...existingPlayer,
-                        roomId: roomId,
-                        serverTime: new Date().toISOString(),
-                        reconnected: true
-                    });
-                    
-                    // Отправка истории чата
-                    if (chatHistory[roomId] && chatHistory[roomId].length > 0) {
-                        socket.emit('chat_history', {
-                            messages: chatHistory[roomId].slice(-20)
-                        });
-                    }
-                    
-                    // Уведомление других игроков о переподключении
-                    socket.to(roomId).emit('player_reconnected', {
-                        playerId: socket.id,
-                        player: existingPlayer,
-                        timestamp: new Date().toISOString()
-                    });
-                    
-                    // Отправка обновленного состояния комнаты всем
-                    io.to(roomId).emit('room_state', {
-                        ...rooms[roomId],
-                        serverTime: new Date().toISOString()
-                    });
-                    
-                    // Рассылаем позиции всех игроков переподключившемуся игроку
-                    const playersPositions = {};
-                    for (const playerId in rooms[roomId].players) {
-                        const player = rooms[roomId].players[playerId];
-                        if (player.connected && playerId !== socket.id) {
-                            playersPositions[playerId] = {
-                                name: player.name,
-                                position: player.position,
-                                city: player.city,
-                                color: player.color
-                            };
-                        }
-                    }
-                    
-                    socket.emit('all_players_positions', {
-                        players: playersPositions,
-                        timestamp: new Date().toISOString()
-                    });
-                    
-                    // Отправляем позицию переподключившегося игрока всем
-                    socket.to(roomId).emit('player_position_update', {
-                        playerId: socket.id,
-                        playerName: existingPlayer.name,
-                        position: existingPlayer.position,
-                        city: existingPlayer.city,
-                        color: existingPlayer.color,
-                        timestamp: new Date().toISOString()
-                    });
-                    
-                    console.log(`🔄 Игрок "${playerName}" переподключился к комнате ${roomId}`);
-                    return;
-                }
-            }
-            
-            // Создание новой комнаты
             if (!rooms[roomId]) {
                 rooms[roomId] = {
                     players: {},
@@ -239,23 +134,30 @@ io.on('connection', (socket) => {
                 console.log(`✅ Создана новая комната: ${roomId}`);
             }
             
-            // Проверка количества игроков
             if (Object.keys(rooms[roomId].players).length >= 6) {
-                socket.emit('room-error', { message: 'Комната заполнена (максимум 6 игроков)' });
+                socket.emit('room-error', 'Комната заполнена (максимум 6 игроков)');
                 return;
             }
             
-            // Выбор цвета для игрока
             const playerColors = ['#4ecdc4', '#ff6b6b', '#ffe66d', '#1a535c', '#95e1d3', '#f08a5d'];
             const usedColors = Object.values(rooms[roomId].players).map(p => p.color);
             const availableColors = playerColors.filter(color => !usedColors.includes(color));
             const playerColor = availableColors.length > 0 ? availableColors[0] : playerColors[0];
             
-            // Создание объекта игрока
+            // Сохраняем сессию для восстановления
+            const sessionKey = `${playerName}_${roomId}_${clientIp}`;
+            playerSessions[sessionKey] = {
+                playerId: socket.id,
+                roomId: roomId,
+                playerName: playerName,
+                lastSeen: new Date().toISOString(),
+                ip: clientIp
+            };
+            
             rooms[roomId].players[socket.id] = {
                 id: socket.id,
                 name: playerName,
-                position: 1, // Начинаем с клетки 1
+                position: 1,
                 city: 'tver',
                 coins: 100,
                 cleaningPoints: 0,
@@ -267,41 +169,34 @@ io.on('connection', (socket) => {
                 joinedAt: new Date().toISOString(),
                 lastActive: new Date().toISOString(),
                 isMobile: isMobile,
-                ip: clientIp,
-                userAgent: userAgent.substring(0, 100)
+                ip: clientIp
             };
             
-            // Присоединение к комнате
             socket.join(roomId);
             
-            // Отправка данных игроку
             socket.emit('join-success', {
                 ...rooms[roomId].players[socket.id],
                 roomId: roomId,
                 serverTime: new Date().toISOString()
             });
             
-            // Отправка истории чата
             if (chatHistory[roomId] && chatHistory[roomId].length > 0) {
                 socket.emit('chat_history', {
-                    messages: chatHistory[roomId].slice(-20) // Последние 20 сообщений
+                    messages: chatHistory[roomId].slice(-20)
                 });
             }
             
-            // Уведомление других игроков
             socket.to(roomId).emit('player_joined', {
                 playerId: socket.id,
                 player: rooms[roomId].players[socket.id],
                 timestamp: new Date().toISOString()
             });
             
-            // Отправка обновленного состояния комнаты всем
             io.to(roomId).emit('room_state', {
                 ...rooms[roomId],
                 serverTime: new Date().toISOString()
             });
             
-            // Рассылаем позиции всех игроков новому игроку
             const playersPositions = {};
             for (const playerId in rooms[roomId].players) {
                 const player = rooms[roomId].players[playerId];
@@ -324,70 +219,60 @@ io.on('connection', (socket) => {
             
         } catch (error) {
             console.error('Ошибка в join-room:', error);
-            socket.emit('room-error', { message: 'Внутренняя ошибка сервера' });
+            socket.emit('room-error', 'Внутренняя ошибка сервера');
         }
     });
     
-    // Игрок переподключился (специальное событие)
-    socket.on('player_reconnected', (playerData) => {
+    // Восстановление игрока
+    socket.on('reconnect_player', (data) => {
         try {
-            const { roomId, playerName } = playerData;
+            const { roomId, playerName, playerId } = data;
+            const sessionKey = `${playerName}_${roomId}_${clientIp}`;
             
-            if (!rooms[roomId]) {
-                socket.emit('room-error', { message: 'Комнаты с таким номером не существует' });
-                return;
-            }
-            
-            // Ищем игрока с таким именем и IP
-            let existingPlayer = null;
-            let oldSocketId = null;
-            
-            for (const pid in rooms[roomId].players) {
-                const player = rooms[roomId].players[pid];
-                if (player.name === playerName && player.ip === clientIp) {
-                    existingPlayer = player;
-                    oldSocketId = pid;
-                    break;
+            if (rooms[roomId] && playerSessions[sessionKey]) {
+                const existingPlayerId = playerSessions[sessionKey].playerId;
+                
+                if (rooms[roomId].players[existingPlayerId]) {
+                    // Обновляем ID подключения
+                    const playerData = rooms[roomId].players[existingPlayerId];
+                    delete rooms[roomId].players[existingPlayerId];
+                    
+                    playerData.id = socket.id;
+                    playerData.connected = true;
+                    playerData.lastActive = new Date().toISOString();
+                    
+                    rooms[roomId].players[socket.id] = playerData;
+                    playerSessions[sessionKey].playerId = socket.id;
+                    playerSessions[sessionKey].lastSeen = new Date().toISOString();
+                    
+                    socket.join(roomId);
+                    
+                    socket.emit('reconnect_success', playerData);
+                    
+                    socket.to(roomId).emit('player_joined', {
+                        playerId: socket.id,
+                        player: playerData,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    io.to(roomId).emit('room_state', {
+                        ...rooms[roomId],
+                        serverTime: new Date().toISOString()
+                    });
+                    
+                    console.log(`🔄 Игрок "${playerName}" восстановил подключение в комнате ${roomId}`);
+                    return;
                 }
             }
             
-            if (existingPlayer) {
-                // Удаляем старую запись
-                if (oldSocketId && rooms[roomId].players[oldSocketId]) {
-                    delete rooms[roomId].players[oldSocketId];
-                }
-                
-                // Обновляем данные игрока
-                existingPlayer.id = socket.id;
-                existingPlayer.connected = true;
-                existingPlayer.reconnectedAt = new Date().toISOString();
-                existingPlayer.lastActive = new Date().toISOString();
-                
-                rooms[roomId].players[socket.id] = existingPlayer;
-                socket.join(roomId);
-                
-                socket.emit('join-success', {
-                    ...existingPlayer,
-                    roomId: roomId,
-                    serverTime: new Date().toISOString(),
-                    reconnected: true
-                });
-                
-                // Уведомляем других игроков
-                socket.to(roomId).emit('player_reconnected', {
-                    playerId: socket.id,
-                    player: existingPlayer,
-                    timestamp: new Date().toISOString()
-                });
-                
-                console.log(`🔄 Игрок "${playerName}" переподключился через специальное событие`);
-            }
+            socket.emit('reconnect_failed', 'Не удалось восстановить подключение');
+            
         } catch (error) {
-            console.error('Ошибка в player_reconnected:', error);
+            console.error('Ошибка в reconnect_player:', error);
+            socket.emit('reconnect_failed', 'Внутренняя ошибка сервера');
         }
     });
     
-    // Получение состояния комнаты
     socket.on('get_room_state', () => {
         for (const roomId in rooms) {
             if (rooms[roomId].players[socket.id]) {
@@ -400,7 +285,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // Сообщения в чате
     socket.on('chat_message', (data) => {
         try {
             const { message } = data;
@@ -409,7 +293,6 @@ io.on('connection', (socket) => {
                 return;
             }
             
-            // Ограничение длины сообщения
             const trimmedMessage = message.substring(0, 200).trim();
             
             for (const roomId in rooms) {
@@ -424,16 +307,13 @@ io.on('connection', (socket) => {
                         playerColor: player.color
                     };
                     
-                    // Сохраняем в историю
                     if (!chatHistory[roomId]) chatHistory[roomId] = [];
                     chatHistory[roomId].push(chatMessage);
                     
-                    // Ограничиваем историю 100 сообщениями
                     if (chatHistory[roomId].length > 100) {
                         chatHistory[roomId] = chatHistory[roomId].slice(-100);
                     }
                     
-                    // Отправляем всем в комнате
                     io.to(roomId).emit('new_chat_message', chatMessage);
                     break;
                 }
@@ -443,7 +323,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // Бросок кубика
     socket.on('dice_roll', (data) => {
         try {
             const { diceValue, newPosition, task } = data;
@@ -452,14 +331,12 @@ io.on('connection', (socket) => {
                 if (rooms[roomId].players[socket.id]) {
                     const player = rooms[roomId].players[socket.id];
                     
-                    // Обновляем позицию игрока
                     player.position = newPosition;
                     player.currentTask = task;
                     player.lastActive = new Date().toISOString();
                     
-                    // Определяем город на основе позиции
                     const cityCells = {
-                        tver: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+                        tver: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
                         kineshma: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
                         naberezhnye_chelny: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43],
                         kazan: [47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58],
@@ -474,10 +351,8 @@ io.on('connection', (socket) => {
                         }
                     }
                     
-                    // Обновляем активность комнаты
                     rooms[roomId].lastActivity = new Date().toISOString();
                     
-                    // Отправляем обновление другим игрокам
                     socket.to(roomId).emit('player_dice_roll', {
                         playerId: socket.id,
                         playerName: player.name,
@@ -487,7 +362,6 @@ io.on('connection', (socket) => {
                         timestamp: new Date().toISOString()
                     });
                     
-                    // Отправляем обновление позиции ВСЕМ игрокам
                     io.to(roomId).emit('player_position_update', {
                         playerId: socket.id,
                         playerName: player.name,
@@ -497,7 +371,6 @@ io.on('connection', (socket) => {
                         timestamp: new Date().toISOString()
                     });
                     
-                    // Отправляем обновленное состояние комнаты
                     io.to(roomId).emit('room_state', {
                         ...rooms[roomId],
                         serverTime: new Date().toISOString()
@@ -512,7 +385,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // ОБНОВЛЕНИЕ ПОЗИЦИИ ИГРОКА (НОВОЕ - для синхронизации)
     socket.on('player_position_update', (data) => {
         try {
             const { position, city } = data;
@@ -521,17 +393,14 @@ io.on('connection', (socket) => {
                 if (rooms[roomId].players[socket.id]) {
                     const player = rooms[roomId].players[socket.id];
                     
-                    // Обновляем позицию игрока
                     player.position = position;
                     player.city = city;
                     player.lastActive = new Date().toISOString();
                     
-                    // Обновляем активность комнаты
                     rooms[roomId].lastActivity = new Date().toISOString();
                     
                     console.log(`📍 Игрок ${player.name} обновил позицию: ${position}, город: ${city}`);
                     
-                    // Отправляем обновление позиции ВСЕМ другим игрокам в комнате
                     socket.to(roomId).emit('player_position_update', {
                         playerId: socket.id,
                         playerName: player.name,
@@ -549,13 +418,11 @@ io.on('connection', (socket) => {
         }
     });
     
-    // ЗАПРОС ПОЗИЦИЙ ВСЕХ ИГРОКОВ (НОВОЕ - для синхронизации)
     socket.on('request_all_positions', () => {
         for (const roomId in rooms) {
             if (rooms[roomId].players[socket.id]) {
                 const playersPositions = {};
                 
-                // Собираем позиции всех подключенных игроков
                 for (const playerId in rooms[roomId].players) {
                     const player = rooms[roomId].players[playerId];
                     if (player.connected) {
@@ -569,7 +436,6 @@ io.on('connection', (socket) => {
                     }
                 }
                 
-                // Отправляем позиции всех игроков
                 socket.emit('all_players_positions', {
                     players: playersPositions,
                     timestamp: new Date().toISOString()
@@ -581,7 +447,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // Обновление прогресса города
     socket.on('update_progress', (data) => {
         try {
             const { cityKey, progress } = data;
@@ -611,7 +476,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // Обновление данных игрока
     socket.on('player-update', (playerData) => {
         try {
             for (const roomId in rooms) {
@@ -636,7 +500,6 @@ io.on('connection', (socket) => {
         }
     });
     
-    // Пинг для проверки соединения
     socket.on('ping', (data) => {
         socket.emit('pong', {
             ...data,
@@ -645,7 +508,6 @@ io.on('connection', (socket) => {
         });
     });
     
-    // Отключение игрока
     socket.on('disconnect', (reason) => {
         console.log(`❌ Отключение: ${socket.id}, причина: ${reason}`);
         
@@ -653,13 +515,10 @@ io.on('connection', (socket) => {
             if (rooms[roomId].players[socket.id]) {
                 const player = rooms[roomId].players[socket.id];
                 
-                // Помечаем как отключенного, но не удаляем сразу
                 rooms[roomId].players[socket.id].connected = false;
                 rooms[roomId].players[socket.id].disconnectedAt = new Date().toISOString();
-                rooms[roomId].players[socket.id].disconnectReason = reason;
                 rooms[roomId].lastActivity = new Date().toISOString();
                 
-                // Уведомляем других игроков
                 socket.to(roomId).emit('player_left', {
                     playerId: socket.id,
                     playerName: player.name,
@@ -667,7 +526,6 @@ io.on('connection', (socket) => {
                     timestamp: new Date().toISOString()
                 });
                 
-                // Отправляем обновленное состояние
                 io.to(roomId).emit('room_state', {
                     ...rooms[roomId],
                     serverTime: new Date().toISOString()
@@ -675,7 +533,6 @@ io.on('connection', (socket) => {
                 
                 console.log(`👋 Игрок "${player.name}" покинул комнату ${roomId} (${reason})`);
                 
-                // Удаляем через 10 минут неактивности (увеличено для возможности переподключения)
                 setTimeout(() => {
                     if (rooms[roomId] && 
                         rooms[roomId].players[socket.id] && 
@@ -684,7 +541,6 @@ io.on('connection', (socket) => {
                         delete rooms[roomId].players[socket.id];
                         console.log(`🗑️ Удален неактивный игрок "${player.name}" из комнаты ${roomId}`);
                         
-                        // Если комната пуста, удаляем ее
                         if (Object.keys(rooms[roomId].players).length === 0) {
                             delete rooms[roomId];
                             delete chatHistory[roomId];
@@ -696,9 +552,23 @@ io.on('connection', (socket) => {
                             });
                         }
                     }
-                }, 10 * 60 * 1000); // 10 минут
+                }, 10 * 60 * 1000);
                 
                 break;
+            }
+        }
+        
+        // Очищаем устаревшие сессии
+        const now = new Date();
+        for (const key in playerSessions) {
+            if (playerSessions[key].playerId === socket.id) {
+                const lastSeen = new Date(playerSessions[key].lastSeen);
+                const hoursDiff = (now - lastSeen) / (1000 * 60 * 60);
+                
+                if (hoursDiff > 24) {
+                    delete playerSessions[key];
+                    console.log(`🗑️ Удалена устаревшая сессия: ${key}`);
+                }
             }
         }
     });
@@ -708,7 +578,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Очистка неактивных комнат каждый час
 setInterval(() => {
     const now = new Date();
     let cleanedCount = 0;
@@ -719,7 +588,6 @@ setInterval(() => {
             const lastActivity = new Date(room.lastActivity);
             const hoursDiff = (now - lastActivity) / (1000 * 60 * 60);
             
-            // Удаляем комнаты без активности более 24 часов
             if (hoursDiff > 24) {
                 delete rooms[roomId];
                 delete chatHistory[roomId];
@@ -732,9 +600,7 @@ setInterval(() => {
     if (cleanedCount > 0) {
         console.log(`🧹 Очищено ${cleanedCount} неактивных комнат`);
     }
-}, 60 * 60 * 1000); // Каждый час
-
-// ==================== ЗАПУСК СЕРВЕРА ====================
+}, 60 * 60 * 1000);
 
 const PORT = process.env.PORT || 3000;
 
@@ -749,7 +615,6 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`🔗 WebSocket: ws://localhost:${PORT}`);
     console.log('='.repeat(60));
     
-    // Информация о Render окружении
     if (process.env.RENDER) {
         console.log(`🌍 Сервер развернут на Render.com`);
         if (process.env.RENDER_EXTERNAL_URL) {
@@ -758,14 +623,12 @@ server.listen(PORT, '0.0.0.0', () => {
         }
     }
     
-    // Системная информация
     console.log(`🖥️  Платформа: ${process.platform}`);
     console.log(`📦 Версия Node: ${process.version}`);
     console.log(`💾 Память: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`);
     console.log('='.repeat(60));
 });
 
-// Обработка ошибок сервера
 server.on('error', (error) => {
     console.error('❌ Критическая ошибка сервера:', error);
     
@@ -775,7 +638,6 @@ server.on('error', (error) => {
     }
 });
 
-// Graceful shutdown
 process.on('SIGTERM', () => {
     console.log('👋 Получен SIGTERM. Завершаем работу...');
     server.close(() => {
