@@ -10,11 +10,11 @@ const server = http.createServer(app);
 // Настройки Socket.IO для мобильных устройств
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: "*", // Разрешаем все домены
         methods: ["GET", "POST"],
         credentials: false
     },
-    transports: ['websocket', 'polling'],
+    transports: ['websocket', 'polling'], // Поддержка всех транспортов
     pingTimeout: 60000,
     pingInterval: 25000,
     cookie: false
@@ -30,6 +30,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Отображаем текущую директорию для отладки
 console.log('='.repeat(60));
 console.log('🚀 Запуск сервера...');
 console.log(`📁 Текущая директория: ${__dirname}`);
@@ -85,7 +86,7 @@ app.get('/api/test', (req, res) => {
 // Хранилище данных игры
 const rooms = {};
 const chatHistory = {};
-const playerSessions = {};
+const playerSessions = {}; // Новое: храним сессии игроков
 
 // ==================== SOCKET.IO ОБРАБОТЧИКИ ====================
 
@@ -150,8 +151,7 @@ io.on('connection', (socket) => {
             if (!rooms[roomId]) {
                 rooms[roomId] = {
                     players: {},
-                    cityProgress: {},
-                    playerProgress: {}, // Индивидуальный прогресс для каждого игрока
+                    playerProgress: {}, // Новое: прогресс для каждого игрока отдельно
                     createdAt: new Date().toISOString(),
                     lastActivity: new Date().toISOString()
                 };
@@ -192,9 +192,11 @@ io.on('connection', (socket) => {
                     reconnected: true
                 });
                 
-                // Отправка истории чата (ВСЕХ сообщений)
+                // Отправка истории чата
                 if (chatHistory[roomId] && chatHistory[roomId].length > 0) {
-                    socket.emit('chat_history', chatHistory[roomId]);
+                    socket.emit('chat_history', {
+                        messages: chatHistory[roomId].slice(-20)
+                    });
                 }
                 
                 // Уведомление других игроков о возвращении
@@ -207,7 +209,6 @@ io.on('connection', (socket) => {
                 // Отправляем обновленное состояние комнаты всем
                 io.to(roomId).emit('room_state', {
                     players: rooms[roomId].players,
-                    cityProgress: rooms[roomId].cityProgress,
                     playerProgress: rooms[roomId].playerProgress,
                     serverTime: new Date().toISOString()
                 });
@@ -243,21 +244,6 @@ io.on('connection', (socket) => {
             const availableColors = playerColors.filter(color => !usedColors.includes(color));
             const playerColor = availableColors.length > 0 ? availableColors[0] : playerColors[0];
             
-            // Инициализация индивидуального прогресса для нового игрока
-            const initialCityProgress = {
-                tver: 0,
-                kineshma: 0,
-                naberezhnye_chelny: 0,
-                kazan: 0,
-                volgograd: 0,
-                astrakhan: 0
-            };
-            
-            if (!rooms[roomId].playerProgress) {
-                rooms[roomId].playerProgress = {};
-            }
-            rooms[roomId].playerProgress[socket.id] = initialCityProgress;
-            
             // Создание объекта нового игрока
             rooms[roomId].players[socket.id] = {
                 id: socket.id,
@@ -278,6 +264,19 @@ io.on('connection', (socket) => {
                 sessionKey: sessionKey
             };
             
+            // Инициализация прогресса для нового игрока
+            if (!rooms[roomId].playerProgress) {
+                rooms[roomId].playerProgress = {};
+            }
+            rooms[roomId].playerProgress[socket.id] = {
+                tver: 0,
+                kineshma: 0,
+                naberezhnye_chelny: 0,
+                kazan: 0,
+                volgograd: 0,
+                astrakhan: 0
+            };
+            
             // Присоединение к комнате
             socket.join(roomId);
             
@@ -289,9 +288,11 @@ io.on('connection', (socket) => {
                 reconnected: false
             });
             
-            // Отправка истории чата (ВСЕХ сообщений)
+            // Отправка истории чата
             if (chatHistory[roomId] && chatHistory[roomId].length > 0) {
-                socket.emit('chat_history', chatHistory[roomId]);
+                socket.emit('chat_history', {
+                    messages: chatHistory[roomId].slice(-20)
+                });
             }
             
             // Уведомление других игроков
@@ -304,7 +305,6 @@ io.on('connection', (socket) => {
             // Отправка обновленного состояния комнаты всем
             io.to(roomId).emit('room_state', {
                 players: rooms[roomId].players,
-                cityProgress: rooms[roomId].cityProgress,
                 playerProgress: rooms[roomId].playerProgress,
                 serverTime: new Date().toISOString()
             });
@@ -344,7 +344,6 @@ io.on('connection', (socket) => {
             if (rooms[roomId].players[socket.id]) {
                 socket.emit('room_state', {
                     players: rooms[roomId].players,
-                    cityProgress: rooms[roomId].cityProgress,
                     playerProgress: rooms[roomId].playerProgress,
                     serverTime: new Date().toISOString()
                 });
@@ -455,7 +454,6 @@ io.on('connection', (socket) => {
                     // Отправляем обновленное состояние комнаты
                     io.to(roomId).emit('room_state', {
                         players: rooms[roomId].players,
-                        cityProgress: rooms[roomId].cityProgress,
                         playerProgress: rooms[roomId].playerProgress,
                         serverTime: new Date().toISOString()
                     });
@@ -542,7 +540,7 @@ io.on('connection', (socket) => {
         }
     });
     
-    // Обновление прогресса города (ИНДИВИДУАЛЬНОЕ для каждого игрока)
+    // Обновление прогресса города (теперь с привязкой к игроку)
     socket.on('update_progress', (data) => {
         try {
             const { cityKey, progress, playerId } = data;
@@ -550,7 +548,6 @@ io.on('connection', (socket) => {
             
             for (const roomId in rooms) {
                 if (rooms[roomId].players[targetPlayerId]) {
-                    // Обновляем индивидуальный прогресс игрока
                     if (!rooms[roomId].playerProgress) {
                         rooms[roomId].playerProgress = {};
                     }
@@ -561,7 +558,7 @@ io.on('connection', (socket) => {
                     rooms[roomId].playerProgress[targetPlayerId][cityKey] = Math.min(100, Math.max(0, progress));
                     rooms[roomId].lastActivity = new Date().toISOString();
                     
-                    // Отправляем обновление только соответствующему игроку
+                    // Отправляем обновление прогресса конкретному игроку
                     socket.emit('progress_updated', {
                         cityKey,
                         progress: rooms[roomId].playerProgress[targetPlayerId][cityKey],
@@ -572,7 +569,6 @@ io.on('connection', (socket) => {
                     // Отправляем обновленное состояние комнаты всем
                     io.to(roomId).emit('room_state', {
                         players: rooms[roomId].players,
-                        cityProgress: rooms[roomId].cityProgress,
                         playerProgress: rooms[roomId].playerProgress,
                         serverTime: new Date().toISOString()
                     });
@@ -600,7 +596,6 @@ io.on('connection', (socket) => {
                     
                     io.to(roomId).emit('room_state', {
                         players: rooms[roomId].players,
-                        cityProgress: rooms[roomId].cityProgress,
                         playerProgress: rooms[roomId].playerProgress,
                         serverTime: new Date().toISOString()
                     });
@@ -612,7 +607,7 @@ io.on('connection', (socket) => {
         }
     });
     
-    // Запрос на перемещение между городами
+    // Запрос на перемещение между городами (для уже пройденных)
     socket.on('move_to_city', (data) => {
         try {
             const { cityKey } = data;
@@ -647,7 +642,6 @@ io.on('connection', (socket) => {
                         
                         io.to(roomId).emit('room_state', {
                             players: rooms[roomId].players,
-                            cityProgress: rooms[roomId].cityProgress,
                             playerProgress: rooms[roomId].playerProgress,
                             serverTime: new Date().toISOString()
                         });
@@ -718,7 +712,6 @@ io.on('connection', (socket) => {
                 // Отправляем обновленное состояние
                 io.to(roomId).emit('room_state', {
                     players: rooms[roomId].players,
-                    cityProgress: rooms[roomId].cityProgress,
                     playerProgress: rooms[roomId].playerProgress,
                     serverTime: new Date().toISOString()
                 });
@@ -747,7 +740,6 @@ io.on('connection', (socket) => {
                         } else {
                             io.to(roomId).emit('room_state', {
                                 players: rooms[roomId].players,
-                                cityProgress: rooms[roomId].cityProgress,
                                 playerProgress: rooms[roomId].playerProgress,
                                 serverTime: new Date().toISOString()
                             });
