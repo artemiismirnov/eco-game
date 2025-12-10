@@ -1,16 +1,23 @@
-// ==================== СОЕДИНЕНИЕ С СЕРВЕРОМ ====================
-// Подключаемся к серверу без указания хоста (автоматически использует текущий домен)
-const socket = io({
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
+console.log('🎮 Игра "Юный эколог" загружается...');
+
+// Автоматическое определение URL сервера
+const serverUrl = window.location.origin;
+
+console.log('🌐 Подключаемся к серверу:', serverUrl);
+
+// Подключение к Socket.IO серверу
+const socket = io(serverUrl, {
     transports: ['websocket', 'polling'],
     reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1000,
+    timeout: 20000
 });
 
 let isConnected = false;
 let currentRoomId = null;
 let hasCurrentTask = false;
-let playerStorageKey = 'young_ecologist_player';
 
 // ==================== ЭЛЕМЕНТЫ DOM ====================
 const elements = {
@@ -37,9 +44,6 @@ const elements = {
     playerName: document.getElementById('playerName'),
     currentCity: document.getElementById('currentCity'),
     currentPosition: document.getElementById('currentPosition'),
-    quickCoins: document.getElementById('quickCoins'),
-    quickLevel: document.getElementById('quickLevel'),
-    quickPoints: document.getElementById('quickPoints'),
     coinsCount: document.getElementById('coinsCount'),
     cleaningPoints: document.getElementById('cleaningPoints'),
     playerLevel: document.getElementById('playerLevel'),
@@ -73,21 +77,26 @@ const elements = {
     connectionStatusDot: document.getElementById('connectionStatusDot'),
     connectionStatusText: document.getElementById('connectionStatusText'),
     connectionStatusCompact: document.getElementById('connectionStatusCompact'),
-    quickActionsBtn: document.getElementById('quickActionsBtn'),
-    quickActions: document.getElementById('quickActions'),
-    quickDiceBtn: document.getElementById('quickDiceBtn'),
-    quickBuildBtn: document.getElementById('quickBuildBtn'),
-    quickChatBtn: document.getElementById('quickChatBtn'),
-    quickTasksBtn: document.getElementById('quickTasksBtn'),
-    quickInviteBtn: document.getElementById('quickInviteBtn')
+    resourcesPlaceholder: document.getElementById('resourcesPlaceholder'),
+    topCoinsCount: document.getElementById('topCoinsCount'),
+    topPlayerLevel: document.getElementById('topPlayerLevel')
 };
+
+// ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
+const quickActionsBtn = document.getElementById('quickActionsBtn');
+const quickActions = document.getElementById('quickActions');
+const quickDiceBtn = document.getElementById('quickDiceBtn');
+const quickBuildBtn = document.getElementById('quickBuildBtn');
+const quickChatBtn = document.getElementById('quickChatBtn');
+const quickTasksBtn = document.getElementById('quickTasksBtn');
+const quickInviteBtn = document.getElementById('quickInviteBtn');
 
 // ==================== ИГРОВЫЕ ДАННЫЕ ====================
 const gameData = {
     cities: {
         tver: { 
             name: "Тверь", 
-            cells: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], 
+            cells: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],  // Изменено с 1-13 на 2-13
             position: 0,
             description: "Стартовый город",
             history: "Тверь — один из древнейших городов России, основанный в 1135 году. Расположена на берегах рек Волга, Тверца и Тьмака.",
@@ -132,7 +141,7 @@ const gameData = {
         },
         astrakhan: { 
             name: "Астрахань", 
-            cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92], 
+            cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92],  // Изменено с 81-93 на 81-92
             position: 5,
             description: "Конечная точка маршрута",
             history: "Астрахань — древний город в дельте Волги, основанный в 1558 году. Важный рыболовный и транспортный узел.",
@@ -171,46 +180,49 @@ const gameData = {
                 ]
             },
             {
-                description: "Соберите фруктовый сад 🍎",
-                type: "memory",
-                pairs: 6,
-                items: ["🍎", "🍌", "🍒", "🍇", "🍊", "🍓"]
+                description: "Найдите 3 отличия на картинках 🔍",
+                type: "spot_difference",
+                differences: 3,
+                image1: "🌳🏠🚗🌲🌼",
+                image2: "🌳🏠🚙🌲🌼"
             },
             {
-                description: "Найдите спрятанных животных 🐾",
-                type: "find",
-                items: 4,
-                objects: ["🐰", "🐿️", "🦊", "🐦", "🌳", "🌿", "🪨"]
+                description: "Соберите мусор в парке 🧹",
+                type: "clean",
+                goal: 4,
+                items: ["🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
             },
             {
-                description: "Соберите дождевую воду 💧",
-                type: "tap",
-                taps: 5,
-                drops: 20
+                description: "Что такое переработка отходов? ♻️",
+                type: "quiz",
+                question: "Что такое переработка отходов?",
+                options: [
+                    {text: "Повторное использование материалов", correct: true},
+                    {text: "Сжигание мусора", correct: false},
+                    {text: "Закапывание отходов", correct: false},
+                    {text: "Вывоз мусора на свалку", correct: false}
+                ]
             },
             {
-                description: "Рассортируйте отходы правильно ♻️",
-                type: "drag_drop",
-                items: ["📄", "🥤", "🍶", "🔋"],
-                categories: ["Бумага", "Пластик", "Стекло", "Опасные"]
+                description: "Разделите отходы по категориям 📦",
+                type: "sort",
+                items: [
+                    {name: "Органика", type: "organic", emoji: "🍎"},
+                    {name: "Металл", type: "metal", emoji: "🥫"},
+                    {name: "Текстиль", type: "textile", emoji: "👕"},
+                    {name: "Опасные", type: "hazardous", emoji: "☢️"}
+                ]
             },
             {
-                description: "Найдите пары экологических символов 🌱",
-                type: "memory_pairs",
-                pairs: 4,
-                items: ["♻️", "🌍", "💧", "🌞"]
-            },
-            {
-                description: "Кликните на 5 мусорных предметов 🗑️",
-                type: "click_cleanup",
-                items: 5,
-                objects: ["🗑️", "🥤", "📦", "🍌", "📰"]
-            },
-            {
-                description: "Расставьте знаки в правильном порядке 🚸",
-                type: "sequence",
-                items: ["🚫", "♻️", "💡", "🌱"],
-                correctOrder: ["🚫", "♻️", "💡", "🌱"]
+                description: "Как экономить воду? 💧",
+                type: "quiz",
+                question: "Какой способ помогает экономить воду?",
+                options: [
+                    {text: "Принимать душ вместо ванны", correct: true},
+                    {text: "Оставлять воду течь при чистке зубов", correct: false},
+                    {text: "Поливать растения днем", correct: false},
+                    {text: "Мыть машину ежедневно", correct: false}
+                ]
             }
         ],
         medium: [
@@ -238,54 +250,50 @@ const gameData = {
                 image: "🌍♻️🌳💧🌞🌱"
             },
             {
-                description: "Составьте пищевую цепочку 🐛",
-                type: "chain",
-                items: ["🌱", "🐛", "🐦", "🦊"],
-                correctOrder: ["🌱", "🐛", "🐦", "🦊"]
+                description: "Посадите лес из 6 деревьев 🌲",
+                type: "drag",
+                goal: 6,
+                items: ["🌲", "🌲", "🌲", "🌲", "🌲", "🌲", "🌳", "🌳"],
+                zones: 6
             },
             {
-                description: "Рассортируйте отходы по категориям 📦",
-                type: "categorize",
-                categories: ["Перерабатываемые", "Опасные", "Органические"],
-                items: ["📄 Бумага", "🔋 Батарейки", "🍎 Яблоко", "🥤 Бутылка"]
-            },
-            {
-                description: "Найдите 3 отличия на картинках 🔍",
-                type: "difference",
-                differences: 3
-            },
-            {
-                description: "Соберите экологические пазлы 🧩",
-                type: "puzzle_medium",
-                pieces: 8,
-                image: "🌿🌳💧🌞♻️🌍🐦🐝"
-            },
-            {
-                description: "Разместите животных в их среде обитания 🦉",
-                type: "habitat",
-                animals: ["🐻", "🐬", "🦅", "🐘"],
-                habitats: ["🌲", "🌊", "☁️", "🌴"]
-            },
-            {
-                description: "Найдите все батарейки на картинке 🔋",
-                type: "find_items",
-                items: 4,
-                objects: ["🔋", "📱", "💻", "🔌", "🔦", "🎮"]
-            },
-            {
-                description: "Сортируйте отходы в правильные контейнеры 🗃️",
-                type: "sort_advanced",
+                description: "Сортируйте опасные отходы ⚠️",
+                type: "sort",
                 items: [
-                    {name: "Газета", type: "paper", emoji: "📰"},
-                    {name: "Консервная банка", type: "metal", emoji: "🥫"},
-                    {name: "Батарейка", type: "battery", emoji: "🔋"},
-                    {name: "Яблочная кожура", type: "organic", emoji: "🍎"}
+                    {name: "Батарейки", type: "battery", emoji: "🔋"},
+                    {name: "Лампочки", type: "lamp", emoji: "💡"},
+                    {name: "Лекарства", type: "medicine", emoji: "💊"},
+                    {name: "Химикаты", type: "chemical", emoji: "🧪"}
+                ]
+            },
+            {
+                description: "Найдите 4 отличия на картинках природы 🏞️",
+                type: "spot_difference",
+                differences: 4,
+                image1: "🌳🌲🏞️🌼🦌",
+                image2: "🌳🌲🏞️🌸🦌"
+            },
+            {
+                description: "Создайте пищевую цепь 🐟",
+                type: "sequence",
+                items: ["🌿", "🐛", "🐦", "🦊"],
+                correctOrder: ["🌿", "🐛", "🐦", "🦊"]
+            },
+            {
+                description: "Что такое биоразнообразие? 🦋",
+                type: "quiz",
+                question: "Что означает биоразнообразие?",
+                options: [
+                    {text: "Разнообразие живых организмов в экосистеме", correct: true},
+                    {text: "Количество заводов в регионе", correct: false},
+                    {text: "Разнообразие автомобилей", correct: false},
+                    {text: "Количество жителей в городе", correct: false}
                 ]
             }
         ],
         hard: [
             {
-                description: "Что такое углеродный след? 🌫️",
+                description: "Что такое углеродный след? 👣",
                 type: "quiz",
                 question: "Что такое углеродный след?",
                 options: [
@@ -302,101 +310,84 @@ const gameData = {
                 correctOrder: ["🌱", "🌳", "🏭", "💨", "🔥", "🌍"]
             },
             {
-                description: "Постройте экологичный город 🏙️",
-                type: "build_city",
-                buildings: 4,
-                items: ["🌳 Парк", "☀️ Солнечная панель", "💨 Ветряк", "🚲 Велодорожка"]
-            },
-            {
-                description: "Спасите животных от загрязнения 🐢",
-                type: "rescue",
-                animals: 3,
-                obstacles: ["🗑️", "🛢️", "🌫️"]
-            },
-            {
-                description: "Восстановите экосистему 🌿",
-                type: "ecosystem",
-                layers: 4,
-                items: ["🪱 Почва", "🌱 Растения", "🐝 Насекомые", "🐦 Птицы"]
-            },
-            {
-                description: "Решите кроссворд об экологии ✏️",
-                type: "crossword",
-                words: 5
-            },
-            {
-                description: "Расставьте этапы переработки ♻️",
-                type: "recycle_steps",
-                steps: ["📦 Сбор", "🚛 Транспортировка", "🏭 Переработка", "🛒 Продукт"],
-                correctOrder: ["📦 Сбор", "🚛 Транспортировка", "🏭 Переработка", "🛒 Продукт"]
-            },
-            {
-                description: "Создайте энергосберегающий дом 🏠",
-                type: "energy_house",
-                items: ["☀️ Солнечные панели", "🧱 Теплоизоляция", "💡 LED-лампы", "🚿 Экономичный душ"]
-            },
-            {
-                description: "Соберите экологическую мозаику 🎨",
-                type: "mosaic",
+                description: "Соберите сложный экологический пазл 🧩",
+                type: "puzzle",
                 pieces: 9,
-                image: "🌍🌿🌊🌞🦋🐝🌸🌳💧"
+                image: "🌍♻️🌳💧🌞🌱🌀🌊🦋"
             },
             {
-                description: "Распределите ресурсы по отраслям ⚖️",
-                type: "resource_distribution",
-                resources: ["💧 Вода", "⚡ Энергия", "🌾 Еда", "🏠 Жилье"],
-                sectors: ["🏥 Здравоохранение", "🏫 Образование", "🏭 Промышленность", "🌾 Сельское хозяйство"]
+                description: "Что такое возобновляемая энергия? ⚡",
+                type: "quiz",
+                question: "Что такое возобновляемая энергия?",
+                options: [
+                    {text: "Энергия из неиссякаемых источников (солнце, ветер, вода)", correct: true},
+                    {text: "Энергия из угля и нефти", correct: false},
+                    {text: "Атомная энергия", correct: false},
+                    {text: "Энергия из газа", correct: false}
+                ]
+            },
+            {
+                description: "Очистите океан от мусора 🌊",
+                type: "clean",
+                goal: 8,
+                items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🐠", "🐟", "🐡"]
+            },
+            {
+                description: "Создайте экосистему из 8 элементов 🏞️",
+                type: "drag",
+                goal: 8,
+                items: ["🌱", "🌳", "💧", "☀️", "🦋", "🐝", "🐞", "🦔", "🌼", "🍄"],
+                zones: 8
+            },
+            {
+                description: "Расставьте стадии переработки ♻️",
+                type: "sequence",
+                items: ["🗑️", "🚚", "🏭", "🔄", "📦"],
+                correctOrder: ["🗑️", "🚚", "🏭", "🔄", "📦"]
+            },
+            {
+                description: "Что такое деградация почв? 🌵",
+                type: "quiz",
+                question: "Что вызывает деградацию почв?",
+                options: [
+                    {text: "Вырубка лесов и эрозия", correct: true},
+                    {text: "Посадка деревьев", correct: false},
+                    {text: "Использование удобрений", correct: false},
+                    {text: "Строительство парков", correct: false}
+                ]
             }
         ]
     },
     buildings: [
         {
-            name: "Станция переработки ♻️",
+            name: "Станция переработки",
             cost: 50,
             points: 100,
             description: "Перерабатывает мусор и уменьшает загрязнение"
         },
         {
-            name: "Солнечная электростанция ☀️",
+            name: "Солнечная электростанция",
             cost: 100,
             points: 200,
             description: "Производит чистую энергию из солнечного света"
         },
         {
-            name: "Эко-парк 🌳",
+            name: "Эко-парк",
             cost: 150,
             points: 300,
             description: "Создает зеленую зону для отдыха и очистки воздуха"
         },
         {
-            name: "Ветряная мельница 💨",
+            name: "Ветряная мельница",
             cost: 200,
             points: 400,
             description: "Производит энергию из ветра"
         },
         {
-            name: "Очистные сооружения 💧",
+            name: "Очистные сооружения",
             cost: 250,
             points: 500,
             description: "Очищает воду от загрязнений"
-        },
-        {
-            name: "Эко-ферма 🚜",
-            cost: 300,
-            points: 600,
-            description: "Производит органические продукты"
-        },
-        {
-            name: "Заповедник 🦌",
-            cost: 350,
-            points: 700,
-            description: "Защищает дикую природу"
-        },
-        {
-            name: "Эко-школа 🏫",
-            cost: 400,
-            points: 800,
-            description: "Обучает экологической грамотности"
         }
     ],
     difficultyRequirements: {
@@ -427,8 +418,7 @@ let gameState = {
     selectedPuzzlePieces: [],
     spotDifferencesFound: 0,
     cleanupItems: [],
-    playerReconnected: false,
-    mobileScrollEnabled: false
+    reconnected: false
 };
 
 // ==================== ФУНКЦИИ ПОДКЛЮЧЕНИЯ ====================
@@ -456,8 +446,11 @@ socket.on('connect', () => {
     updateConnectionStatus('connected', '✅ Подключено к серверу');
     showNotification('Успешно подключено к игровому серверу', 'success');
     
-    // Попытка восстановления игры
-    restoreGame();
+    // Если мы переподключились, сообщаем серверу
+    if (gameState.currentPlayerId && gameState.reconnected) {
+        socket.emit('player_reconnected');
+        console.log('🔄 Уведомили сервер о восстановлении соединения');
+    }
     
     // Запрашиваем позиции всех игроков при подключении
     setTimeout(() => {
@@ -469,10 +462,8 @@ socket.on('disconnect', () => {
     console.log('❌ Отключено от сервера');
     isConnected = false;
     updateConnectionStatus('error', '❌ Не подключено к серверу');
+    gameState.reconnected = true;
     showNotification('Потеряно соединение с сервером', 'error');
-    
-    // Сохраняем состояние для восстановления
-    savePlayerStateToStorage();
 });
 
 socket.on('connect_error', (error) => {
@@ -489,11 +480,8 @@ socket.on('connection_confirmed', (data) => {
 socket.on('join-success', (playerData) => {
     console.log('✅ Успешно присоединились к комнате', playerData);
     gameState.roomId = playerData.roomId || currentRoomId;
-    gameState.playerReconnected = false;
+    gameState.reconnected = playerData.reconnected || false;
     initializeGame(playerData);
-    
-    // Сохраняем данные игрока в localStorage
-    savePlayerDataToStorage(playerData);
     
     // Запрашиваем позиции всех игроков после присоединения к комнате
     setTimeout(() => {
@@ -502,10 +490,12 @@ socket.on('join-success', (playerData) => {
 });
 
 socket.on('room-error', (message) => {
-    showNotification(message === '[object Object]' ? 'Комнаты с таким номером не существует' : message, 'error');
+    const errorMsg = typeof message === 'object' ? message.message : message;
+    showNotification(errorMsg || 'Комнаты с таким номером не существует', 'error');
     elements.authSection.style.display = 'block';
     elements.gameContent.style.display = 'none';
-    elements.quickActionsBtn.style.display = 'none';
+    elements.resourcesPlaceholder.style.display = 'none';
+    quickActionsBtn.classList.remove('show');
 });
 
 socket.on('room_state', (roomData) => {
@@ -519,11 +509,22 @@ socket.on('player_joined', (data) => {
     updatePlayersList();
     updatePlayerMarkers();
     
-    addLogEntry(`👋 Игрок "${data.player.name}" присоединился к игре!`);
+    addLogEntry(`🎉 Игрок "${data.player.name}" присоединился к игре!`);
     
     setTimeout(() => {
         requestAllPlayersPositions();
     }, 1000);
+});
+
+socket.on('player_reconnected', (data) => {
+    console.log('🔄 Игрок восстановил соединение:', data.playerName);
+    if (gameState.players[data.playerId]) {
+        gameState.players[data.playerId].connected = true;
+    }
+    updatePlayersList();
+    updatePlayerMarkers();
+    
+    addLogEntry(`🔌 Игрок "${data.playerName}" восстановил соединение`);
 });
 
 socket.on('player_left', (data) => {
@@ -575,115 +576,8 @@ socket.on('progress_updated', (data) => {
     addLogEntry(`📊 Прогресс очищения города обновлен: ${data.progress}%`);
 });
 
-// ==================== ФУНКЦИИ ВОССТАНОВЛЕНИЯ ИГРЫ ====================
-function savePlayerDataToStorage(playerData) {
-    const playerInfo = {
-        username: playerData.name,
-        roomId: currentRoomId || gameState.roomId,
-        playerId: socket.id,
-        timestamp: Date.now(),
-        ipAddress: getIPAddress(),
-        deviceId: getDeviceId()
-    };
-    localStorage.setItem(playerStorageKey, JSON.stringify(playerInfo));
-}
-
-function savePlayerStateToStorage() {
-    if (gameState.currentPlayer) {
-        const gameStateToSave = {
-            player: gameState.currentPlayer,
-            roomId: currentRoomId || gameState.roomId,
-            timestamp: Date.now()
-        };
-        localStorage.setItem(playerStorageKey + '_state', JSON.stringify(gameStateToSave));
-    }
-}
-
-function getIPAddress() {
-    // Возвращаем фиктивный IP для демонстрации
-    return 'local-' + Math.random().toString(36).substr(2, 9);
-}
-
-function getDeviceId() {
-    let deviceId = localStorage.getItem('device_id');
-    if (!deviceId) {
-        deviceId = 'device-' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('device_id', deviceId);
-    }
-    return deviceId;
-}
-
-function restoreGame() {
-    const savedPlayer = localStorage.getItem(playerStorageKey);
-    const savedState = localStorage.getItem(playerStorageKey + '_state');
-    
-    if (savedPlayer && savedState) {
-        const playerInfo = JSON.parse(savedPlayer);
-        const gameStateInfo = JSON.parse(savedState);
-        
-        // Проверяем, не прошло ли слишком много времени (30 минут)
-        const timeDiff = Date.now() - playerInfo.timestamp;
-        const thirtyMinutes = 30 * 60 * 1000;
-        
-        if (timeDiff < thirtyMinutes) {
-            // Автоматически подключаемся к комнате
-            currentRoomId = playerInfo.roomId;
-            gameState.playerReconnected = true;
-            
-            socket.emit('reconnect_player', {
-                roomId: playerInfo.roomId,
-                playerName: playerInfo.username,
-                playerId: playerInfo.playerId,
-                deviceId: playerInfo.deviceId
-            });
-            
-            showNotification('🔄 Восстанавливаем подключение...', 'info');
-            return true;
-        }
-    }
-    return false;
-}
-
-// Обработчик восстановления игрока
-socket.on('reconnect_success', (playerData) => {
-    console.log('✅ Успешно восстановлен в комнате', playerData);
-    gameState.currentPlayer = playerData;
-    gameState.currentPlayerId = socket.id;
-    gameState.playerReconnected = true;
-    
-    elements.authSection.style.display = 'none';
-    elements.gameContent.style.display = 'block';
-    updatePlayerUI();
-    elements.roomNumber.textContent = currentRoomId || gameState.roomId;
-    
-    createMap();
-    createCitiesGrid();
-    createBuildingsList();
-    updateDifficultyButtons();
-    initializeQuickActions();
-    
-    addLogEntry(`🔄 Вы восстановили подключение к игре, ${playerData.name}!`);
-    
-    setTimeout(() => {
-        showCityModal(gameState.currentPlayer.city);
-    }, 1000);
-    
-    socket.emit('get_room_state');
-    
-    // Включаем кнопки
-    elements.rollDiceBtn.disabled = false;
-    elements.buildBtn.disabled = false;
-    
-    showNotification(`🔄 Добро пожаловать обратно, ${playerData.name}!`, 'success');
-});
-
-socket.on('reconnect_failed', (message) => {
-    showNotification(message || 'Не удалось восстановить подключение', 'error');
-    localStorage.removeItem(playerStorageKey);
-    localStorage.removeItem(playerStorageKey + '_state');
-});
-
 // ==================== СИНХРОНИЗАЦИЯ ДВИЖЕНИЯ ИГРОКОВ ====================
+
 function sendPlayerPositionToServer(position, city) {
     if (socket.connected && gameState.currentPlayer) {
         socket.emit('player_position_update', {
@@ -776,16 +670,14 @@ function updatePlayerInList(playerId, position, playerName) {
     playerItems.forEach(item => {
         if (item.textContent.includes(playerName) || item.dataset.playerId === playerId) {
             found = true;
-            const positionSpan = item.querySelector('.player-position');
+            const positionSpan = item.querySelector('.player-position-badge');
             if (positionSpan) {
                 positionSpan.textContent = `поз. ${position}`;
             } else {
                 const posElement = document.createElement('span');
-                posElement.className = 'player-position';
+                posElement.className = 'player-position-badge';
                 posElement.textContent = `поз. ${position}`;
-                posElement.style.color = 'var(--secondary)';
-                posElement.style.marginLeft = '5px';
-                item.appendChild(posElement);
+                item.querySelector('span').appendChild(posElement);
             }
         }
     });
@@ -795,7 +687,6 @@ function updatePlayerInList(playerId, position, playerName) {
     }
 }
 
-// Обработчики событий для синхронизации
 socket.on('player_position_update', (data) => {
     const { playerId, playerName, position, city, color } = data;
     
@@ -868,6 +759,7 @@ function initializeGame(playerData) {
     
     elements.authSection.style.display = 'none';
     elements.gameContent.style.display = 'block';
+    elements.resourcesPlaceholder.style.display = 'flex';
     updatePlayerUI();
     elements.roomNumber.textContent = currentRoomId || gameState.roomId;
     
@@ -876,9 +768,7 @@ function initializeGame(playerData) {
     createBuildingsList();
     updateDifficultyButtons();
     
-    // Инициализируем быстрые кнопки (только в игровом режиме)
     initializeQuickActions();
-    elements.quickActionsBtn.style.display = 'flex';
     
     addLogEntry(`🎮 Добро пожаловать в игру, ${playerData.name}!`);
     
@@ -888,9 +778,11 @@ function initializeGame(playerData) {
     
     socket.emit('get_room_state');
     
-    // Включаем кнопки
-    elements.rollDiceBtn.disabled = false;
-    elements.buildBtn.disabled = false;
+    if (gameState.reconnected) {
+        showNotification('✅ Соединение восстановлено! Вы можете продолжать игру.', 'success');
+        elements.rollDiceBtn.disabled = false;
+        elements.buildBtn.disabled = false;
+    }
 }
 
 function updateRoomState(roomData) {
@@ -907,13 +799,6 @@ function updateRoomState(roomData) {
         const serverPlayer = gameState.players[gameState.currentPlayerId];
         gameState.currentPlayer = serverPlayer;
         updatePlayerUI();
-        
-        // Если игрок восстановил подключение, активируем кнопки
-        if (gameState.playerReconnected) {
-            elements.rollDiceBtn.disabled = false;
-            elements.buildBtn.disabled = false;
-            gameState.playerReconnected = false;
-        }
     }
 }
 
@@ -956,7 +841,7 @@ function createMap() {
     elements.mapGrid.innerHTML = '';
     
     const riverCells = [14, 15, 16, 17, 30, 31, 44, 45, 46, 59, 60, 61, 62, 63, 64, 65, 78, 79, 80];
-    const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92];
+    const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92];
     
     for (let row = 0; row < 10; row++) {
         for (let col = 0; col < 10; col++) {
@@ -966,7 +851,7 @@ function createMap() {
             
             const cellNumber = row * 10 + col + 1;
             
-            if (cellNumber > 94) {
+            if (cellNumber > 100) {
                 cell.classList.add('empty');
                 cell.textContent = '';
                 elements.mapGrid.appendChild(cell);
@@ -976,25 +861,27 @@ function createMap() {
             const numberSpan = document.createElement('span');
             numberSpan.className = 'cell-number';
             numberSpan.textContent = cellNumber;
-            numberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; font-weight: bold; color: #333; z-index: 1;';
+            numberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: #333; z-index: 1;';
             
             if (cellNumber === 1) {
                 cell.classList.add('start');
                 cell.style.background = 'rgba(76, 175, 80, 0.8)';
                 numberSpan.textContent = '1';
                 numberSpan.style.color = 'white';
-                numberSpan.style.fontSize = '12px';
+                numberSpan.style.fontSize = '10px';
+                numberSpan.style.top = '70%';
                 
                 if (gameState.currentPlayer && !gameState.currentPlayer.position) {
                     gameState.currentPlayer.position = 1;
                     updatePlayerUI();
                 }
-            } else if (cellNumber === 94) {
+            } else if (cellNumber === 100) {
                 cell.classList.add('finish');
                 cell.style.background = 'rgba(244, 67, 54, 0.8)';
-                numberSpan.textContent = '94';
+                numberSpan.textContent = '100';
                 numberSpan.style.color = 'white';
-                numberSpan.style.fontSize = '12px';
+                numberSpan.style.fontSize = '10px';
+                numberSpan.style.top = '70%';
             } else if (riverCells.includes(cellNumber)) {
                 cell.classList.add('river');
                 cell.style.background = 'rgba(33, 150, 243, 0.3)';
@@ -1009,6 +896,7 @@ function createMap() {
                     if (gameData.cities[cityKey].cells.includes(cellNumber)) {
                         cell.classList.add('city');
                         cell.style.background = 'rgba(255, 235, 59, 0.8)';
+                        numberSpan.style.top = '70%';
                         numberSpan.style.color = '#FF9800';
                         isCity = true;
                         break;
@@ -1058,8 +946,9 @@ function updatePlayersList() {
         playerItem.innerHTML = `
             <span>${statusIcon} ${player.name} 
                 ${playerId === gameState.currentPlayerId ? '<span style="color: var(--secondary);">(Вы)</span>' : ''}
+                <span class="player-position-badge">поз. ${player.position || 1}</span>
             </span>
-            <span>${player.cleaningPoints} баллов <span class="player-position">поз. ${player.position || 1}</span></span>
+            <span><strong>${player.cleaningPoints}</strong> баллов</span>
         `;
         
         elements.playersContainer.appendChild(playerItem);
@@ -1074,9 +963,10 @@ function updatePlayerUI() {
         elements.coinsCount.textContent = gameState.currentPlayer.coins;
         elements.cleaningPoints.textContent = gameState.currentPlayer.cleaningPoints;
         elements.playerLevel.textContent = gameState.currentPlayer.level;
-        elements.quickCoins.textContent = gameState.currentPlayer.coins;
-        elements.quickLevel.textContent = gameState.currentPlayer.level;
-        elements.quickPoints.textContent = gameState.currentPlayer.cleaningPoints;
+        
+        // Обновляем верхний плейсхолдер
+        elements.topCoinsCount.textContent = gameState.currentPlayer.coins;
+        elements.topPlayerLevel.textContent = gameState.currentPlayer.level + ' ур.';
     }
 }
 
@@ -1176,18 +1066,18 @@ function createBuildingsList() {
                 
                 savePlayerState();
                 
-                // Показываем уведомление о покупке
-                showNotification(`✅ Вы построили "${building.name}" за ${building.cost} монет! +${building.points} баллов`, 'success');
-                
                 if (gameState.currentPlayer.position >= 94 && gameState.currentPlayer.buildings.length >= 1) {
                     gameState.gameOver = true;
                     addLogEntry(`🎊 Поздравляем! Вы достигли Астрахани и построили объект! Игра завершена.`);
                     showNotification(`🎊 Поздравляем! Вы достигли Астрахани и построили объект! Игра завершена.`, 'success');
                 }
                 
+                // Показываем уведомление о покупке
+                showNotification(`✅ Успешно построено "${building.name}" за ${building.cost} монет!`, 'success');
+                
                 createBuildingsList();
             } else {
-                showNotification(`❌ Недостаточно монет для постройки "${building.name}"! Нужно ещё ${building.cost - gameState.currentPlayer.coins} монет`, 'warning');
+                showNotification(`❌ Недостаточно монет для постройки "${building.name}"! Нужно ${building.cost} монет.`, 'warning');
             }
         });
     });
@@ -1262,22 +1152,16 @@ function addLogEntry(message) {
 function initializeQuickActions() {
     let quickActionsVisible = false;
     
-    // Скрываем кнопку быстрых действий на главном экране
-    elements.quickActionsBtn.style.display = 'none';
+    quickActionsBtn.classList.add('show');
     
-    // Показываем только когда игрок вошел в комнату
-    if (elements.gameContent.style.display === 'block') {
-        elements.quickActionsBtn.style.display = 'flex';
-    }
-    
-    elements.quickActionsBtn.addEventListener('click', function() {
+    quickActionsBtn.addEventListener('click', function() {
         quickActionsVisible = !quickActionsVisible;
         if (quickActionsVisible) {
-            elements.quickActions.classList.add('show');
-            elements.quickActionsBtn.classList.add('active');
+            quickActions.classList.add('show');
+            quickActionsBtn.classList.add('active');
         } else {
-            elements.quickActions.classList.remove('show');
-            elements.quickActionsBtn.classList.remove('active');
+            quickActions.classList.remove('show');
+            quickActionsBtn.classList.remove('active');
         }
     });
     
@@ -1296,9 +1180,9 @@ function initializeQuickActions() {
         }
     }
     
-    elements.quickDiceBtn.addEventListener('click', function() {
-        elements.quickActions.classList.remove('show');
-        elements.quickActionsBtn.classList.remove('active');
+    quickDiceBtn.addEventListener('click', function() {
+        quickActions.classList.remove('show');
+        quickActionsBtn.classList.remove('active');
         quickActionsVisible = false;
         
         scrollToElement('rollDiceBtn');
@@ -1316,9 +1200,9 @@ function initializeQuickActions() {
         }, 500);
     });
     
-    elements.quickBuildBtn.addEventListener('click', function() {
-        elements.quickActions.classList.remove('show');
-        elements.quickActionsBtn.classList.remove('active');
+    quickBuildBtn.addEventListener('click', function() {
+        quickActions.classList.remove('show');
+        quickActionsBtn.classList.remove('active');
         quickActionsVisible = false;
         
         if (elements.buildBtn.disabled) {
@@ -1327,24 +1211,21 @@ function initializeQuickActions() {
         }
         
         setTimeout(() => {
-            // Прокручиваем к разделу строительства объектов
-            elements.buildingsSection.scrollIntoView({ 
-                behavior: 'smooth',
-                block: 'center'
+            scrollToElement('buildingsSection');
+            
+            const buildBtnPosition = elements.buildBtn.getBoundingClientRect().top + window.pageYOffset;
+            window.scrollTo({
+                top: buildBtnPosition - 100,
+                behavior: 'smooth'
             });
             
-            // Подсвечиваем раздел
-            elements.buildingsSection.style.boxShadow = '0 0 20px rgba(78, 205, 196, 0.8)';
-            elements.buildingsSection.style.transition = 'box-shadow 0.5s';
-            setTimeout(() => {
-                elements.buildingsSection.style.boxShadow = '';
-            }, 2000);
+            elements.buildBtn.focus();
         }, 100);
     });
     
-    elements.quickChatBtn.addEventListener('click', function() {
-        elements.quickActions.classList.remove('show');
-        elements.quickActionsBtn.classList.remove('active');
+    quickChatBtn.addEventListener('click', function() {
+        quickActions.classList.remove('show');
+        quickActionsBtn.classList.remove('active');
         quickActionsVisible = false;
         
         setTimeout(() => {
@@ -1361,9 +1242,9 @@ function initializeQuickActions() {
         }, 100);
     });
     
-    elements.quickTasksBtn.addEventListener('click', function() {
-        elements.quickActions.classList.remove('show');
-        elements.quickActionsBtn.classList.remove('active');
+    quickTasksBtn.addEventListener('click', function() {
+        quickActions.classList.remove('show');
+        quickActionsBtn.classList.remove('active');
         quickActionsVisible = false;
         
         setTimeout(() => {
@@ -1377,9 +1258,9 @@ function initializeQuickActions() {
         }, 100);
     });
     
-    elements.quickInviteBtn.addEventListener('click', function() {
-        elements.quickActions.classList.remove('show');
-        elements.quickActionsBtn.classList.remove('active');
+    quickInviteBtn.addEventListener('click', function() {
+        quickActions.classList.remove('show');
+        quickActionsBtn.classList.remove('active');
         quickActionsVisible = false;
         
         elements.inviteBtn.click();
@@ -1387,43 +1268,42 @@ function initializeQuickActions() {
     
     document.addEventListener('click', function(event) {
         if (quickActionsVisible && 
-            !elements.quickActionsBtn.contains(event.target) && 
-            !elements.quickActions.contains(event.target)) {
-            elements.quickActions.classList.remove('show');
-            elements.quickActionsBtn.classList.remove('active');
+            !quickActionsBtn.contains(event.target) && 
+            !quickActions.contains(event.target)) {
+            quickActions.classList.remove('show');
+            quickActionsBtn.classList.remove('active');
             quickActionsVisible = false;
         }
     });
     
     function updateQuickButtons() {
         if (gameState.gameOver) {
-            elements.quickDiceBtn.style.opacity = '0.5';
-            elements.quickDiceBtn.style.cursor = 'not-allowed';
-            elements.quickDiceBtn.title = 'Игра завершена';
-            elements.quickBuildBtn.style.opacity = '0.5';
-            elements.quickBuildBtn.style.cursor = 'not-allowed';
-            elements.quickBuildBtn.title = 'Игра завершена';
+            quickDiceBtn.style.opacity = '0.5';
+            quickDiceBtn.style.cursor = 'not-allowed';
+            quickDiceBtn.title = 'Игра завершена';
+            quickBuildBtn.style.opacity = '0.5';
+            quickBuildBtn.style.cursor = 'not-allowed';
+            quickBuildBtn.title = 'Игра завершена';
         } else {
-            elements.quickDiceBtn.style.opacity = '1';
-            elements.quickDiceBtn.style.cursor = 'pointer';
-            elements.quickDiceBtn.title = 'Бросить кубик';
+            quickDiceBtn.style.opacity = '1';
+            quickDiceBtn.style.cursor = 'pointer';
+            quickDiceBtn.title = 'Бросить кубик';
             
             if (hasCurrentTask || gameState.taskInProgress) {
-                elements.quickBuildBtn.style.opacity = '0.5';
-                elements.quickBuildBtn.style.cursor = 'not-allowed';
-                elements.quickBuildBtn.title = 'Сначала выполните задание';
+                quickBuildBtn.style.opacity = '0.5';
+                quickBuildBtn.style.cursor = 'not-allowed';
+                quickBuildBtn.title = 'Сначала выполните задание';
             } else {
-                elements.quickBuildBtn.style.opacity = '1';
-                elements.quickBuildBtn.style.cursor = 'pointer';
-                elements.quickBuildBtn.title = 'Построить объект';
+                quickBuildBtn.style.opacity = '1';
+                quickBuildBtn.style.cursor = 'pointer';
+                quickBuildBtn.title = 'Построить объект';
             }
         }
         
-        // Показываем кнопку только в игровом режиме
         if (elements.gameContent.style.display === 'block') {
-            elements.quickActionsBtn.style.display = 'flex';
+            quickActionsBtn.style.display = 'flex';
         } else {
-            elements.quickActionsBtn.style.display = 'none';
+            quickActionsBtn.style.display = 'none';
         }
     }
     
@@ -1436,20 +1316,16 @@ function getRandomTask(difficulty) {
     const availableTasks = gameData.tasks[difficulty];
     if (!availableTasks || availableTasks.length === 0) return null;
     
-    // Если использовали все задания, сбрасываем список
     if (gameState.usedTasks[difficulty].length >= availableTasks.length) {
         gameState.usedTasks[difficulty] = [];
     }
     
     let randomTask;
     let attempts = 0;
-    
-    // Пытаемся найти задание, которое еще не использовалось
     do {
         randomTask = availableTasks[Math.floor(Math.random() * availableTasks.length)];
         attempts++;
-        if (attempts > 50) break; // Защита от бесконечного цикла
-    } while (gameState.usedTasks[difficulty].includes(randomTask.description) && attempts < 50);
+    } while (gameState.usedTasks[difficulty].includes(randomTask.description) && attempts < 20);
     
     if (!gameState.usedTasks[difficulty].includes(randomTask.description)) {
         gameState.usedTasks[difficulty].push(randomTask.description);
@@ -1464,7 +1340,6 @@ function createInteractiveTask(task) {
     gameState.taskInProgress = true;
     hasCurrentTask = true;
     
-    // Очищаем состояние предыдущего задания
     gameState.dragItems = [];
     gameState.dropZones = [];
     gameState.sortItems = [];
@@ -1473,7 +1348,6 @@ function createInteractiveTask(task) {
     gameState.spotDifferencesFound = 0;
     gameState.cleanupItems = [];
     
-    // Выбираем тип задания
     if (task.type === "quiz") {
         createQuizTask(task);
     } else if (task.type === "drag") {
@@ -1484,122 +1358,39 @@ function createInteractiveTask(task) {
         createCleanupTask(task);
     } else if (task.type === "puzzle") {
         createPuzzleTask(task);
-    } else if (task.type === "memory") {
-        createMemoryTask(task);
-    } else if (task.type === "find") {
-        createFindTask(task);
-    } else if (task.type === "tap") {
-        createTapTask(task);
-    } else if (task.type === "chain") {
-        createChainTask(task);
-    } else if (task.type === "categorize") {
-        createCategorizeTask(task);
-    } else if (task.type === "difference") {
-        createDifferenceTask(task);
-    } else if (task.type === "build_city") {
-        createBuildCityTask(task);
-    } else if (task.type === "rescue") {
-        createRescueTask(task);
-    } else if (task.type === "ecosystem") {
-        createEcosystemTask(task);
-    } else if (task.type === "crossword") {
-        createCrosswordTask(task);
+    } else if (task.type === "spot_difference") {
+        createSpotDifferenceTask(task);
     } else if (task.type === "puzzle_sequence") {
         createPuzzleSequenceTask(task);
-    } else if (task.type === "drag_drop") {
-        createDragDropTask(task);
-    } else if (task.type === "memory_pairs") {
-        createMemoryPairsTask(task);
-    } else if (task.type === "click_cleanup") {
-        createClickCleanupTask(task);
     } else if (task.type === "sequence") {
         createSequenceTask(task);
-    } else if (task.type === "puzzle_medium") {
-        createPuzzleMediumTask(task);
-    } else if (task.type === "habitat") {
-        createHabitatTask(task);
-    } else if (task.type === "find_items") {
-        createFindItemsTask(task);
-    } else if (task.type === "sort_advanced") {
-        createSortAdvancedTask(task);
-    } else if (task.type === "recycle_steps") {
-        createRecycleStepsTask(task);
-    } else if (task.type === "energy_house") {
-        createEnergyHouseTask(task);
-    } else if (task.type === "mosaic") {
-        createMosaicTask(task);
-    } else if (task.type === "resource_distribution") {
-        createResourceDistributionTask(task);
     } else {
         createDefaultTask(task);
     }
     
     elements.checkTaskBtn.disabled = true;
     
-    // Включаем прокрутку при перетаскивании на мобильных устройствах
-    if ('ontouchstart' in window) {
-        enableMobileDragScrolling();
+    // Добавляем контейнер для прокрутки на мобильных устройствах
+    if (window.innerWidth <= 768) {
+        const dragContainers = elements.taskArea.querySelectorAll('.drag-items, .sort-items, .puzzle-pieces, .sequence-pieces');
+        dragContainers.forEach(container => {
+            container.parentNode.classList.add('drag-scroll-container');
+            container.classList.add('drag-scroll-content');
+        });
     }
-}
-
-function enableMobileDragScrolling() {
-    if (gameState.mobileScrollEnabled) return;
-    
-    let isDragging = false;
-    let startY = 0;
-    let scrollTop = 0;
-    
-    elements.taskArea.addEventListener('touchstart', function(e) {
-        // Проверяем, не началось ли перетаскивание элемента
-        if (e.target.classList.contains('draggable-item') || 
-            e.target.classList.contains('sort-item') ||
-            e.target.classList.contains('puzzle-piece')) {
-            isDragging = false;
-            return;
-        }
-        
-        isDragging = true;
-        startY = e.touches[0].pageY;
-        scrollTop = this.scrollTop;
-    }, { passive: true });
-    
-    elements.taskArea.addEventListener('touchmove', function(e) {
-        if (!isDragging) return;
-        
-        const y = e.touches[0].pageY;
-        const walk = (startY - y) * 2;
-        this.scrollTop = scrollTop + walk;
-    }, { passive: true });
-    
-    elements.taskArea.addEventListener('touchend', function() {
-        isDragging = false;
-    }, { passive: true });
-    
-    gameState.mobileScrollEnabled = true;
 }
 
 function createQuizTask(task) {
     elements.taskArea.innerHTML = `
-        <div class="quiz-container">
-            <p class="quiz-question"><strong>${task.question}</strong></p>
-            <div class="quiz-options">
-                ${task.options.map((option, index) => 
-                    `<div class="quiz-option" data-index="${index}" data-correct="${option.correct}">
-                        ${option.text}
-                    </div>`
-                ).join('')}
-            </div>
+        <p><strong>${task.question}</strong></p>
+        <div class="quiz-options">
+            ${task.options.map((option, index) => 
+                `<div class="quiz-option" data-index="${index}" data-correct="${option.correct}">
+                    ${option.text}
+                </div>`
+            ).join('')}
         </div>
     `;
-    
-    // Оптимизация для мобильных устройств
-    if ('ontouchstart' in window) {
-        elements.taskArea.querySelectorAll('.quiz-option').forEach(option => {
-            option.style.padding = '16px 12px';
-            option.style.margin = '10px 0';
-            option.style.fontSize = '1.1rem';
-        });
-    }
     
     document.querySelectorAll('.quiz-option').forEach(option => {
         option.addEventListener('click', function() {
@@ -1624,21 +1415,13 @@ function createQuizTask(task) {
                 elements.checkTaskBtn.disabled = false;
             }
         });
-        
-        // Добавляем обработчик для сенсорных устройств
-        option.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            this.click();
-        });
     });
 }
 
 function createDragTask(task) {
     elements.taskArea.innerHTML = `
-        <div class="task-instructions">
-            <p><strong>${task.description}</strong></p>
-            <p>Перетащите ${task.goal} дерева в специальные зоны посадки:</p>
-        </div>
+        <p><strong>${task.description}</strong></p>
+        <p>Перетащите ${task.goal} предметов в специальные зоны:</p>
         <div class="drag-container">
             <div class="drag-items">
                 ${task.items.map((item, index) => 
@@ -1650,31 +1433,13 @@ function createDragTask(task) {
             <div class="drop-zones">
                 ${Array.from({length: task.zones || task.goal}).map((_, index) => 
                     `<div class="drop-zone" data-zone="${index}">
-                        <span>Зона посадки ${index + 1}</span>
+                        Зона ${index + 1}
                     </div>`
                 ).join('')}
             </div>
         </div>
-        <div class="task-progress">
-            <p>Перетащено: <span id="dragCount">0</span>/${task.goal}</p>
-        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Перетащено: <span id="dragCount">0</span>/${task.goal}</p>
     `;
-    
-    // Оптимизация для мобильных устройств
-    if ('ontouchstart' in window) {
-        elements.taskArea.querySelectorAll('.draggable-item').forEach(item => {
-            item.style.width = '60px';
-            item.style.height = '60px';
-            item.style.fontSize = '2rem';
-        });
-        
-        elements.taskArea.querySelectorAll('.drop-zone').forEach(zone => {
-            zone.style.width = '70px';
-            zone.style.height = '70px';
-            zone.style.fontSize = '0.8rem';
-            zone.style.padding = '5px';
-        });
-    }
     
     initializeDragAndDrop(task.goal);
 }
@@ -1685,6 +1450,9 @@ function initializeDragAndDrop(goal) {
     let draggedItem = null;
     let placedCount = 0;
     
+    // Функция для прокрутки при перетаскивании
+    let scrollInterval;
+    
     draggables.forEach(item => {
         item.addEventListener('dragstart', function(e) {
             draggedItem = this;
@@ -1692,72 +1460,20 @@ function initializeDragAndDrop(goal) {
                 this.style.opacity = '0.4';
             }, 0);
             
-            // Устанавливаем данные для перетаскивания
-            e.dataTransfer.setData('text/plain', this.dataset.index);
+            // Начинаем прокрутку при перетаскивании
+            scrollInterval = setInterval(() => {
+                const rect = this.getBoundingClientRect();
+                if (rect.top < 100) {
+                    window.scrollBy(0, -10);
+                } else if (rect.bottom > window.innerHeight - 100) {
+                    window.scrollBy(0, 10);
+                }
+            }, 50);
         });
         
         item.addEventListener('dragend', function() {
             this.style.opacity = '1';
-            draggedItem = null;
-        });
-        
-        // Поддержка сенсорных устройств
-        item.addEventListener('touchstart', function(e) {
-            draggedItem = this;
-            this.style.opacity = '0.4';
-            this.style.transform = 'scale(1.1)';
-            e.preventDefault();
-        });
-        
-        item.addEventListener('touchmove', function(e) {
-            if (!draggedItem) return;
-            
-            const touch = e.touches[0];
-            this.style.position = 'fixed';
-            this.style.left = (touch.clientX - 30) + 'px';
-            this.style.top = (touch.clientY - 30) + 'px';
-            this.style.zIndex = '1000';
-        });
-        
-        item.addEventListener('touchend', function() {
-            if (!draggedItem) return;
-            
-            this.style.opacity = '1';
-            this.style.transform = 'scale(1)';
-            this.style.position = 'static';
-            this.style.left = '';
-            this.style.top = '';
-            this.style.zIndex = '';
-            
-            // Проверяем, над какой зоной отпустили
-            const touch = event.changedTouches[0];
-            const elementsAtPoint = document.elementsFromPoint(touch.clientX, touch.clientY);
-            
-            let droppedOnZone = null;
-            for (const element of elementsAtPoint) {
-                if (element.classList.contains('drop-zone')) {
-                    droppedOnZone = element;
-                    break;
-                }
-            }
-            
-            if (droppedOnZone && !droppedOnZone.querySelector('.draggable-item')) {
-                this.style.position = 'static';
-                this.style.margin = '0';
-                droppedOnZone.appendChild(this);
-                this.draggable = false;
-                placedCount++;
-                
-                document.getElementById('dragCount').textContent = placedCount;
-                
-                if (placedCount >= goal) {
-                    elements.checkTaskBtn.disabled = false;
-                    elements.taskResult.textContent = '✅ Отлично! Все деревья посажены!';
-                    elements.taskResult.style.color = '#2ecc71';
-                }
-            }
-            
-            draggedItem = null;
+            clearInterval(scrollInterval);
         });
     });
     
@@ -1773,12 +1489,13 @@ function initializeDragAndDrop(goal) {
         
         zone.addEventListener('drop', function(e) {
             e.preventDefault();
+            clearInterval(scrollInterval);
             this.classList.remove('hover');
             
             if (draggedItem && !this.querySelector('.draggable-item')) {
                 this.appendChild(draggedItem);
                 draggedItem.style.position = 'static';
-                draggedItem.style.margin = '0';
+                draggedItem.style.cursor = 'default';
                 draggedItem.draggable = false;
                 placedCount++;
                 
@@ -1786,132 +1503,13 @@ function initializeDragAndDrop(goal) {
                 
                 if (placedCount >= goal) {
                     elements.checkTaskBtn.disabled = false;
-                    elements.taskResult.textContent = '✅ Отлично! Все деревья посажены!';
+                    elements.taskResult.textContent = '✅ Отлично! Все предметы размещены!';
                     elements.taskResult.style.color = '#2ecc71';
                 }
             }
         });
     });
 }
-
-// Добавлены новые функции для заданий (упрощенные версии для мобильных)
-function createDragDropTask(task) {
-    elements.taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Перетащите предметы в правильные категории:</p>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
-            ${task.categories.map(category => 
-                `<div style="flex: 1; min-width: 120px; border: 2px dashed #3498db; border-radius: 8px; padding: 10px; text-align: center;">
-                    <strong>${category}</strong>
-                    <div class="category-drop" style="min-height: 80px; margin-top: 10px;"></div>
-                </div>`
-            ).join('')}
-        </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
-            ${task.items.map((item, index) => 
-                `<div class="drag-item" draggable="true" style="padding: 15px; background: #3498db; border-radius: 8px; color: white; font-size: 1.5rem; cursor: grab;">${item}</div>`
-            ).join('')}
-        </div>
-    `;
-    
-    // Простая инициализация для мобильных
-    if ('ontouchstart' in window) {
-        elements.taskArea.querySelectorAll('.drag-item').forEach(item => {
-            item.style.padding = '20px';
-            item.style.fontSize = '2rem';
-        });
-    }
-    
-    elements.checkTaskBtn.disabled = false;
-}
-
-function createMemoryPairsTask(task) {
-    const items = [...task.items, ...task.items];
-    const shuffled = items.sort(() => Math.random() - 0.5);
-    
-    elements.taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Найдите все пары одинаковых символов:</p>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0;">
-            ${shuffled.map((item, index) => 
-                `<div class="memory-card" data-index="${index}" data-item="${item}" 
-                     style="width: 60px; height: 60px; background: #3498db; border-radius: 8px; 
-                            display: flex; align-items: center; justify-content: center; 
-                            font-size: 1.5rem; cursor: pointer; user-select: none;">
-                    <span class="card-back">?</span>
-                    <span class="card-front" style="display: none;">${item}</span>
-                </div>`
-            ).join('')}
-        </div>
-    `;
-    
-    if ('ontouchstart' in window) {
-        elements.taskArea.querySelectorAll('.memory-card').forEach(card => {
-            card.style.width = '70px';
-            card.style.height = '70px';
-            card.style.fontSize = '2rem';
-        });
-    }
-    
-    elements.checkTaskBtn.disabled = false;
-}
-
-function createClickCleanupTask(task) {
-    elements.taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Кликните на все мусорные предметы:</p>
-        <div style="position: relative; width: 100%; height: 200px; background: #e8f5e9; border-radius: 8px; margin: 15px 0;">
-            ${Array.from({length: task.items}).map((_, i) => {
-                const left = Math.random() * 80 + 10;
-                const top = Math.random() * 70 + 10;
-                const obj = task.objects[Math.floor(Math.random() * task.objects.length)];
-                return `<div class="trash-item" style="position: absolute; left: ${left}%; top: ${top}%; 
-                        font-size: 2rem; cursor: pointer; transform: rotate(${Math.random() * 30 - 15}deg);">${obj}</div>`;
-            }).join('')}
-        </div>
-        <p>Найдено: <span id="clickCount">0</span>/${task.items}</p>
-    `;
-    
-    elements.checkTaskBtn.disabled = false;
-}
-
-function createSequenceTask(task) {
-    const shuffled = [...task.items].sort(() => Math.random() - 0.5);
-    
-    elements.taskArea.innerHTML = `
-        <p><strong>${task.description}</strong></p>
-        <p>Расставьте знаки в правильном порядке:</p>
-        <div class="sequence-container" style="display: flex; gap: 10px; margin: 15px 0; min-height: 100px;">
-            ${task.correctOrder.map((_, i) => 
-                `<div class="sequence-slot" data-index="${i}" 
-                     style="width: 70px; height: 70px; border: 2px dashed #3498db; 
-                            border-radius: 8px; display: flex; align-items: center; 
-                            justify-content: center;"></div>`
-            ).join('')}
-        </div>
-        <div style="display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap;">
-            ${shuffled.map((item, i) => 
-                `<div class="sequence-piece" draggable="true" data-item="${item}"
-                     style="width: 70px; height: 70px; border: 2px solid #3498db; 
-                            border-radius: 8px; display: flex; align-items: center; 
-                            justify-content: center; font-size: 2rem; cursor: grab; 
-                            background: white;">${item}</div>`
-            ).join('')}
-        </div>
-    `;
-    
-    if ('ontouchstart' in window) {
-        elements.taskArea.querySelectorAll('.sequence-piece, .sequence-slot').forEach(el => {
-            el.style.width = '80px';
-            el.style.height = '80px';
-            el.style.fontSize = '2.5rem';
-        });
-    }
-    
-    elements.checkTaskBtn.disabled = false;
-}
-
-// ... (остальные функции заданий остаются похожими, но оптимизированными для мобильных)
 
 function completeInteractiveTask() {
     if (!gameState.currentTask) return;
@@ -1947,7 +1545,7 @@ function completeInteractiveTask() {
         updatePlayerUI();
         addLogEntry(`🎉 Поздравляем! Вы повысили уровень до ${gameState.currentPlayer.level}!`);
         updateDifficultyButtons();
-        showNotification(`🎉 Поздравляем! Вы достигли ${gameState.currentPlayer.level}-го уровня!`, 'success');
+        showNotification(`Поздравляем! Вы достигли ${gameState.currentPlayer.level}-го уровня!`, 'success');
     }
     
     elements.interactiveTask.style.display = 'none';
@@ -1964,6 +1562,370 @@ function completeInteractiveTask() {
     
     savePlayerState();
     showNotification(`✅ Задание выполнено! Вы получили ${coinsEarned} монет и ${expEarned} опыта!`, 'success');
+    
+    updateQuickButtons();
+}
+
+function createSortTask(task) {
+    const binTypes = {
+        paper: { name: "Бумага", emoji: "📄", color: "#3498db" },
+        plastic: { name: "Пластик", emoji: "🥤", color: "#e74c3c" },
+        glass: { name: "Стекло", emoji: "🍶", color: "#2ecc71" },
+        battery: { name: "Батарейки", emoji: "🔋", color: "#f39c12" },
+        organic: { name: "Органика", emoji: "🍎", color: "#8e44ad" },
+        metal: { name: "Металл", emoji: "🥫", color: "#95a5a6" },
+        textile: { name: "Текстиль", emoji: "👕", color: "#e67e22" },
+        hazardous: { name: "Опасные", emoji: "☢️", color: "#c0392b" },
+        lamp: { name: "Лампочки", emoji: "💡", color: "#f1c40f" },
+        medicine: { name: "Лекарства", emoji: "💊", color: "#9b59b6" },
+        chemical: { name: "Химикаты", emoji: "🧪", color: "#1abc9c" }
+    };
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Перетащите мусор в правильные контейнеры:</p>
+        <div class="sorting-area">
+            ${task.items.map((item, index) => {
+                const binData = binTypes[item.type] || { name: item.name, emoji: item.emoji, color: "#3498db" };
+                return `<div class="sort-bin" data-type="${item.type}">
+                    <div class="bin-icon">${binData.emoji}</div>
+                    <div class="bin-name">${binData.name}</div>
+                    <div class="sort-bin-content"></div>
+                </div>`;
+            }).join('')}
+        </div>
+        <div class="sort-items">
+            ${task.items.map((item, index) => 
+                `<div class="sort-item" data-index="${index}" data-type="${item.type}" draggable="true">
+                    <span class="item-emoji">${item.emoji}</span>
+                    <span class="item-name">${item.name}</span>
+                </div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Отсортировано: <span id="sortCount">0</span>/${task.items.length}</p>
+    `;
+    
+    initializeSorting(task.items.length);
+}
+
+function initializeSorting(totalItems) {
+    const sortItems = elements.taskArea.querySelectorAll('.sort-item');
+    const sortBins = elements.taskArea.querySelectorAll('.sort-bin');
+    let sortedCount = 0;
+    
+    sortItems.forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.type);
+        });
+    });
+    
+    sortBins.forEach(bin => {
+        bin.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        bin.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const itemType = e.dataTransfer.getData('text/plain');
+            const binType = this.dataset.type;
+            
+            if (itemType === binType) {
+                const draggedItem = Array.from(sortItems).find(item => 
+                    item.dataset.type === itemType && !item.dataset.placed
+                );
+                
+                if (draggedItem) {
+                    const binContent = this.querySelector('.sort-bin-content');
+                    binContent.appendChild(draggedItem);
+                    draggedItem.style.margin = '5px';
+                    draggedItem.style.cursor = 'default';
+                    draggedItem.draggable = false;
+                    draggedItem.dataset.placed = 'true';
+                    
+                    sortedCount++;
+                    document.getElementById('sortCount').textContent = sortedCount;
+                    
+                    if (sortedCount >= totalItems) {
+                        elements.checkTaskBtn.disabled = false;
+                        elements.taskResult.textContent = '✅ Отлично! Весь мусор отсортирован!';
+                        elements.taskResult.style.color = '#2ecc71';
+                    }
+                }
+            }
+        });
+    });
+}
+
+function createCleanupTask(task) {
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Кликните по мусору, чтобы очистить:</p>
+        <div class="river-container">
+            ${task.items.map((item, index) => {
+                const left = Math.random() * 80 + 10;
+                const top = Math.random() * 70 + 15;
+                return `<div class="cleanup-item" data-index="${index}">${item}</div>`;
+            }).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Очищено: <span id="cleanupCount">0</span>/${task.goal}</p>
+    `;
+    
+    initializeCleanup(task.goal);
+}
+
+function initializeCleanup(goal) {
+    const cleanupItems = elements.taskArea.querySelectorAll('.cleanup-item');
+    let cleanedCount = 0;
+    
+    cleanupItems.forEach(item => {
+        item.addEventListener('click', function() {
+            if (!this.dataset.cleaned) {
+                this.style.opacity = '0.3';
+                this.style.transform = 'scale(0.8)';
+                this.dataset.cleaned = 'true';
+                
+                cleanedCount++;
+                document.getElementById('cleanupCount').textContent = cleanedCount;
+                
+                if (cleanedCount >= goal) {
+                    elements.checkTaskBtn.disabled = false;
+                    elements.taskResult.textContent = '✅ Отлично! Очистка завершена!';
+                    elements.taskResult.style.color = '#2ecc71';
+                }
+            }
+        });
+    });
+}
+
+function createPuzzleTask(task) {
+    const pieces = task.image.split('');
+    const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Соберите пазл в правильном порядке:</p>
+        <div class="puzzle-target">
+            ${pieces.map((piece, index) => 
+                `<div class="puzzle-target-slot" data-index="${index}"></div>`
+            ).join('')}
+        </div>
+        <div class="puzzle-pieces">
+            ${shuffledPieces.map((piece, index) => 
+                `<div class="puzzle-piece" data-piece="${piece}" draggable="true">${piece}</div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Собрано: <span id="puzzleCount">0</span>/${pieces.length}</p>
+    `;
+    
+    initializePuzzle(pieces.length);
+}
+
+function createPuzzleSequenceTask(task) {
+    const shuffledSequence = [...task.sequence].sort(() => Math.random() - 0.5);
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Расположите элементы в правильной последовательности:</p>
+        <div class="sequence-target">
+            ${task.correctOrder.map((_, index) => 
+                `<div class="sequence-slot" data-index="${index}"></div>`
+            ).join('')}
+        </div>
+        <div class="sequence-pieces">
+            ${shuffledSequence.map((piece, index) => 
+                `<div class="sequence-piece" data-piece="${piece}" draggable="true">${piece}</div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Правильно размещено: <span id="sequenceCount">0</span>/${task.correctOrder.length}</p>
+    `;
+    
+    initializeSequence(task.correctOrder);
+}
+
+function createSequenceTask(task) {
+    const shuffledSequence = [...task.items].sort(() => Math.random() - 0.5);
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Расставьте элементы в правильной последовательности:</p>
+        <div class="sequence-target">
+            ${task.correctOrder.map((_, index) => 
+                `<div class="sequence-slot" data-index="${index}"></div>`
+            ).join('')}
+        </div>
+        <div class="sequence-pieces">
+            ${shuffledSequence.map((piece, index) => 
+                `<div class="sequence-piece" data-piece="${piece}" draggable="true">${piece}</div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Правильно размещено: <span id="sequenceCount">0</span>/${task.correctOrder.length}</p>
+    `;
+    
+    initializeSequence(task.correctOrder);
+}
+
+function createSpotDifferenceTask(task) {
+    const differences = Array.from({length: task.differences}, (_, i) => i + 1);
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Найдите ${task.differences} отличия:</p>
+        <div class="difference-container">
+            <div class="difference-image">
+                <div class="diff-image-content">${task.image1}</div>
+                ${differences.map((_, index) => {
+                    const left = Math.random() * 70 + 15;
+                    const top = Math.random() * 60 + 20;
+                    return `<div class="difference-spot" data-index="${index}" style="left: ${left}%; top: ${top}%;"></div>`;
+                }).join('')}
+            </div>
+            <div class="difference-image">
+                <div class="diff-image-content">${task.image2}</div>
+            </div>
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Найдено отличий: <span id="differenceCount">0</span>/${task.differences}</p>
+        <button class="game-btn small" id="showDifferencesBtn">Показать отличия</button>
+    `;
+    
+    initializeSpotDifference(task.differences);
+}
+
+function createDefaultTask(task) {
+    elements.taskArea.innerHTML = `
+        <p>Задание "${task.description}"</p>
+        <p>Для демонстрации нажмите кнопку "Проверить выполнение"</p>
+        <div class="demo-task-area">
+            <p><strong>Демонстрация задания:</strong></p>
+            <p>Здесь будет интерактивная часть задания</p>
+        </div>
+    `;
+    elements.checkTaskBtn.disabled = false;
+}
+
+function initializePuzzle(totalPieces) {
+    const puzzlePieces = elements.taskArea.querySelectorAll('.puzzle-piece');
+    const puzzleSlots = elements.taskArea.querySelectorAll('.puzzle-target-slot');
+    let placedCount = 0;
+    
+    puzzlePieces.forEach(piece => {
+        piece.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.piece);
+        });
+    });
+    
+    puzzleSlots.forEach(slot => {
+        slot.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        slot.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const piece = e.dataTransfer.getData('text/plain');
+            
+            if (!this.hasChildNodes()) {
+                const pieceElement = Array.from(puzzlePieces).find(p => 
+                    p.dataset.piece === piece && !p.dataset.placed
+                );
+                
+                if (pieceElement) {
+                    this.appendChild(pieceElement);
+                    pieceElement.style.position = 'static';
+                    pieceElement.style.cursor = 'default';
+                    pieceElement.draggable = false;
+                    pieceElement.dataset.placed = 'true';
+                    
+                    placedCount++;
+                    document.getElementById('puzzleCount').textContent = placedCount;
+                    
+                    if (placedCount >= totalPieces) {
+                        elements.checkTaskBtn.disabled = false;
+                        elements.taskResult.textContent = '✅ Отлично! Пазл собран!';
+                        elements.taskResult.style.color = '#2ecc71';
+                    }
+                }
+            }
+        });
+    });
+}
+
+function initializeSequence(correctOrder) {
+    const sequencePieces = elements.taskArea.querySelectorAll('.sequence-piece');
+    const sequenceSlots = elements.taskArea.querySelectorAll('.sequence-slot');
+    let placedCount = 0;
+    
+    sequencePieces.forEach(piece => {
+        piece.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.piece);
+        });
+    });
+    
+    sequenceSlots.forEach((slot, slotIndex) => {
+        slot.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        slot.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const piece = e.dataTransfer.getData('text/plain');
+            const expectedPiece = correctOrder[slotIndex];
+            
+            if (!this.hasChildNodes() && piece === expectedPiece) {
+                const pieceElement = Array.from(sequencePieces).find(p => 
+                    p.dataset.piece === piece && !p.dataset.placed
+                );
+                
+                if (pieceElement) {
+                    this.appendChild(pieceElement);
+                    pieceElement.style.position = 'static';
+                    pieceElement.style.cursor = 'default';
+                    pieceElement.draggable = false;
+                    pieceElement.dataset.placed = 'true';
+                    
+                    placedCount++;
+                    document.getElementById('sequenceCount').textContent = placedCount;
+                    
+                    if (placedCount >= correctOrder.length) {
+                        elements.checkTaskBtn.disabled = false;
+                        elements.taskResult.textContent = '✅ Отлично! Последовательность верная!';
+                        elements.taskResult.style.color = '#2ecc71';
+                    }
+                }
+            }
+        });
+    });
+}
+
+function initializeSpotDifference(totalDifferences) {
+    const differenceSpots = elements.taskArea.querySelectorAll('.difference-spot');
+    let foundCount = 0;
+    
+    differenceSpots.forEach(spot => {
+        spot.addEventListener('click', function() {
+            if (!this.dataset.found) {
+                this.style.background = 'rgba(46, 204, 113, 0.7)';
+                this.dataset.found = 'true';
+                
+                foundCount++;
+                document.getElementById('differenceCount').textContent = foundCount;
+                
+                if (foundCount >= totalDifferences) {
+                    elements.checkTaskBtn.disabled = false;
+                    elements.taskResult.textContent = '✅ Отлично! Все отличия найдены!';
+                    elements.taskResult.style.color = '#2ecc71';
+                }
+            }
+        });
+    });
+    
+    const showDiffBtn = elements.taskArea.querySelector('#showDifferencesBtn');
+    if (showDiffBtn) {
+        showDiffBtn.addEventListener('click', function() {
+            differenceSpots.forEach(spot => {
+                spot.style.display = 'block';
+            });
+            this.disabled = true;
+        });
+    }
 }
 
 // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
@@ -2027,6 +1989,27 @@ elements.registerForm.addEventListener('submit', (e) => {
     }
 });
 
+// Кнопка "Построить объект" - прокрутка к зданиям
+elements.buildBtn.addEventListener('click', () => {
+    if (gameState.currentPlayer && gameState.currentPlayer.city) {
+        // Прокручиваем к секции зданий
+        const buildingsSection = document.getElementById('buildingsSection');
+        if (buildingsSection) {
+            buildingsSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'center'
+            });
+            
+            // Добавляем эффект выделения
+            buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
+            buildingsSection.style.transition = 'box-shadow 0.5s';
+            setTimeout(() => {
+                buildingsSection.style.boxShadow = '';
+            }, 2000);
+        }
+    }
+});
+
 elements.rollDiceBtn.addEventListener('click', () => {
     if (gameState.gameOver || gameState.taskInProgress) return;
     
@@ -2048,8 +2031,8 @@ elements.rollDiceBtn.addEventListener('click', () => {
         elements.diceValue.classList.remove('rolling');
         
         gameState.currentPlayer.position += value;
-        if (gameState.currentPlayer.position > 94) {
-            gameState.currentPlayer.position = 94;
+        if (gameState.currentPlayer.position > 100) {
+            gameState.currentPlayer.position = 100;
         }
         
         updatePlayerUI();
@@ -2133,8 +2116,13 @@ function moveToCity(cityKey) {
     
     sendPlayerPositionToServer(gameState.currentPlayer.position, cityKey);
     
-    // Проверяем возможность перемещения между городами
-    checkCityMovement();
+    if (gameState.cityProgress[cityKey] >= 100) {
+        elements.moveBtn.disabled = false;
+        elements.moveBtn.textContent = "🚗 Перейти в следующий город";
+    } else {
+        elements.moveBtn.disabled = true;
+        elements.moveBtn.textContent = "Завершите очищение города";
+    }
     
     savePlayerState();
     showNotification(`🏙️ Вы прибыли в ${gameData.cities[cityKey].name}!`, 'success');
@@ -2142,39 +2130,6 @@ function moveToCity(cityKey) {
     setTimeout(() => {
         showCityModal(cityKey);
     }, 500);
-}
-
-function checkCityMovement() {
-    const currentCityKey = gameState.currentPlayer.city;
-    const cityKeys = Object.keys(gameData.cities);
-    const currentIndex = cityKeys.indexOf(currentCityKey);
-    
-    // Проверяем, можно ли перемещаться в другие города
-    let canMoveToAny = false;
-    
-    for (let i = 0; i < cityKeys.length; i++) {
-        if (i === currentIndex) continue;
-        
-        const cityKey = cityKeys[i];
-        const cityProgress = gameState.cityProgress[cityKey] || 0;
-        
-        // Можно перемещаться в город, если:
-        // 1. Это предыдущий город (уже был там)
-        // 2. Это следующий город и текущий очищен на 100%
-        // 3. Любой другой город, который уже был посещен и очищен
-        if (i < currentIndex || (i === currentIndex + 1 && (gameState.cityProgress[currentCityKey] || 0) >= 100)) {
-            canMoveToAny = true;
-            break;
-        }
-    }
-    
-    if (canMoveToAny) {
-        elements.moveBtn.disabled = false;
-        elements.moveBtn.textContent = "🚶 Перейти в другой город";
-    } else {
-        elements.moveBtn.disabled = true;
-        elements.moveBtn.textContent = "⏳ Завершите очищение города";
-    }
 }
 
 elements.completeTaskBtn.addEventListener('click', () => {
@@ -2236,13 +2191,11 @@ elements.chatInput.addEventListener('keypress', (e) => {
 elements.inviteBtn.addEventListener('click', () => {
     const roomNumber = currentRoomId || gameState.roomId;
     if (roomNumber) {
-        const inviteText = `🎮 *Присоединяйтесь к моей комнате в игре "Юный эколог"!*\n\n🔥 *НОМЕР КОМНАТЫ: ${roomNumber}* 🔥\n\n🌐 Игра доступна по адресу: ${window.location.origin}`;
-        
-        showNotification(`📩 Номер комнаты: ${roomNumber} скопирован!`, 'info');
+        const inviteText = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n\n🔢 **Номер комнаты: ${roomNumber}**\n\n🌐 Игра доступна по адресу:\n${window.location.origin}\n\n👥 Ждем вас!`;
         
         if (navigator.clipboard) {
             navigator.clipboard.writeText(inviteText).then(() => {
-                showNotification('✅ Приглашение скопировано в буфер обмена!', 'success');
+                showNotification('✅ Приглашение скопировано в буфер обмена! Номер комнаты выделен жирным.', 'success');
             }).catch(() => {
                 const textArea = document.createElement('textarea');
                 textArea.value = inviteText;
@@ -2250,26 +2203,10 @@ elements.inviteBtn.addEventListener('click', () => {
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
+                showNotification('✅ Приглашение скопировано в буфер обмена! Номер комнаты выделен жирным.', 'success');
             });
         }
     }
-});
-
-// Обработчик кнопки построить объект (прокрутка к строительству)
-elements.buildBtn.addEventListener('click', () => {
-    setTimeout(() => {
-        elements.buildingsSection.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'center'
-        });
-        
-        // Подсвечиваем раздел
-        elements.buildingsSection.style.boxShadow = '0 0 20px rgba(78, 205, 196, 0.8)';
-        elements.buildingsSection.style.transition = 'box-shadow 0.5s';
-        setTimeout(() => {
-            elements.buildingsSection.style.boxShadow = '';
-        }, 2000);
-    }, 100);
 });
 
 elements.cityModalCloseBtn.addEventListener('click', closeCityModal);
@@ -2285,12 +2222,12 @@ elements.stayBtn.addEventListener('click', () => {
     updatePlayerUI();
     updatePlayerMarkers();
     
-    addLogEntry(`⏪ Вы остались в ${currentCityData.name} и вернулись в начало города.`);
+    addLogEntry(`⏮️ Вы остались в ${currentCityData.name} и вернулись в начало города.`);
     
     sendPlayerPositionToServer(gameState.currentPlayer.position, gameState.currentPlayer.city);
     
     savePlayerState();
-    showNotification(`⏪ Вы остались в ${currentCityData.name}!`, 'info');
+    showNotification(`⏮️ Вы остались в ${currentCityData.name}!`, 'info');
 });
 
 elements.moveForwardBtn.addEventListener('click', () => {
@@ -2302,106 +2239,80 @@ elements.choiceModal.addEventListener('click', (e) => {
     if (e.target === elements.choiceModal) closeChoiceModal();
 });
 
-elements.moveBtn.addEventListener('click', () => {
+// Кнопка для перемещения между уже пройденными городами
+elements.moveBtn.addEventListener('click', function() {
     if (gameState.gameOver) return;
     
-    // Показываем список доступных для перемещения городов
-    const cityKeys = Object.keys(gameData.cities);
     const currentCityKey = gameState.currentPlayer.city;
-    const currentIndex = cityKeys.indexOf(currentCityKey);
-    
-    let availableCities = [];
-    
-    // Можно перемещаться в:
-    // 1. Все предыдущие города (уже были там)
-    // 2. Следующий город, если текущий очищен на 100%
-    for (let i = 0; i < cityKeys.length; i++) {
-        const cityKey = cityKeys[i];
-        
-        if (i === currentIndex) continue; // Текущий город пропускаем
-        
-        const cityProgress = gameState.cityProgress[cityKey] || 0;
-        const currentCityProgress = gameState.cityProgress[currentCityKey] || 0;
-        
-        if (i < currentIndex) {
-            // Предыдущие города - всегда доступны
-            availableCities.push({
-                key: cityKey,
-                name: gameData.cities[cityKey].name,
-                progress: cityProgress
-            });
-        } else if (i === currentIndex + 1 && currentCityProgress >= 100) {
-            // Следующий город - только если текущий очищен
-            availableCities.push({
-                key: cityKey,
-                name: gameData.cities[cityKey].name,
-                progress: cityProgress
-            });
-        }
-    }
-    
-    if (availableCities.length === 0) {
-        showNotification('Нет доступных городов для перемещения!', 'warning');
+    if (gameState.cityProgress[currentCityKey] < 100) {
+        showNotification(`❌ Необходимо достичь 100% прогресса очищения в ${gameData.cities[currentCityKey].name} для перехода!`, 'warning');
         return;
     }
     
-    // Создаем модальное окно для выбора города
-    const modalHTML = `
-        <div class="choice-modal active">
-            <div class="choice-modal-content">
-                <div class="choice-modal-header">
-                    <h2 class="choice-modal-title">Выберите город для перемещения</h2>
-                </div>
-                <div class="choice-modal-body">
-                    <p>Доступные города:</p>
-                    <div class="cities-selection" style="margin: 15px 0;">
-                        ${availableCities.map(city => `
-                            <div class="city-select-option" data-city="${city.key}" 
-                                 style="padding: 12px; margin: 8px 0; background: rgba(255,255,255,0.1); 
-                                        border-radius: 8px; cursor: pointer; transition: all 0.3s;">
-                                <div style="font-weight: bold;">${city.name}</div>
-                                <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-                                    Прогресс очищения: ${city.progress}%
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                <div class="choice-modal-actions">
-                    <button class="game-btn" id="cancelMoveBtn">Отмена</button>
-                </div>
-            </div>
-        </div>
-    `;
+    const cityKeys = Object.keys(gameData.cities);
+    const currentIndex = cityKeys.indexOf(currentCityKey);
     
-    const modalContainer = document.createElement('div');
-    modalContainer.innerHTML = modalHTML;
-    document.body.appendChild(modalContainer);
-    
-    // Обработчики для выбора города
-    modalContainer.querySelectorAll('.city-select-option').forEach(option => {
-        option.addEventListener('click', function() {
-            const selectedCity = this.dataset.city;
-            const cityPosition = gameData.cities[selectedCity].cells[0];
-            
-            gameState.currentPlayer.position = cityPosition;
-            moveToCity(selectedCity);
-            
-            modalContainer.remove();
-        });
-    });
-    
-    // Кнопка отмены
-    modalContainer.querySelector('#cancelMoveBtn').addEventListener('click', () => {
-        modalContainer.remove();
-    });
-    
-    // Закрытие по клику вне модального окна
-    modalContainer.querySelector('.choice-modal').addEventListener('click', (e) => {
-        if (e.target.classList.contains('choice-modal')) {
-            modalContainer.remove();
+    if (currentIndex < cityKeys.length - 1) {
+        const nextCity = cityKeys[currentIndex + 1];
+        const nextPosition = gameData.cities[nextCity].cells[0];
+        gameState.currentPlayer.position = nextPosition;
+        moveToCity(nextCity);
+        
+        if (nextCity === "astrakhan") {
+            addLogEntry(`🏁 Вы достигли Астрахани! Постройте объект, чтобы завершить игру.`);
+            showNotification(`🏁 Вы достигли Астрахани! Постройте объект, чтобы завершить игру.`, 'success');
         }
-    });
+    }
+});
+
+// Функция для перемещения между уже пройденными городами
+window.moveToExistingCity = function(cityKey) {
+    const cityMenu = document.querySelector('div[style*="position: fixed; top: 0; left: 0; width: 100%"]');
+    if (cityMenu) cityMenu.remove();
+    
+    if (gameState.cityProgress[cityKey] >= 100) {
+        socket.emit('move_to_city', { cityKey: cityKey });
+        showNotification(`🚗 Вы переместились в ${gameData.cities[cityKey].name}!`, 'success');
+        addLogEntry(`🚗 Вы переместились в ${gameData.cities[cityKey].name}`);
+    } else {
+        showNotification(`❌ Этот город еще не полностью очищен!`, 'warning');
+    }
+};
+
+// Обновление кнопки перемещения между городами
+elements.buildBtn.addEventListener('click', function() {
+    if (gameState.currentPlayer && gameState.currentPlayer.city) {
+        const currentCityKey = gameState.currentPlayer.city;
+        const cityKeys = Object.keys(gameData.cities);
+        const currentIndex = cityKeys.indexOf(currentCityKey);
+        
+        if (currentIndex > 0) {
+            // Показываем меню выбора города
+            const cityMenu = document.createElement('div');
+            cityMenu.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center;';
+            cityMenu.innerHTML = `
+                <div style="background: var(--card-bg); padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
+                    <h3 style="text-align: center; margin-bottom: 20px;">Переместиться в другой город</h3>
+                    <p style="margin-bottom: 20px;">Выберите город для перемещения (только уже пройденные):</p>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+                        ${cityKeys.slice(0, currentIndex).map(cityKey => {
+                            const city = gameData.cities[cityKey];
+                            const progress = gameState.cityProgress[cityKey] || 0;
+                            return `
+                                <button class="game-btn" onclick="moveToExistingCity('${cityKey}')" style="text-align: left;">
+                                    <div>${city.name}</div>
+                                    <div style="font-size: 0.8rem; opacity: 0.8;">Прогресс: ${progress}%</div>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <button class="game-btn" onclick="this.parentElement.parentElement.remove()" style="width: 100%;">Отмена</button>
+                </div>
+            `;
+            
+            document.body.appendChild(cityMenu);
+        }
+    }
 });
 
 // ==================== ПЕРИОДИЧЕСКАЯ СИНХРОНИЗАЦИЯ ====================
@@ -2438,7 +2349,6 @@ window.addEventListener('beforeunload', () => {
     if (isConnected && gameState.currentPlayer) {
         gameState.currentPlayer.connected = false;
         savePlayerState();
-        savePlayerStateToStorage();
     }
 });
 
@@ -2447,83 +2357,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateConnectionStatus('connecting', '🔄 Подключение к серверу...');
     console.log('🎮 Игра "Юный эколог" загружена и готова!');
     
-    // Обновляем заголовок игровой карты
-    const gameBoardTitle = document.querySelector('.game-board h2');
-    if (gameBoardTitle) {
-        gameBoardTitle.textContent = 'Игровая карта';
-        gameBoardTitle.style.textAlign = 'center';
-    }
+    elements.buildBtn.disabled = false;
     
-    // Обновляем информацию об игре (убираем английские слова)
-    const gameInfoContent = document.querySelector('.game-info-content');
-    if (gameInfoContent) {
-        const paragraphs = gameInfoContent.querySelectorAll('p');
-        paragraphs.forEach(p => {
-            p.textContent = p.textContent
-                .replace(/Особенности игры:/g, 'Особенности игры:')
-                .replace(/Как играть:/g, 'Как играть:')
-                .replace(/Присоединяйтесь/g, 'Присоединяйтесь');
-        });
-        
-        const lists = gameInfoContent.querySelectorAll('li');
-        lists.forEach(li => {
-            li.textContent = li.textContent
-                .replace(/Реалистичная карта/g, 'Реалистичная карта')
-                .replace(/Разнообразные интерактивные/g, 'Разнообразные интерактивные')
-                .replace(/Многопользовательский режим/g, 'Многопользовательский режим')
-                .replace(/Система уровней/g, 'Система уровней')
-                .replace(/Полностью рабочие задания/g, 'Полностью рабочие задания');
-        });
-    }
-    
-    // Добавляем плашку с монетами и уровнем
-    const header = document.querySelector('header');
-    if (header && !document.getElementById('quickStatsHeader')) {
-        const quickStats = document.createElement('div');
-        quickStats.id = 'quickStatsHeader';
-        quickStats.style.cssText = `
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            gap: 15px;
-            background: rgba(0,0,0,0.7);
-            padding: 10px 20px;
-            border-radius: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            z-index: 100;
-        `;
-        
-        quickStats.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="color: gold; font-size: 1.2rem;">💰</span>
-                <span style="font-weight: bold;" id="headerCoins">100</span>
-                <span style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">монет</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="color: #4ecdc4; font-size: 1.2rem;">⭐</span>
-                <span style="font-weight: bold;" id="headerLevel">1</span>
-                <span style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">ур.</span>
-            </div>
-        `;
-        
-        header.style.position = 'relative';
-        header.appendChild(quickStats);
-        
-        // Функция обновления плашки
-        function updateHeaderStats() {
-            if (gameState.currentPlayer) {
-                document.getElementById('headerCoins').textContent = gameState.currentPlayer.coins;
-                document.getElementById('headerLevel').textContent = gameState.currentPlayer.level;
-            }
-        }
-        
-        // Периодическое обновление
-        setInterval(updateHeaderStats, 1000);
-    }
-    
-    // Тестирование подключения
     setTimeout(() => {
         if (!isConnected) {
             showNotification('Не удалось подключиться к серверу. Проверьте запущен ли server.js', 'error');
