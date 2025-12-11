@@ -86,7 +86,8 @@ app.get('/api/test', (req, res) => {
 // Хранилище данных игры
 const rooms = {};
 const chatHistory = {};
-const playerSessions = {}; // Новое: храним сессии игроков
+const playerSessions = {}; // Храним сессии игроков
+const roomTimeouts = {}; // Таймауты для удаления комнат
 
 // ==================== SOCKET.IO ОБРАБОТЧИКИ ====================
 
@@ -121,8 +122,18 @@ io.on('connection', (socket) => {
                 return;
             }
             
+            if (playerName.length < 2) {
+                socket.emit('room-error', { message: 'Имя должно содержать минимум 2 символа' });
+                return;
+            }
+            
             if (playerName.length > 20) {
-                socket.emit('room-error', { message: 'Имя слишком длинное (макс. 20 символов)' });
+                socket.emit('room-error', { message: 'Имя слишком длинное (максимум 20 символов)' });
+                return;
+            }
+            
+            if (roomId.length < 1) {
+                socket.emit('room-error', { message: 'Введите номер комнаты' });
                 return;
             }
             
@@ -145,6 +156,20 @@ io.on('connection', (socket) => {
                         break;
                     }
                 }
+                
+                // Проверка количества игроков
+                const connectedPlayers = Object.values(rooms[roomId].players).filter(p => p.connected);
+                if (connectedPlayers.length >= 6) {
+                    socket.emit('room-error', { message: 'Комната заполнена (максимум 6 игроков)' });
+                    return;
+                }
+            }
+            
+            // Отменяем таймаут удаления комнаты, если он есть
+            if (roomTimeouts[roomId]) {
+                clearTimeout(roomTimeouts[roomId]);
+                delete roomTimeouts[roomId];
+                console.log(`⏱️ Отменен таймаут удаления комнаты ${roomId}`);
             }
             
             // Создание новой комнаты
@@ -163,16 +188,11 @@ io.on('connection', (socket) => {
                     turnOrder: [],
                     currentTurn: null,
                     createdAt: new Date().toISOString(),
-                    lastActivity: new Date().toISOString()
+                    lastActivity: new Date().toISOString(),
+                    name: roomId
                 };
                 chatHistory[roomId] = [];
                 console.log(`✅ Создана новая комната: ${roomId}`);
-            }
-            
-            // Проверка количества игроков
-            if (Object.keys(rooms[roomId].players).length >= 6) {
-                socket.emit('room-error', { message: 'Комната заполнена (максимум 6 игроков)' });
-                return;
             }
             
             // Если нашли существующего игрока, используем его данные
@@ -188,6 +208,7 @@ io.on('connection', (socket) => {
                 existingPlayer.connected = true;
                 existingPlayer.lastActive = new Date().toISOString();
                 existingPlayer.socketId = socket.id;
+                existingPlayer.reconnected = true;
                 
                 rooms[roomId].players[socket.id] = existingPlayer;
                 
@@ -299,7 +320,8 @@ io.on('connection', (socket) => {
                 lastActive: new Date().toISOString(),
                 isMobile: isMobile,
                 ip: clientIp,
-                sessionKey: sessionKey
+                sessionKey: sessionKey,
+                reconnected: false
             };
             
             // Добавляем игрока в очередь ходов
@@ -780,6 +802,7 @@ io.on('connection', (socket) => {
                 const player = rooms[roomId].players[socket.id];
                 player.connected = true;
                 player.lastActive = new Date().toISOString();
+                player.reconnected = true;
                 
                 // Уведомляем других игроков
                 socket.to(roomId).emit('player_reconnected', {
@@ -789,6 +812,121 @@ io.on('connection', (socket) => {
                 });
                 
                 console.log(`✅ Игрок "${player.name}" полностью восстановил соединение`);
+                
+                // Отправляем обновленное состояние комнаты
+                io.to(roomId).emit('room_state', {
+                    ...rooms[roomId],
+                    serverTime: new Date().toISOString()
+                });
+                
+                // Отправляем позиции всех игроков
+                const playersPositions = {};
+                for (const playerId in rooms[roomId].players) {
+                    const p = rooms[roomId].players[playerId];
+                    if (p.connected) {
+                        playersPositions[playerId] = {
+                            name: p.name,
+                            position: p.position,
+                            city: p.city,
+                            color: p.color,
+                            coins: p.coins,
+                            level: p.level
+                        };
+                    }
+                }
+                
+                socket.emit('all_players_positions', {
+                    players: playersPositions,
+                    timestamp: new Date().toISOString()
+                });
+                
+                break;
+            }
+        }
+    });
+    
+    // Игрок покинул комнату намеренно
+    socket.on('player-left', () => {
+        console.log(`🚪 Игрок ${socket.id} намеренно покинул комнату`);
+        
+        for (const roomId in rooms) {
+            if (rooms[roomId].players[socket.id]) {
+                const player = rooms[roomId].players[socket.id];
+                
+                // Удаляем игрока из комнаты
+                delete rooms[roomId].players[socket.id];
+                
+                // Удаляем прогресс игрока
+                if (rooms[roomId].playerProgress && rooms[roomId].playerProgress[socket.id]) {
+                    delete rooms[roomId].playerProgress[socket.id];
+                }
+                
+                // Удаляем игрока из очереди ходов
+                const turnIndex = rooms[roomId].turnOrder.indexOf(socket.id);
+                if (turnIndex !== -1) {
+                    rooms[roomId].turnOrder.splice(turnIndex, 1);
+                    
+                    // Если удалили текущего игрока, передаем ход следующему
+                    if (rooms[roomId].currentTurn === socket.id && rooms[roomId].turnOrder.length > 0) {
+                        // Находим следующего подключенного игрока
+                        let nextIndex = 0;
+                        while (nextIndex < rooms[roomId].turnOrder.length) {
+                            const nextPlayerId = rooms[roomId].turnOrder[nextIndex];
+                            const nextPlayer = rooms[roomId].players[nextPlayerId];
+                            if (nextPlayer && nextPlayer.connected) {
+                                rooms[roomId].currentTurn = nextPlayerId;
+                                break;
+                            }
+                            nextIndex++;
+                        }
+                    }
+                    
+                    // Если очередь опустела, сбрасываем текущего игрока
+                    if (rooms[roomId].turnOrder.length === 0) {
+                        rooms[roomId].currentTurn = null;
+                    }
+                }
+                
+                // Уведомляем других игроков
+                socket.to(roomId).emit('player_left', {
+                    playerId: socket.id,
+                    playerName: player.name,
+                    reason: 'покинул комнату',
+                    timestamp: new Date().toISOString()
+                });
+                
+                console.log(`👋 Игрок "${player.name}" покинул комнату ${roomId}`);
+                
+                // Если комната пуста, планируем удаление через 30 минут
+                if (Object.keys(rooms[roomId].players).length === 0) {
+                    console.log(`⏱️ Комната ${roomId} пуста, планируем удаление через 30 минут`);
+                    
+                    if (roomTimeouts[roomId]) {
+                        clearTimeout(roomTimeouts[roomId]);
+                    }
+                    
+                    roomTimeouts[roomId] = setTimeout(() => {
+                        if (rooms[roomId] && Object.keys(rooms[roomId].players).length === 0) {
+                            delete rooms[roomId];
+                            delete chatHistory[roomId];
+                            delete roomTimeouts[roomId];
+                            console.log(`🗑️ Удалена пустая комната ${roomId} после таймаута`);
+                        }
+                    }, 30 * 60 * 1000); // 30 минут
+                } else {
+                    // Отправляем обновленное состояние
+                    io.to(roomId).emit('room_state', {
+                        ...rooms[roomId],
+                        serverTime: new Date().toISOString()
+                    });
+                    
+                    // Отправляем обновление очереди ходов
+                    io.to(roomId).emit('turn_update', {
+                        currentTurn: rooms[roomId].currentTurn,
+                        turnOrder: rooms[roomId].turnOrder
+                    });
+                }
+                
                 break;
             }
         }
@@ -859,7 +997,7 @@ io.on('connection', (socket) => {
                 
                 console.log(`👋 Игрок "${player.name}" отключился (${reason})`);
                 
-                // Удаляем через 5 минут неактивности
+                // Удаляем через 5 минут неактивности (если не переподключится)
                 setTimeout(() => {
                     if (rooms[roomId] && 
                         rooms[roomId].players[socket.id] && 
@@ -877,26 +1015,55 @@ io.on('connection', (socket) => {
                             
                             // Если удалили текущего игрока, передаем ход следующему
                             if (rooms[roomId].currentTurn === socket.id && rooms[roomId].turnOrder.length > 0) {
-                                rooms[roomId].currentTurn = rooms[roomId].turnOrder[0];
-                                io.to(roomId).emit('turn_update', {
-                                    currentTurn: rooms[roomId].currentTurn,
-                                    turnOrder: rooms[roomId].turnOrder
-                                });
+                                // Находим следующего подключенного игрока
+                                let nextIndex = 0;
+                                while (nextIndex < rooms[roomId].turnOrder.length) {
+                                    const nextPlayerId = rooms[roomId].turnOrder[nextIndex];
+                                    const nextPlayer = rooms[roomId].players[nextPlayerId];
+                                    if (nextPlayer && nextPlayer.connected) {
+                                        rooms[roomId].currentTurn = nextPlayerId;
+                                        break;
+                                    }
+                                    nextIndex++;
+                                }
+                                
+                                // Если нет подключенных игроков
+                                if (nextIndex >= rooms[roomId].turnOrder.length) {
+                                    rooms[roomId].currentTurn = null;
+                                }
                             }
                         }
                         
                         delete rooms[roomId].players[socket.id];
                         console.log(`🗑️ Удален неактивный игрок "${player.name}" из комнаты ${roomId}`);
                         
-                        // Если комната пуста, удаляем ее
+                        // Если комната пуста, планируем удаление через 30 минут
                         if (Object.keys(rooms[roomId].players).length === 0) {
-                            delete rooms[roomId];
-                            delete chatHistory[roomId];
-                            console.log(`🗑️ Удалена пустая комната ${roomId}`);
+                            console.log(`⏱️ Комната ${roomId} пуста, планируем удаление через 30 минут`);
+                            
+                            if (roomTimeouts[roomId]) {
+                                clearTimeout(roomTimeouts[roomId]);
+                            }
+                            
+                            roomTimeouts[roomId] = setTimeout(() => {
+                                if (rooms[roomId] && Object.keys(rooms[roomId].players).length === 0) {
+                                    delete rooms[roomId];
+                                    delete chatHistory[roomId];
+                                    delete roomTimeouts[roomId];
+                                    console.log(`🗑️ Удалена пустая комната ${roomId} после таймаута`);
+                                }
+                            }, 30 * 60 * 1000); // 30 минут
                         } else {
+                            // Отправляем обновленное состояние
                             io.to(roomId).emit('room_state', {
                                 ...rooms[roomId],
                                 serverTime: new Date().toISOString()
+                            });
+                            
+                            // Отправляем обновление очереди ходов
+                            io.to(roomId).emit('turn_update', {
+                                currentTurn: rooms[roomId].currentTurn,
+                                turnOrder: rooms[roomId].turnOrder
                             });
                         }
                     }
@@ -923,12 +1090,16 @@ setInterval(() => {
             const lastActivity = new Date(room.lastActivity);
             const hoursDiff = (now - lastActivity) / (1000 * 60 * 60);
             
-            // Удаляем комнаты без активности более 24 часов
-            if (hoursDiff > 24) {
+            // Удаляем комнаты без активности более 48 часов
+            if (hoursDiff > 48) {
                 delete rooms[roomId];
                 delete chatHistory[roomId];
+                if (roomTimeouts[roomId]) {
+                    clearTimeout(roomTimeouts[roomId]);
+                    delete roomTimeouts[roomId];
+                }
                 cleanedCount++;
-                console.log(`🧹 Очищена неактивная комната ${roomId}`);
+                console.log(`🧹 Очищена неактивная комната ${roomId} (более 48 часов)`);
             }
         }
     }
@@ -993,5 +1164,5 @@ process.on('SIGINT', () => {
     server.close(() => {
         console.log('✅ Сервер остановлен');
         process.exit(0);
-});
+    });
 });
