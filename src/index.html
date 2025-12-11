@@ -278,131 +278,239 @@
             width: 65px;
             height: 65px;
             background: linear-gradient(135deg, #3498db, #2980b9);
-            border-radius: 10px;
+            border-radius: 15px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin: 5px;
+            margin: 8px;
             cursor: pointer;
             user-select: none;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             color: white;
             font-weight: bold;
-            font-size: 1.8rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 2.2rem;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
             touch-action: manipulation;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .draggable-item::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        
+        .draggable-item:hover::before {
+            transform: translateX(100%);
         }
         
         .draggable-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px) rotate(3deg);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
         
         .draggable-item:active {
-            transform: scale(0.95);
+            transform: scale(0.95) rotate(-3deg);
         }
         
         .draggable-item.placed {
             background: linear-gradient(135deg, #27ae60, #2ecc71);
             cursor: default;
+            animation: pulse-green 1.5s infinite;
+        }
+        
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
         }
         
         .drop-zone {
-            width: 75px;
-            height: 75px;
-            border: 3px dashed #2ecc71;
-            border-radius: 10px;
+            width: 85px;
+            height: 85px;
+            border: 4px dashed #2ecc71;
+            border-radius: 15px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin: 5px;
-            background: rgba(46, 204, 113, 0.1);
-            transition: all 0.3s ease;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.8);
+            margin: 8px;
+            background: rgba(46, 204, 113, 0.15);
+            transition: all 0.4s ease;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
             text-align: center;
             padding: 5px;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .drop-zone::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shine 3s infinite linear;
+        }
+        
+        @keyframes shine {
+            0% { background-position: -200px 0; }
+            100% { background-position: 200px 0; }
         }
         
         .drop-zone.hover {
-            background: rgba(46, 204, 113, 0.25);
+            background: rgba(46, 204, 113, 0.3);
             border-color: #27ae60;
-            transform: scale(1.08);
-            box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 0 25px rgba(46, 204, 113, 0.6);
         }
         
         .drop-zone.filled {
-            border: 3px solid #27ae60;
-            background: rgba(46, 204, 113, 0.3);
+            border: 4px solid #27ae60;
+            background: rgba(46, 204, 113, 0.4);
+            animation: success-pulse 2s infinite;
+        }
+        
+        @keyframes success-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
         
         .quiz-option {
-            padding: 14px 18px;
-            margin: 10px 0;
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 10px;
+            padding: 16px 22px;
+            margin: 12px 0;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(41, 128, 185, 0.2));
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             border: 2px solid transparent;
-            font-size: 1rem;
+            font-size: 1.05rem;
             touch-action: manipulation;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quiz-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+        }
+        
+        .quiz-option:hover::before {
+            transform: translateX(100%);
+            transition: transform 0.6s;
         }
         
         .quiz-option:hover {
-            background: rgba(255, 255, 255, 0.18);
-            transform: translateX(5px);
-            border-color: rgba(52, 152, 219, 0.5);
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.3), rgba(41, 128, 185, 0.3));
+            transform: translateX(8px) scale(1.02);
+            border-color: rgba(52, 152, 219, 0.6);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
         .quiz-option.correct {
-            background: rgba(46, 204, 113, 0.25);
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.3), rgba(39, 174, 96, 0.3));
             border-color: var(--success);
             color: white;
+            animation: correct-blink 0.5s 3;
+        }
+        
+        @keyframes correct-blink {
+            0%, 100% { border-color: var(--success); }
+            50% { border-color: #FFD700; }
         }
         
         .quiz-option.incorrect {
-            background: rgba(231, 76, 60, 0.25);
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(192, 57, 43, 0.3));
             border-color: var(--accent);
             color: white;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
         
         .quiz-option.selected {
-            background: rgba(52, 152, 219, 0.25);
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.4), rgba(41, 128, 185, 0.4));
             border-color: #3498db;
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
         }
         
         /* Новые стили для заданий с кликами */
         .clickable-item {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            border-radius: 10px;
+            border-radius: 15px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin: 5px;
+            margin: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             color: white;
             font-weight: bold;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 1.8rem;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .clickable-item::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .clickable-item:hover::after {
+            opacity: 1;
         }
         
         .clickable-item:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
         
         .clickable-item.selected {
             background: linear-gradient(135deg, #2ecc71, #27ae60);
-            transform: scale(0.95);
+            transform: scale(0.95) rotate(-5deg);
+            animation: selected-pulse 1.5s infinite;
+        }
+        
+        @keyframes selected-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0.3); }
         }
         
         .clickable-item.disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            filter: grayscale(0.7);
         }
         
         .sort-item {
@@ -410,26 +518,35 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border-radius: 10px;
-            margin: 5px;
+            border-radius: 15px;
+            margin: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             color: white;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
         }
         
         .sort-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px) rotate(3deg);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
         
         .sort-item.placed {
             background: linear-gradient(135deg, #27ae60, #2ecc71);
             cursor: default;
+            animation: placed-bounce 0.5s;
+        }
+        
+        @keyframes placed-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
         
         .sort-bin {
@@ -437,183 +554,337 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 100px;
-            height: 120px;
-            border: 3px dashed #3498db;
-            border-radius: 10px;
-            margin: 5px;
-            background: rgba(52, 152, 219, 0.1);
-            transition: all 0.3s ease;
-            padding: 10px;
+            width: 110px;
+            height: 130px;
+            border: 4px dashed #3498db;
+            border-radius: 15px;
+            margin: 8px;
+            background: rgba(52, 152, 219, 0.15);
+            transition: all 0.4s ease;
+            padding: 12px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sort-bin::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: bin-shine 4s infinite linear;
+        }
+        
+        @keyframes bin-shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
         }
         
         .sort-bin.hover {
-            background: rgba(52, 152, 219, 0.25);
+            background: rgba(52, 152, 219, 0.3);
             border-color: #2980b9;
-            transform: scale(1.05);
+            transform: scale(1.08);
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
         }
         
         .sort-bin.filled {
-            border: 3px solid #2980b9;
-            background: rgba(52, 152, 219, 0.3);
+            border: 4px solid #2980b9;
+            background: rgba(52, 152, 219, 0.35);
+            animation: bin-success 1s;
+        }
+        
+        @keyframes bin-success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         
         .bin-icon {
-            font-size: 2rem;
-            margin-bottom: 5px;
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
         
         .bin-name {
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
         
         .sort-bin-content {
-            min-height: 40px;
+            min-height: 45px;
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
+            gap: 5px;
         }
         
         .cleanup-item {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             background: linear-gradient(135deg, #f39c12, #e67e22);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
+            font-size: 2rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+            animation: trash-float 3s ease-in-out infinite;
+            z-index: 10;
+        }
+        
+        @keyframes trash-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
         }
         
         .cleanup-item:hover {
-            transform: scale(1.1);
+            transform: scale(1.2) rotate(15deg);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
         }
         
         .cleanup-item.cleaned {
-            opacity: 0.3;
-            transform: scale(0.8);
+            opacity: 0.4;
+            transform: scale(0.7) rotate(-45deg);
             cursor: default;
+            animation: cleaned-fall 0.5s forwards;
+            filter: blur(1px);
+        }
+        
+        @keyframes cleaned-fall {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: scale(0.7) translateY(20px) rotate(-45deg); opacity: 0.4; }
         }
         
         .puzzle-piece, .sequence-piece {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             background: linear-gradient(135deg, #1abc9c, #16a085);
-            border-radius: 8px;
+            border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin: 5px;
+            margin: 8px;
             cursor: pointer;
-            font-size: 1.8rem;
-            transition: all 0.2s ease;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .puzzle-piece::before, .sequence-piece::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+            transform: translateX(-100%);
+        }
+        
+        .puzzle-piece:hover::before, .sequence-piece:hover::before {
+            transform: translateX(100%);
+            transition: transform 0.6s;
         }
         
         .puzzle-piece:hover, .sequence-piece:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px) rotate(3deg);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
         }
         
         .puzzle-piece.selected, .sequence-piece.selected {
             background: linear-gradient(135deg, #2ecc71, #27ae60);
-            transform: scale(0.95);
+            transform: scale(0.95) rotate(-3deg);
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
         }
         
         .puzzle-target-slot, .sequence-slot {
-            width: 70px;
-            height: 70px;
-            border: 3px dashed #9b59b6;
-            border-radius: 8px;
+            width: 80px;
+            height: 80px;
+            border: 4px dashed #9b59b6;
+            border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin: 5px;
-            background: rgba(155, 89, 182, 0.1);
-            transition: all 0.3s ease;
+            margin: 8px;
+            background: rgba(155, 89, 182, 0.15);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .puzzle-target-slot::after, .sequence-slot::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 10px;
+            box-shadow: inset 0 0 20px rgba(155, 89, 182, 0.3);
+            opacity: 0.5;
+        }
+        
+        .puzzle-target-slot.hover, .sequence-slot.hover {
+            background: rgba(155, 89, 182, 0.3);
+            border-color: #8e44ad;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(155, 89, 182, 0.5);
         }
         
         .puzzle-target-slot.filled, .sequence-slot.filled {
-            border: 3px solid #8e44ad;
-            background: rgba(155, 89, 182, 0.3);
+            border: 4px solid #8e44ad;
+            background: rgba(155, 89, 182, 0.4);
+            animation: slot-fill 0.5s;
+        }
+        
+        @keyframes slot-fill {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
         
         .difference-spot {
             position: absolute;
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
-            background: rgba(231, 76, 60, 0.3);
-            border: 2px solid #e74c3c;
+            background: radial-gradient(circle, rgba(231, 76, 60, 0.8) 0%, rgba(231, 76, 60, 0.4) 70%);
+            border: 3px solid #e74c3c;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
+            animation: difference-pulse 2s infinite;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
+            z-index: 5;
+        }
+        
+        @keyframes difference-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(231, 76, 60, 0.5); }
+            50% { transform: scale(1.1); box-shadow: 0 0 25px rgba(231, 76, 60, 0.8); }
         }
         
         .difference-spot:hover {
-            background: rgba(231, 76, 60, 0.6);
-            transform: scale(1.2);
+            background: radial-gradient(circle, rgba(231, 76, 60, 0.9) 0%, rgba(231, 76, 60, 0.6) 70%);
+            transform: scale(1.3);
+            box-shadow: 0 0 30px rgba(231, 76, 60, 1);
         }
         
         .difference-spot.found {
-            background: rgba(46, 204, 113, 0.7);
+            background: radial-gradient(circle, rgba(46, 204, 113, 0.9) 0%, rgba(39, 174, 96, 0.6) 70%);
             border-color: #27ae60;
             cursor: default;
+            animation: found-spin 0.8s forwards;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.7);
+        }
+        
+        @keyframes found-spin {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
+            100% { transform: scale(1) rotate(360deg); }
         }
         
         /* Контейнеры для заданий */
         .task-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
             justify-content: center;
-            margin: 15px 0;
-            min-height: 150px;
+            margin: 20px 0;
+            min-height: 160px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
         }
         
         .drag-container, .sorting-area, .puzzle-area, .sequence-area {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
             justify-content: center;
-            margin: 15px 0;
-            min-height: 150px;
+            margin: 20px 0;
+            min-height: 160px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
         }
         
         .river-container {
             position: relative;
             width: 100%;
-            height: 200px;
+            height: 220px;
             background: linear-gradient(to bottom, #3498db, #2980b9);
-            border-radius: 10px;
+            border-radius: 15px;
             overflow: hidden;
-            margin: 15px 0;
+            margin: 20px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .river-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: river-flow 3s infinite linear;
+        }
+        
+        @keyframes river-flow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
         
         .difference-container {
             display: flex;
-            gap: 20px;
+            gap: 25px;
             justify-content: center;
-            margin: 15px 0;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
         }
         
         .difference-image {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: 220px;
+            height: 220px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
+            font-size: 3.5rem;
             overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .difference-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+            animation: image-shine 4s infinite linear;
+        }
+        
+        @keyframes image-shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
         
         /* ==================== АНИМАЦИИ ==================== */
@@ -657,6 +928,9 @@
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
         }
         
         .game-info-content {
@@ -666,7 +940,7 @@
         }
         
         .game-info.expanded .game-info-content {
-            max-height: 500px;
+            max-height: 800px;
         }
         
         .game-info-content p {
@@ -675,12 +949,13 @@
         }
         
         .game-info-content ul, .game-info-content ol {
-            margin-left: 20px;
+            margin-left: 25px;
             margin-bottom: 15px;
         }
         
         .game-info-content li {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            padding-left: 10px;
         }
         
         .toggle-icon {
@@ -849,31 +1124,31 @@
         }
         
         .map-cell.start {
-            background: rgba(76, 175, 80, 0.8);
+            background: rgba(76, 175, 80, 0.9);
             color: white !important;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="%23007E33"/></svg>');
-            background-repeat: no-repeat;
-            background-position: center;
+            font-weight: bold;
+            font-size: 11px;
+            background-image: none;
         }
         
         .map-cell.start-zero {
-            background: rgba(41, 128, 185, 0.8);
+            background: rgba(41, 128, 185, 0.9);
             color: white !important;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 11px;
             background-image: none;
         }
         
         .map-cell.finish {
-            background: rgba(244, 67, 54, 0.8);
+            background: rgba(244, 67, 54, 0.9);
             color: white !important;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><polygon points="10,0 13,6 20,7 15,12 16,20 10,16 4,20 5,12 0,7 7,6" fill="%23D32F2F"/></svg>');
-            background-repeat: no-repeat;
-            background-position: center;
+            font-weight: bold;
+            font-size: 11px;
+            background-image: none;
         }
         
         .map-cell.city {
-            background: rgba(255, 235, 59, 0.8);
+            background: rgba(255, 235, 59, 0.9);
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10 0L0 10h3v10h4v-6h6v6h4V10h3z" fill="%23FF9800"/></svg>');
             background-repeat: no-repeat;
             background-position: center 5px;
@@ -882,21 +1157,21 @@
         }
         
         .map-cell.river {
-            background: rgba(33, 150, 243, 0.3);
+            background: rgba(33, 150, 243, 0.4);
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M0,10 Q5,5 10,10 T20,10" stroke="%232196F3" fill="none" stroke-width="2"/></svg>');
             background-repeat: no-repeat;
             background-position: center;
         }
         
         .map-cell.forest {
-            background: rgba(56, 142, 60, 0.3);
+            background: rgba(56, 142, 60, 0.4);
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10,2 L12,7 L17,7 L13,10 L15,15 L10,12 L5,15 L7,10 L3,7 L8,7 Z" fill="%23388E3C"/></svg>');
             background-repeat: no-repeat;
             background-position: center;
         }
         
         .map-cell.empty {
-            background: rgba(200, 200, 200, 0.3);
+            background: rgba(200, 200, 200, 0.4);
             color: #999 !important;
         }
         
@@ -981,12 +1256,13 @@
             line-height: 1.4;
         }
         
-        /* Прогресс уровня */
+        /* Прогресс уровня - ИСПРАВЛЕНО: сначала полоска, потом цифра */
         .level-progress-container {
             margin-top: 5px;
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-direction: row; /* Изменено: полоска слева, цифра справа */
         }
         
         .level-progress-bar {
@@ -1116,19 +1392,20 @@
             padding: 15px;
             margin: 15px 0;
             display: none;
-            max-height: 400px;
+            max-height: 450px;
             overflow-y: auto;
             scroll-behavior: smooth;
         }
         
         .task-area {
-            min-height: 150px;
-            border: 2px dashed #3498db;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
+            min-height: 160px;
+            border: 3px dashed #3498db;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
             position: relative;
             overflow: visible !important;
+            background: rgba(255, 255, 255, 0.05);
         }
         
         /* ==================== ГОРОДА ==================== */
@@ -1339,6 +1616,23 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+        }
+        
+        .leave-room-btn {
+            background: rgba(231, 76, 60, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(231, 76, 60, 0.5);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        .leave-room-btn:hover {
+            background: rgba(231, 76, 60, 0.4);
+            transform: translateY(-2px);
         }
         
         /* ==================== ЧАТ КОМНАТЫ ==================== */
@@ -1769,12 +2063,14 @@
                 width: 50px;
                 height: 50px;
                 font-size: 1.4rem;
+                margin: 5px;
             }
             
             .drop-zone, .sort-bin {
                 width: 60px;
                 height: 90px;
                 font-size: 0.7rem;
+                margin: 5px;
             }
             
             .sort-bin {
@@ -2005,7 +2301,7 @@
         
         <!-- Информация об игре -->
         <section class="game-info" id="gameInfo">
-            <h3>Как играть в "Юный эколог" <span class="toggle-icon">▼</span></h3>
+            <h3>Информация об игре "Юный эколог" <span class="toggle-icon">▼</span></h3>
             <div class="game-info-content">
                 <p><strong>"Юный эколог"</strong> — это увлекательная многопользовательская игра, где вы становитесь защитником природы. Ваша задача — пройти маршрут по городам России, решая экологические проблемы и помогая природе.</p>
                 
@@ -2031,13 +2327,14 @@
                 </ol>
                 
                 <p><strong>Основные правила:</strong></p>
+                <ul>
                     <li>Для перехода в следующий город необходимо очистить текущий город на 100%</li>
                     <li>Можно возвращаться в уже пройденные города для завершения очищения</li>
                     <li>Каждые 3 выполненных задания повышают уровень игрока</li>
                     <li>Более высокий уровень открывает задания повышенной сложности</li>
-                    <li>Финиш находится на клетке 100 (красная клетка)</li>
+                    <li>Финиш находится на клетке 100</li>
                     <li>Клетка 0 — это Старт</li>
-                    <li>Клетка 99 — это Финиш</li>
+                    <li>Клетка 99 — это предфинальная клетка</li>
                 </ul>
                 
                 <p><strong>Управление:</strong></p>
@@ -2047,6 +2344,16 @@
                     <li>После выполнения задания нажмите "Проверить выполнение"</li>
                     <li>Используйте быстрые действия (кнопка ⚡) для быстрого доступа к функциям</li>
                     <li>Нажмите на город на карте для подробной информации</li>
+                </ul>
+                
+                <p><strong>Типы заданий:</strong></p>
+                <ul>
+                    <li><strong>Викторины:</strong> Ответьте на вопросы об экологии</li>
+                    <li><strong>Сортировка мусора:</strong> Распределите отходы по правильным контейнерам</li>
+                    <li><strong>Посадка деревьев:</strong> Перетащите деревья в нужные места</li>
+                    <li><strong>Найди отличия:</strong> Найдите различия между двумя картинками</li>
+                    <li><strong>Очистка территории:</strong> Кликните на мусор, чтобы убрать его</li>
+                    <li><strong>Пазлы:</strong> Соберите экологическую картинку</li>
                 </ul>
                 
                 <p><strong>Присоединяйтесь к игре и станьте настоящим защитником природы!</strong></p>
@@ -2100,7 +2407,10 @@
                         <h3>Комната: <span id="roomNumber">1</span></h3>
                         <p>Игроков онлайн: <span id="onlinePlayers">1</span>/6</p>
                     </div>
-                    <button class="game-btn small" id="inviteBtn">Пригласить друзей 📩</button>
+                    <div>
+                        <button class="game-btn small" id="inviteBtn">Пригласить друзей 📩</button>
+                        <button class="leave-room-btn" id="leaveRoomBtn">🚪 Покинуть комнату</button>
+                    </div>
                 </div>
                 
                 <!-- Индикатор очереди хода -->
@@ -2149,23 +2459,23 @@
                     <!-- Легенда карты -->
                     <div class="map-legend">
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(41, 128, 185, 0.8);"></div>
+                            <div class="legend-color" style="background: rgba(41, 128, 185, 0.9);"></div>
                             <span>Старт</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(244, 67, 54, 0.8);"></div>
+                            <div class="legend-color" style="background: rgba(244, 67, 54, 0.9);"></div>
                             <span>Финиш</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(255, 235, 59, 0.8);"></div>
+                            <div class="legend-color" style="background: rgba(255, 235, 59, 0.9);"></div>
                             <span>Города</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(33, 150, 243, 0.3);"></div>
+                            <div class="legend-color" style="background: rgba(33, 150, 243, 0.4);"></div>
                             <span>Река</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(56, 142, 60, 0.3);"></div>
+                            <div class="legend-color" style="background: rgba(56, 142, 60, 0.4);"></div>
                             <span>Лес</span>
                         </div>
                         <div class="legend-item">
@@ -2295,6 +2605,7 @@
                             </div>
                         </div>
                         
+                        <!-- ИСПРАВЛЕНО: Кнопка теперь меняется на "Проверить выполнение" -->
                         <button class="game-btn" id="completeTaskBtn" disabled>▶️ Начать выполнение задания</button>
                     </div>
                     
@@ -2468,6 +2779,7 @@
             onlinePlayers: document.getElementById('onlinePlayers'),
             playersContainer: document.getElementById('playersContainer'),
             inviteBtn: document.getElementById('inviteBtn'),
+            leaveRoomBtn: document.getElementById('leaveRoomBtn'),
             chatMessages: document.getElementById('chatMessages'),
             chatInput: document.getElementById('chatInput'),
             sendMessageBtn: document.getElementById('sendMessageBtn'),
@@ -3345,11 +3657,11 @@
             const startCell = document.createElement('div');
             startCell.className = 'map-cell hexagon start-zero';
             startCell.style.position = 'relative';
-            startCell.style.background = 'rgba(41, 128, 185, 0.8)';
+            startCell.style.background = 'rgba(41, 128, 185, 0.9)';
             
             const startNumberSpan = document.createElement('span');
             startNumberSpan.className = 'cell-number';
-            startNumberSpan.textContent = '0 Старт';
+            startNumberSpan.textContent = 'Старт';
             startNumberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: white; z-index: 1; text-align: center; line-height: 1.2;';
             
             startCell.appendChild(startNumberSpan);
@@ -3377,7 +3689,7 @@
                     
                     if (cellNumber === 1) {
                         cell.classList.add('start');
-                        cell.style.background = 'rgba(76, 175, 80, 0.8)';
+                        cell.style.background = 'rgba(76, 175, 80, 0.9)';
                         numberSpan.textContent = '1';
                         numberSpan.style.color = 'white';
                         numberSpan.style.fontSize = '10px';
@@ -3391,7 +3703,7 @@
                         // Клетка 99 - Финиш с подписью
                         cell.classList.add('finish');
                         cell.style.background = 'rgba(244, 67, 54, 0.9)';
-                        numberSpan.textContent = '99 Финиш';
+                        numberSpan.textContent = 'Финиш';
                         numberSpan.style.color = 'white';
                         numberSpan.style.fontSize = '10px';
                         numberSpan.style.textAlign = 'center';
@@ -3399,19 +3711,19 @@
                         numberSpan.style.top = '50%';
                     } else if (cellNumber === 100) {
                         cell.classList.add('finish');
-                        cell.style.background = 'rgba(244, 67, 54, 0.8)';
+                        cell.style.background = 'rgba(244, 67, 54, 0.9)';
                         numberSpan.textContent = '100';
                         numberSpan.style.color = 'white';
                         numberSpan.style.fontSize = '10px';
                         numberSpan.style.top = '70%';
                     } else if (riverCells.includes(cellNumber)) {
                         cell.classList.add('river');
-                        cell.style.background = 'rgba(33, 150, 243, 0.3)';
+                        cell.style.background = 'rgba(33, 150, 243, 0.4)';
                         numberSpan.textContent = cellNumber;
                         numberSpan.style.color = '#2196F3';
                     } else if (forestCells.includes(cellNumber)) {
                         cell.classList.add('forest');
-                        cell.style.background = 'rgba(56, 142, 60, 0.3)';
+                        cell.style.background = 'rgba(56, 142, 60, 0.4)';
                         numberSpan.textContent = cellNumber;
                         numberSpan.style.color = '#388E3C';
                     } else {
@@ -3419,7 +3731,7 @@
                         for (const cityKey in gameData.cities) {
                             if (gameData.cities[cityKey].cells.includes(cellNumber)) {
                                 cell.classList.add('city');
-                                cell.style.background = 'rgba(255, 235, 59, 0.8)';
+                                cell.style.background = 'rgba(255, 235, 59, 0.9)';
                                 numberSpan.textContent = cellNumber;
                                 numberSpan.style.top = '70%';
                                 numberSpan.style.color = '#FF9800';
@@ -4134,13 +4446,18 @@
                 createDefaultTask(task);
             }
             
-            // Показываем кнопку проверки задания и меняем текст кнопки
-            elements.checkTaskBtn.style.display = 'block';
-            elements.checkTaskBtn.textContent = "✅ Проверить выполнение";
-            elements.checkTaskBtn.disabled = true;
+            // ИСПРАВЛЕНО: Кнопка "Начать выполнение задания" меняется на "Проверить выполнение"
+            elements.completeTaskBtn.style.display = 'block';
+            elements.completeTaskBtn.textContent = "✅ Проверить выполнение";
+            elements.completeTaskBtn.disabled = true;
             
             // Скрываем кнопку "Начать выполнение задания"
             elements.completeTaskBtn.style.display = 'none';
+            
+            // Показываем кнопку проверки
+            elements.checkTaskBtn.style.display = 'block';
+            elements.checkTaskBtn.textContent = "✅ Проверить выполнение";
+            elements.checkTaskBtn.disabled = false;
             
             // Добавляем контейнер для прокрутки на мобильных устройствах
             if (window.innerWidth <= 768) {
@@ -4297,7 +4614,7 @@
                         
                         // Размещаем предмет
                         const emoji = selectedItem.dataset.emoji;
-                        this.innerHTML = `<div style="font-size: 2rem;">${emoji}</div>`;
+                        this.innerHTML = `<div style="font-size: 2.2rem;">${emoji}</div>`;
                         this.classList.add('filled');
                         this.classList.remove('hover');
                         
@@ -4504,7 +4821,7 @@
                 <p><strong>${task.description}</strong></p>
                 <p>Нажмите на пазл, затем на слот для его размещения:</p>
                 <div class="puzzle-image-container">
-                    <div style="font-size: 3rem; margin: 10px;">${task.image}</div>
+                    <div style="font-size: 3.5rem; margin: 10px;">${task.image}</div>
                 </div>
                 <div class="puzzle-area">
                     <p>Соберите пазл в правильном порядке:</p>
@@ -4560,7 +4877,7 @@
                             puzzleSlots.forEach(s => s.classList.remove('hover'));
                             
                             // Размещаем пазл
-                            this.innerHTML = `<div style="font-size: 2rem;">${pieceEmoji}</div>`;
+                            this.innerHTML = `<div style="font-size: 2.2rem;">${pieceEmoji}</div>`;
                             this.classList.add('filled');
                             this.classList.remove('hover');
                             
@@ -4644,10 +4961,10 @@
                 <p>Найдите ${task.differences} отличия:</p>
                 <div class="difference-container">
                     <div class="difference-image">
-                        <div class="diff-image-content" style="font-size: 4rem;">${task.image1}</div>
+                        <div class="diff-image-content" style="font-size: 4.5rem;">${task.image1}</div>
                     </div>
                     <div class="difference-image">
-                        <div class="diff-image-content" style="font-size: 4rem;">${task.image2}</div>
+                        <div class="diff-image-content" style="font-size: 4.5rem;">${task.image2}</div>
                         ${differences.map(diff => 
                             `<div class="difference-spot" data-id="${diff.id}" style="left: ${diff.left}%; top: ${diff.top}%;"></div>`
                         ).join('')}
@@ -4710,7 +5027,7 @@
                             sequenceSlots.forEach(s => s.classList.remove('hover'));
                             
                             // Размещаем элемент
-                            this.innerHTML = `<div style="font-size: 2rem;">${pieceEmoji}</div>`;
+                            this.innerHTML = `<div style="font-size: 2.2rem;">${pieceEmoji}</div>`;
                             this.classList.add('filled');
                             this.classList.remove('hover');
                             
@@ -4969,6 +5286,7 @@
             }
         });
         
+        // ИСПРАВЛЕНО: Проблема с броском кубика
         elements.rollDiceBtn.addEventListener('click', () => {
             if (gameState.gameOver || gameState.taskInProgress) return;
             
@@ -5013,6 +5331,7 @@
                     elements.completeTaskBtn.disabled = false;
                     
                     elements.rollDiceBtn.disabled = true;
+                    elements.buildBtn.disabled = true;
                 } else {
                     // Если задание не получено, создаем задание по умолчанию
                     gameState.currentTask = {
@@ -5031,6 +5350,7 @@
                     elements.noTaskMessage.style.display = 'none';
                     elements.completeTaskBtn.disabled = false;
                     elements.rollDiceBtn.disabled = true;
+                    elements.buildBtn.disabled = true;
                 }
                 
                 addLogEntry(`🎲 Вы бросили кубик и выпало: ${value}. Новое положение: ${gameState.currentPlayer.position}`);
@@ -5116,6 +5436,7 @@
             }, 500);
         }
         
+        // ИСПРАВЛЕНО: Кнопка теперь меняется на "Проверить выполнение"
         elements.completeTaskBtn.addEventListener('click', () => {
             if (gameState.currentTask && !gameState.taskInProgress) {
                 elements.currentTask.style.display = 'none';
@@ -5188,6 +5509,50 @@
                         showNotification('✅ Приглашение скопировано в буфер обмена! Номер комнаты выделен жирным.', 'success');
                     });
                 }
+            }
+        });
+        
+        // Кнопка "Покинуть комнату"
+        elements.leaveRoomBtn.addEventListener('click', () => {
+            if (confirm('Вы уверены, что хотите покинуть комнату?')) {
+                // Отправляем событие о выходе
+                socket.emit('player-left');
+                
+                // Сбрасываем состояние игры
+                gameState = {
+                    currentPlayer: null,
+                    currentPlayerId: null,
+                    players: {},
+                    roomId: null,
+                    cityProgress: {},
+                    currentTask: null,
+                    currentDifficulty: "easy",
+                    gameOver: false,
+                    usedTasks: { easy: [], medium: [], hard: [] },
+                    nextCity: null,
+                    askedForChoice: {},
+                    taskInProgress: false,
+                    dragItems: [],
+                    dropZones: [],
+                    sortItems: [],
+                    sortBins: [],
+                    selectedPuzzlePieces: [],
+                    spotDifferencesFound: 0,
+                    cleanupItems: [],
+                    reconnected: false,
+                    playerProgress: {},
+                    currentTurn: null,
+                    turnOrder: [],
+                    isMyTurn: false
+                };
+                
+                // Показываем форму авторизации
+                elements.authSection.style.display = 'block';
+                elements.gameContent.style.display = 'none';
+                elements.resourcesPlaceholder.style.display = 'none';
+                quickActionsBtn.classList.remove('show');
+                
+                showNotification('Вы покинули комнату', 'info');
             }
         });
         
