@@ -137,17 +137,25 @@ io.on('connection', (socket) => {
                 return;
             }
             
-            // ОЧИСТКА ИСТОРИИ ЧАТА ПРИ ПЕРЕХОДЕ В НОВУЮ КОМНАТУ
-            // Проверяем, если пользователь уже был в другой комнате с этого IP, очищаем сессию
-            const sessionKey = `${clientIp.substring(0, 15)}`;
-            if (playerSessions[sessionKey] && playerSessions[sessionKey] !== roomId) {
-                // Пользователь перешел в новую комнату с того же IP
-                console.log(`🔄 Пользователь ${playerName} перешел из комнаты ${playerSessions[sessionKey]} в ${roomId}, очищаем старую сессию`);
-                // Очищаем чат для пользователя на клиенте будет выполнено автоматически при смене комнаты
+            // Очищаем историю чата при создании новой комнаты или при присоединении к новой комнате
+            // Это исправляет проблему с сохранением сообщений из старой комнаты
+            if (isNewRoom || !rooms[roomId]) {
+                // Если создаем новую комнату, очищаем историю для этой комнаты
+                chatHistory[roomId] = [];
+                console.log(`🧹 Очищена история чата для новой комнаты ${roomId}`);
+            } else {
+                // При присоединении к существующей комнате, проверяем сессию игрока
+                // Если игрок с таким именем и IP уже был в чате, очищаем его старые сообщения
+                const sessionKey = `${roomId}_${playerName}_${clientIp.substring(0, 15)}`;
+                
+                if (chatHistory[roomId]) {
+                    // Удаляем сообщения от игрока с таким же именем и IP
+                    chatHistory[roomId] = chatHistory[roomId].filter(msg => 
+                        !(msg.playerName === playerName && msg.sessionKey === sessionKey)
+                    );
+                    console.log(`🧹 Очищены старые сообщения игрока ${playerName} из истории чата`);
+                }
             }
-            
-            // Обновляем сессию
-            playerSessions[sessionKey] = roomId;
             
             // Проверка существования комнаты
             if (!rooms[roomId] && !isNewRoom) {
@@ -156,14 +164,14 @@ io.on('connection', (socket) => {
             }
             
             // Проверка существующего игрока с тем же ником и устройством
+            const sessionKey = `${roomId}_${playerName}_${clientIp.substring(0, 15)}`;
             let existingPlayerId = null;
             
             if (rooms[roomId]) {
                 // Ищем существующего игрока
                 for (const playerId in rooms[roomId].players) {
                     const player = rooms[roomId].players[playerId];
-                    // Проверяем по имени и IP (но не блокируем, если разные IP)
-                    if (player.name === playerName && player.ip === clientIp) {
+                    if (player.name === playerName && player.sessionKey === sessionKey) {
                         existingPlayerId = playerId;
                         break;
                     }
@@ -188,14 +196,6 @@ io.on('connection', (socket) => {
             if (!rooms[roomId]) {
                 rooms[roomId] = {
                     players: {},
-                    cityProgress: {
-                        tver: 0,
-                        kineshma: 0,
-                        naberezhnye_chelny: 0,
-                        kazan: 0,
-                        volgograd: 0,
-                        astrakhan: 0
-                    },
                     playerProgress: {},
                     turnOrder: [],
                     currentTurn: null,
@@ -247,12 +247,9 @@ io.on('connection', (socket) => {
                     isMyTurn: (socket.id === rooms[roomId].currentTurn)
                 });
                 
-                // Отправка истории чата (только для этой комнаты)
+                // Отправка истории чата
                 if (chatHistory[roomId] && chatHistory[roomId].length > 0) {
                     socket.emit('chat_history', chatHistory[roomId].slice(-20));
-                } else {
-                    // Если истории нет, отправляем пустой массив
-                    socket.emit('chat_history', []);
                 }
                 
                 // Уведомление других игроков о возвращении
@@ -335,9 +332,8 @@ io.on('connection', (socket) => {
                 lastActive: new Date().toISOString(),
                 isMobile: isMobile,
                 ip: clientIp,
-                reconnected: false,
-                // Добавляем флаг, чтобы можно было отслеживать
-                sessionId: Date.now() + Math.random().toString(36).substring(2, 9)
+                sessionKey: sessionKey,
+                reconnected: false
             };
             
             // Добавляем игрока в очередь ходов
@@ -362,12 +358,9 @@ io.on('connection', (socket) => {
                 isMyTurn: (socket.id === rooms[roomId].currentTurn)
             });
             
-            // Отправка истории чата (только для этой комнаты)
+            // Отправка истории чата
             if (chatHistory[roomId] && chatHistory[roomId].length > 0) {
                 socket.emit('chat_history', chatHistory[roomId].slice(-20));
-            } else {
-                // Если истории нет, отправляем пустой массив
-                socket.emit('chat_history', []);
             }
             
             // Уведомление других игроков
@@ -453,10 +446,10 @@ io.on('connection', (socket) => {
                         timestamp: new Date().toISOString(),
                         playerId: socket.id,
                         playerColor: player.color,
-                        roomId: roomId // Добавляем ID комнаты для фильтрации на клиенте
+                        sessionKey: player.sessionKey // Добавляем ключ сессии для фильтрации
                     };
                     
-                    // Сохраняем в историю ТОЛЬКО ДЛЯ ЭТОЙ КОМНАТЫ
+                    // Сохраняем в историю
                     if (!chatHistory[roomId]) chatHistory[roomId] = [];
                     chatHistory[roomId].push(chatMessage);
                     
@@ -465,7 +458,7 @@ io.on('connection', (socket) => {
                         chatHistory[roomId] = chatHistory[roomId].slice(-100);
                     }
                     
-                    // Отправляем всем в КОНКРЕТНОЙ комнате
+                    // Отправляем всем в комнате
                     io.to(roomId).emit('new_chat_message', chatMessage);
                     break;
                 }
@@ -475,7 +468,7 @@ io.on('connection', (socket) => {
         }
     });
     
-    // Бросок кубика - ИСПРАВЛЕННАЯ ВЕРСИЯ
+    // Бросок кубика
     socket.on('dice_roll', (data) => {
         try {
             const { diceValue, newPosition, task } = data;
@@ -759,11 +752,12 @@ io.on('connection', (socket) => {
     // Запрос на перемещение между городами (для уже пройденных)
     socket.on('move_to_city', (data) => {
         try {
-            const { cityKey } = data;
+            const { cityKey, playerId } = data;
+            const targetPlayerId = playerId || socket.id;
             
             for (const roomId in rooms) {
-                if (rooms[roomId].players[socket.id]) {
-                    const player = rooms[roomId].players[socket.id];
+                if (rooms[roomId].players[targetPlayerId]) {
+                    const player = rooms[roomId].players[targetPlayerId];
                     const cityCells = {
                         tver: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
                         kineshma: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
@@ -781,7 +775,7 @@ io.on('connection', (socket) => {
                         
                         // Отправляем обновление всем
                         io.to(roomId).emit('player_position_update', {
-                            playerId: socket.id,
+                            playerId: targetPlayerId,
                             playerName: player.name,
                             position: player.position,
                             city: player.city,
@@ -873,12 +867,6 @@ io.on('connection', (socket) => {
             if (rooms[roomId].players[socket.id]) {
                 const player = rooms[roomId].players[socket.id];
                 
-                // Удаляем сессию игрока
-                const sessionKey = `${player.ip.substring(0, 15)}`;
-                if (playerSessions[sessionKey] === roomId) {
-                    delete playerSessions[sessionKey];
-                }
-                
                 // Удаляем игрока из комнаты
                 delete rooms[roomId].players[socket.id];
                 
@@ -922,6 +910,15 @@ io.on('connection', (socket) => {
                 });
                 
                 console.log(`👋 Игрок "${player.name}" покинул комнату ${roomId}`);
+                
+                // Очищаем историю чата для этого игрока, чтобы при создании новой комнаты не было старых сообщений
+                if (chatHistory[roomId]) {
+                    // Удаляем сообщения этого игрока по сессионному ключу
+                    chatHistory[roomId] = chatHistory[roomId].filter(msg => 
+                        msg.sessionKey !== player.sessionKey
+                    );
+                    console.log(`🧹 Очищены сообщения игрока ${player.name} из истории чата`);
+                }
                 
                 // Если комната пуста, планируем удаление через 30 минут
                 if (Object.keys(rooms[roomId].players).length === 0) {
@@ -1028,12 +1025,6 @@ io.on('connection', (socket) => {
                     if (rooms[roomId] && 
                         rooms[roomId].players[socket.id] && 
                         !rooms[roomId].players[socket.id].connected) {
-                        
-                        // Удаляем сессию игрока
-                        const sessionKey = `${player.ip.substring(0, 15)}`;
-                        if (playerSessions[sessionKey] === roomId) {
-                            delete playerSessions[sessionKey];
-                        }
                         
                         // Удаляем прогресс игрока
                         if (rooms[roomId].playerProgress && rooms[roomId].playerProgress[socket.id]) {
