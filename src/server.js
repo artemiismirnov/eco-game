@@ -137,10 +137,6 @@ io.on('connection', (socket) => {
                 return;
             }
             
-            // Создаем уникальный идентификатор сессии для сохранения прогресса
-            const sessionKey = `${roomId}_${playerName}_${clientIp.substring(0, 15)}`;
-            const sessionKeyForProgress = `${playerName}_${clientIp.substring(0, 15)}`;
-            
             // Очищаем историю чата при создании новой комнаты или при присоединении к новой комнате
             // Это исправляет проблему с сохранением сообщений из старой комнаты
             if (isNewRoom || !rooms[roomId]) {
@@ -150,6 +146,8 @@ io.on('connection', (socket) => {
             } else {
                 // При присоединении к существующей комнате, проверяем сессию игрока
                 // Если игрок с таким именем и IP уже был в чате, очищаем его старые сообщения
+                const sessionKey = `${roomId}_${playerName}_${clientIp.substring(0, 15)}`;
+                
                 if (chatHistory[roomId]) {
                     // Удаляем сообщения от игрока с таким же именем и IP
                     chatHistory[roomId] = chatHistory[roomId].filter(msg => 
@@ -166,19 +164,15 @@ io.on('connection', (socket) => {
             }
             
             // Проверка существующего игрока с тем же ником и устройством
-            const existingSessionKey = sessionKeyForProgress;
+            const sessionKey = `${roomId}_${playerName}_${clientIp.substring(0, 15)}`;
             let existingPlayerId = null;
-            let existingPlayerProgress = null;
             
             if (rooms[roomId]) {
                 // Ищем существующего игрока
                 for (const playerId in rooms[roomId].players) {
                     const player = rooms[roomId].players[playerId];
-                    if (player.name === playerName && player.sessionKeyForProgress === existingSessionKey) {
+                    if (player.name === playerName && player.sessionKey === sessionKey) {
                         existingPlayerId = playerId;
-                        if (rooms[roomId].playerProgress && rooms[roomId].playerProgress[playerId]) {
-                            existingPlayerProgress = rooms[roomId].playerProgress[playerId];
-                        }
                         break;
                     }
                 }
@@ -239,12 +233,6 @@ io.on('connection', (socket) => {
                     }
                 }
                 
-                // Обновляем прогресс игрока
-                if (existingPlayerProgress && rooms[roomId].playerProgress) {
-                    rooms[roomId].playerProgress[socket.id] = existingPlayerProgress;
-                    delete rooms[roomId].playerProgress[existingPlayerId];
-                }
-                
                 // Присоединение к комнате
                 socket.join(roomId);
                 
@@ -256,8 +244,7 @@ io.on('connection', (socket) => {
                     reconnected: true,
                     currentTurn: rooms[roomId].currentTurn,
                     turnOrder: rooms[roomId].turnOrder,
-                    isMyTurn: (socket.id === rooms[roomId].currentTurn),
-                    progress: existingPlayerProgress
+                    isMyTurn: (socket.id === rooms[roomId].currentTurn)
                 });
                 
                 // Отправка истории чата
@@ -305,7 +292,7 @@ io.on('connection', (socket) => {
                     timestamp: new Date().toISOString()
                 });
                 
-                console.log(`👥 Игрок "${playerName}" вернулся в комнату ${roomId} с сохраненным прогрессом`);
+                console.log(`👥 Игрок "${playerName}" вернулся в комнату ${roomId}`);
                 return;
             }
             
@@ -313,26 +300,28 @@ io.on('connection', (socket) => {
             const playerColors = ['#4ecdc4', '#ff6b6b', '#ffe66d', '#1a535c', '#95e1d3', '#f08a5d'];
             const usedColors = Object.values(rooms[roomId].players).map(p => p.color);
             const availableColors = playerColors.filter(color => !usedColors.includes(color));
-            const playerColor = availableColors.length > 0 ? availableColors[0] : playerColors[0];
+            const playerColor = availableColors.length > 0 ? availableColors[0] : playerColors[Math.floor(Math.random() * playerColors.length)];
             
-            // Проверяем, есть ли сохраненный прогресс для этого игрока (по sessionKeyForProgress)
-            let savedProgress = null;
-            if (rooms[roomId].playerProgress) {
-                for (const playerId in rooms[roomId].playerProgress) {
-                    const player = rooms[roomId].players[playerId];
-                    if (player && player.sessionKeyForProgress === sessionKeyForProgress) {
-                        savedProgress = rooms[roomId].playerProgress[playerId];
-                        console.log(`📊 Найден сохраненный прогресс для игрока ${playerName}`);
-                        break;
-                    }
-                }
+            // Инициализация прогресса для нового игрока
+            if (!rooms[roomId].playerProgress) {
+                rooms[roomId].playerProgress = {};
             }
+            
+            // ИСПРАВЛЕНО: Астрахань теперь с 81 по 92 клетку (не до 100)
+            rooms[roomId].playerProgress[socket.id] = {
+                tver: 0,
+                kineshma: 0,
+                naberezhnye_chelny: 0,
+                kazan: 0,
+                volgograd: 0,
+                astrakhan: 0
+            };
             
             // Создание объекта нового игрока
             rooms[roomId].players[socket.id] = {
                 id: socket.id,
                 name: playerName,
-                position: 0, // ИСПРАВЛЕНО: Стартовая позиция 0 (Старт)
+                position: 0, // ИСПРАВЛЕНО: Начинаем с 0 (Старт)
                 city: 'tver',
                 coins: 100,
                 cleaningPoints: 0,
@@ -346,7 +335,6 @@ io.on('connection', (socket) => {
                 isMobile: isMobile,
                 ip: clientIp,
                 sessionKey: sessionKey,
-                sessionKeyForProgress: sessionKeyForProgress, // Ключ для сохранения прогресса
                 reconnected: false
             };
             
@@ -357,21 +345,6 @@ io.on('connection', (socket) => {
             if (rooms[roomId].turnOrder.length === 1) {
                 rooms[roomId].currentTurn = socket.id;
             }
-            
-            // Инициализация прогресса для нового игрока
-            if (!rooms[roomId].playerProgress) {
-                rooms[roomId].playerProgress = {};
-            }
-            
-            // Используем сохраненный прогресс или создаем новый
-            rooms[roomId].playerProgress[socket.id] = savedProgress || {
-                tver: 0,
-                kineshma: 0,
-                naberezhnye_chelny: 0,
-                kazan: 0,
-                volgograd: 0,
-                astrakhan: 0
-            };
             
             // Присоединение к комнате
             socket.join(roomId);
@@ -384,8 +357,7 @@ io.on('connection', (socket) => {
                 reconnected: false,
                 currentTurn: rooms[roomId].currentTurn,
                 turnOrder: rooms[roomId].turnOrder,
-                isMyTurn: (socket.id === rooms[roomId].currentTurn),
-                progress: rooms[roomId].playerProgress[socket.id]
+                isMyTurn: (socket.id === rooms[roomId].currentTurn)
             });
             
             // Отправка истории чата
@@ -433,7 +405,7 @@ io.on('connection', (socket) => {
                 timestamp: new Date().toISOString()
             });
             
-            console.log(`👥 Игрок "${playerName}" присоединился к комнате ${roomId} (стартовая позиция: 0)`);
+            console.log(`👥 Игрок "${playerName}" присоединился к комнате ${roomId}`);
             
         } catch (error) {
             console.error('Ошибка в join-room:', error);
@@ -521,6 +493,7 @@ io.on('connection', (socket) => {
                     player.lastActive = new Date().toISOString();
                     
                     // Определяем город на основе позиции
+                    // ИСПРАВЛЕНО: Астрахань теперь с 81 по 92 клетку
                     const cityCells = {
                         tver: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
                         kineshma: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
@@ -788,6 +761,7 @@ io.on('connection', (socket) => {
             for (const roomId in rooms) {
                 if (rooms[roomId].players[targetPlayerId]) {
                     const player = rooms[roomId].players[targetPlayerId];
+                    // ИСПРАВЛЕНО: Астрахань теперь с 81 по 92 клетку
                     const cityCells = {
                         tver: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
                         kineshma: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
@@ -897,23 +871,23 @@ io.on('connection', (socket) => {
             if (rooms[roomId].players[socket.id]) {
                 const player = rooms[roomId].players[socket.id];
                 
-                // Сохраняем сессию для возможного возвращения
-                if (player.sessionKeyForProgress) {
-                    playerSessions[player.sessionKeyForProgress] = {
+                // ИСПРАВЛЕНО: Сохраняем прогресс игрока перед удалением
+                // Создаем сессию с прогрессом для возможности восстановления
+                if (rooms[roomId].playerProgress && rooms[roomId].playerProgress[socket.id]) {
+                    const sessionKey = player.sessionKey;
+                    playerSessions[sessionKey] = {
+                        ...rooms[roomId].playerProgress[socket.id],
+                        lastUpdate: new Date().toISOString(),
                         playerName: player.name,
-                        progress: rooms[roomId].playerProgress ? rooms[roomId].playerProgress[socket.id] : null,
-                        lastSeen: new Date().toISOString()
+                        roomId: roomId
                     };
-                    console.log(`💾 Сохранена сессия для игрока ${player.name} (${player.sessionKeyForProgress})`);
+                    console.log(`💾 Сохранен прогресс игрока "${player.name}" в сессии: ${sessionKey}`);
                 }
                 
                 // Удаляем игрока из комнаты
                 delete rooms[roomId].players[socket.id];
                 
-                // Удаляем прогресс игрока
-                if (rooms[roomId].playerProgress && rooms[roomId].playerProgress[socket.id]) {
-                    delete rooms[roomId].playerProgress[socket.id];
-                }
+                // НЕ удаляем прогресс игрока сразу - оставляем на сервере для восстановления
                 
                 // Удаляем игрока из очереди ходов
                 const turnIndex = rooms[roomId].turnOrder.indexOf(socket.id);
@@ -1066,19 +1040,17 @@ io.on('connection', (socket) => {
                         rooms[roomId].players[socket.id] && 
                         !rooms[roomId].players[socket.id].connected) {
                         
-                        // Сохраняем сессию для возможного возвращения
-                        if (player.sessionKeyForProgress) {
-                            playerSessions[player.sessionKeyForProgress] = {
-                                playerName: player.name,
-                                progress: rooms[roomId].playerProgress ? rooms[roomId].playerProgress[socket.id] : null,
-                                lastSeen: new Date().toISOString()
-                            };
-                            console.log(`💾 Сохранена сессия для отключившегося игрока ${player.name}`);
-                        }
-                        
-                        // Удаляем прогресс игрока
+                        // ИСПРАВЛЕНО: Сохраняем прогресс игрока перед удалением
+                        // Создаем сессию с прогрессом для возможности восстановления
                         if (rooms[roomId].playerProgress && rooms[roomId].playerProgress[socket.id]) {
-                            delete rooms[roomId].playerProgress[socket.id];
+                            const sessionKey = player.sessionKey;
+                            playerSessions[sessionKey] = {
+                                ...rooms[roomId].playerProgress[socket.id],
+                                lastUpdate: new Date().toISOString(),
+                                playerName: player.name,
+                                roomId: roomId
+                            };
+                            console.log(`💾 Сохранен прогресс игрока "${player.name}" в сессии: ${sessionKey}`);
                         }
                         
                         // Удаляем игрока из очереди ходов
@@ -1181,6 +1153,30 @@ setInterval(() => {
         console.log(`🧹 Очищено ${cleanedCount} неактивных комнат`);
     }
 }, 60 * 60 * 1000);
+
+// Очистка старых сессий каждый день
+setInterval(() => {
+    const now = new Date();
+    let cleanedSessions = 0;
+    
+    for (const sessionKey in playerSessions) {
+        const session = playerSessions[sessionKey];
+        if (session.lastUpdate) {
+            const lastUpdate = new Date(session.lastUpdate);
+            const daysDiff = (now - lastUpdate) / (1000 * 60 * 60 * 24);
+            
+            // Удаляем сессии старше 7 дней
+            if (daysDiff > 7) {
+                delete playerSessions[sessionKey];
+                cleanedSessions++;
+            }
+        }
+    }
+    
+    if (cleanedSessions > 0) {
+        console.log(`🧹 Очищено ${cleanedSessions} старых сессий игроков`);
+    }
+}, 24 * 60 * 60 * 1000);
 
 // ==================== ЗАПУСК СЕРВЕРА ====================
 
