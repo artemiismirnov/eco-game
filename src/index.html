@@ -1191,11 +1191,12 @@
             line-height: 1.4;
         }
         
-        /* Прогресс уровня - ИСПРАВЛЕНО: укорочена шкала */
+        /* Прогресс уровня - ИСПРАВЛЕНО: укорочена шкала и выровнена по центру */
         .level-progress-container {
             margin-top: 5px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
             width: 100%;
         }
@@ -1205,8 +1206,7 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
             overflow: hidden;
-            flex-grow: 0;
-            width: 150px; /* Укорочена шкала */
+            flex-grow: 1;
         }
         
         .level-progress-fill {
@@ -1255,6 +1255,7 @@
             cursor: not-allowed;
             transform: none;
             box-shadow: 0 4px 0 rgba(127, 140, 141, 0.8);
+            opacity: 0.7;
         }
         
         .game-btn.small {
@@ -2492,10 +2493,10 @@
                             <div class="stat">
                                 <span class="stat-label">Уровень:</span>
                                 <div class="level-progress-container">
+                                    <span class="stat-value" id="playerLevel">1</span>
                                     <div class="level-progress-bar">
                                         <div class="level-progress-fill" id="levelProgressFill" style="width: 0%;"></div>
                                     </div>
-                                    <span class="stat-value" id="playerLevel">1</span>
                                 </div>
                             </div>
                             <div class="level-info">
@@ -2823,7 +2824,7 @@
                 },
                 astrakhan: { 
                     name: "Астрахань", 
-                    cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
+                    cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92],
                     position: 5,
                     description: "Конечная точка маршрута",
                     history: "Астрахань — древний город в дельте Волги, основанный в 1558 году. Важный рыболовный и транспортный узел.",
@@ -3102,7 +3103,8 @@
             currentTurn: null,
             turnOrder: [],
             isMyTurn: false,
-            isAtNewCity: false
+            isAtNewCity: false,
+            hasUnfinishedTask: false
         };
         
         // ==================== ФУНКЦИИ ПОДКЛЮЧЕНИЯ ====================
@@ -3168,6 +3170,7 @@
             gameState.currentTurn = playerData.currentTurn;
             gameState.turnOrder = playerData.turnOrder || [];
             gameState.isMyTurn = playerData.isMyTurn || false;
+            gameState.hasUnfinishedTask = playerData.hasUnfinishedTask || false;
             
             initializeGame(playerData);
             
@@ -3178,6 +3181,16 @@
             
             // Обновляем индикатор очереди
             updateTurnIndicator();
+            
+            // Если есть незавершенное задание, показываем его
+            if (gameState.hasUnfinishedTask && gameState.currentTask) {
+                elements.currentTask.style.display = 'block';
+                elements.taskDescription.textContent = gameState.currentTask.description;
+                elements.noTaskMessage.style.display = 'none';
+                elements.completeTaskBtn.disabled = false;
+                hasCurrentTask = true;
+                elements.rollDiceBtn.disabled = true;
+            }
         });
         
         socket.on('room-error', (message) => {
@@ -3187,6 +3200,8 @@
             elements.gameContent.style.display = 'none';
             elements.resourcesPlaceholder.style.display = 'none';
             quickActionsBtn.classList.remove('show');
+            // Сбрасываем состояние
+            resetGameState();
         });
         
         socket.on('room_state', (roomData) => {
@@ -3357,9 +3372,9 @@
                 console.log(`🆕 Создан маркер для игрока ${playerName}`);
             }
             
-            const cellNumber = position || 1;
-            const row = Math.floor((cellNumber - 1) / 10);
-            const col = (cellNumber - 1) % 10;
+            const cellNumber = position || 0;
+            const row = Math.floor((cellNumber) / 10);
+            const col = (cellNumber) % 10;
             
             // ИСПРАВЛЕНО: Рассчитываем точную позицию маркера
             const cell = document.querySelector(`.map-cell:nth-child(${cellNumber + 1})`);
@@ -3524,6 +3539,9 @@
             
             addLogEntry(`🎮 Добро пожаловать в игру, ${playerData.name}!`);
             
+            // Обновляем состояние кнопки броска кубика
+            updateRollDiceButtonState();
+            
             setTimeout(() => {
                 showCityModal(gameState.currentPlayer.city);
             }, 1000);
@@ -3535,6 +3553,55 @@
                 elements.buildBtn.disabled = false;
                 updateTurnIndicator();
             }
+        }
+        
+        function resetGameState() {
+            // Сбрасываем состояние игры при выходе из комнаты
+            gameState = {
+                currentPlayer: null,
+                currentPlayerId: null,
+                players: {},
+                roomId: null,
+                cityProgress: {},
+                currentTask: null,
+                currentDifficulty: "easy",
+                gameOver: false,
+                usedTasks: { easy: [], medium: [], hard: [] },
+                nextCity: null,
+                askedForChoice: {},
+                taskInProgress: false,
+                dragItems: [],
+                dropZones: [],
+                sortItems: [],
+                sortBins: [],
+                selectedPuzzlePieces: [],
+                cleanupItems: [],
+                reconnected: false,
+                playerProgress: {},
+                currentTurn: null,
+                turnOrder: [],
+                isMyTurn: false,
+                isAtNewCity: false,
+                hasUnfinishedTask: false
+            };
+            
+            hasCurrentTask = false;
+            currentRoomId = null;
+            
+            // Сбрасываем UI
+            elements.interactiveTask.style.display = 'none';
+            elements.currentTask.style.display = 'none';
+            elements.noTaskMessage.style.display = 'block';
+            elements.checkTaskBtn.style.display = 'none';
+            elements.retryTaskBtn.style.display = 'none';
+            elements.completeTaskBtn.style.display = 'block';
+            elements.completeTaskBtn.disabled = true;
+            elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
+            elements.rollDiceBtn.disabled = true;
+            elements.buildBtn.disabled = true;
+            elements.moveBtn.disabled = true;
+            elements.taskResult.textContent = '';
+            elements.taskArea.innerHTML = '';
         }
         
         function updateRoomState(roomData) {
@@ -3589,7 +3656,9 @@
                 completedTasks: gameState.currentPlayer.completedTasks,
                 color: gameState.currentPlayer.color || getRandomColor(gameState.currentPlayerId),
                 connected: true,
-                progress: gameState.playerProgress[gameState.currentPlayerId]
+                progress: gameState.playerProgress[gameState.currentPlayerId],
+                currentTask: gameState.currentTask,
+                hasUnfinishedTask: hasCurrentTask || gameState.taskInProgress
             });
         }
         
@@ -3655,8 +3724,9 @@
                         numberSpan.style.color = 'white';
                         numberSpan.style.fontSize = '10px';
                         
-                        if (gameState.currentPlayer && !gameState.currentPlayer.position) {
-                            gameState.currentPlayer.position = 1;
+                        // ИСПРАВЛЕНО: Начальная позиция игрока теперь 0 (Старт)
+                        if (gameState.currentPlayer && gameState.currentPlayer.position === undefined) {
+                            gameState.currentPlayer.position = 0;
                             updatePlayerUI();
                         }
                     } else if (cellNumber === 99) {
@@ -3758,7 +3828,7 @@
                 playerItem.innerHTML = `
                     <span>${statusIcon} ${player.name}${turnIndicator}
                         ${playerId === gameState.currentPlayerId ? '<span style="color: var(--secondary);">(Вы)</span>' : ''}
-                        <span class="player-position-badge">поз. ${player.position || 1}</span>
+                        <span class="player-position-badge">поз. ${player.position || 0}</span>
                     </span>
                     <span><strong>${player.cleaningPoints}</strong> баллов</span>
                 `;
@@ -3801,18 +3871,37 @@
                     elements.turnIndicator.classList.add('your-turn');
                     elements.turnIndicator.classList.remove('other-turn');
                     elements.turnMessage.textContent = '🎉 Сейчас ваш ход! Бросайте кубик.';
-                    elements.rollDiceBtn.disabled = false;
                 } else {
                     const currentPlayer = gameState.players[gameState.currentTurn];
                     if (currentPlayer) {
                         elements.turnIndicator.classList.add('other-turn');
                         elements.turnIndicator.classList.remove('your-turn');
                         elements.turnMessage.textContent = `⏳ Сейчас ходит ${currentPlayer.name}. Ожидайте своей очереди.`;
-                        elements.rollDiceBtn.disabled = true;
                     }
                 }
             } else {
                 elements.turnIndicator.style.display = 'none';
+            }
+        }
+        
+        function updateRollDiceButtonState() {
+            // Отключаем кнопку броска кубика если:
+            // 1. Не наш ход
+            // 2. Есть незавершенное задание
+            // 3. Игра завершена
+            // 4. Задание в процессе выполнения
+            if (gameState.gameOver || gameState.taskInProgress) {
+                elements.rollDiceBtn.disabled = true;
+                elements.rollDiceBtn.style.opacity = '0.7';
+            } else if (!gameState.isMyTurn) {
+                elements.rollDiceBtn.disabled = true;
+                elements.rollDiceBtn.style.opacity = '0.7';
+            } else if (hasCurrentTask) {
+                elements.rollDiceBtn.disabled = true;
+                elements.rollDiceBtn.style.opacity = '0.7';
+            } else {
+                elements.rollDiceBtn.disabled = false;
+                elements.rollDiceBtn.style.opacity = '1';
             }
         }
         
@@ -4286,6 +4375,8 @@
             });
             
             function updateQuickButtons() {
+                updateRollDiceButtonState();
+                
                 if (gameState.gameOver) {
                     quickDiceBtn.style.opacity = '0.5';
                     quickDiceBtn.style.cursor = 'not-allowed';
@@ -4298,6 +4389,10 @@
                         quickDiceBtn.style.opacity = '0.5';
                         quickDiceBtn.style.cursor = 'not-allowed';
                         quickDiceBtn.title = 'Сейчас не ваш ход';
+                    } else if (hasCurrentTask || gameState.taskInProgress) {
+                        quickDiceBtn.style.opacity = '0.5';
+                        quickDiceBtn.style.cursor = 'not-allowed';
+                        quickDiceBtn.title = 'Сначала выполните задание';
                     } else {
                         quickDiceBtn.style.opacity = '1';
                         quickDiceBtn.style.cursor = 'pointer';
@@ -4429,6 +4524,9 @@
             elements.checkTaskBtn.textContent = "✅ Проверить выполнение";
             elements.checkTaskBtn.disabled = false;
             
+            // Обновляем состояние кнопки броска кубика
+            updateRollDiceButtonState();
+            
             // Добавляем контейнер для прокрутки на мобильных устройствах
             if (window.innerWidth <= 768) {
                 const dragContainers = elements.taskArea.querySelectorAll('.task-container, .drag-container, .sorting-area, .puzzle-area, .sequence-area');
@@ -4484,16 +4582,18 @@
                 
                 allOptions.forEach(opt => {
                     opt.style.pointerEvents = 'none';
-                    if (opt.dataset.correct === 'true') {
-                        opt.classList.add('correct');
-                    } else if (opt === selectedOption && !isCorrect) {
-                        opt.classList.add('incorrect');
+                    if (opt === selectedOption) {
+                        if (isCorrect) {
+                            opt.classList.add('correct');
+                        } else {
+                            opt.classList.add('incorrect');
+                        }
                     }
                 });
                 
                 elements.taskResult.textContent = isCorrect ? 
                     '✅ Правильно! Задание выполнено.' : 
-                    '❌ Неправильно.';
+                    '❌ Неправильно. Попробуйте еще раз.';
                 elements.taskResult.style.color = isCorrect ? '#2ecc71' : '#e74c3c';
                 
                 if (isCorrect) {
@@ -5053,6 +5153,7 @@
             }
             
             elements.interactiveTask.style.display = 'none';
+            elements.currentTask.style.display = 'none';
             elements.noTaskMessage.style.display = 'block';
             elements.checkTaskBtn.style.display = 'none';
             elements.retryTaskBtn.style.display = 'none';
@@ -5061,8 +5162,13 @@
             elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
             gameState.taskInProgress = false;
             hasCurrentTask = false;
+            gameState.hasUnfinishedTask = false;
+            gameState.currentTask = null;
             
             elements.buildBtn.disabled = false;
+            
+            // Обновляем состояние кнопки броска кубика
+            updateRollDiceButtonState();
             
             // Передаем ход следующему игроку
             if (gameState.isMyTurn) {
@@ -5233,7 +5339,7 @@
             moveToNextCity();
         });
         
-        // ИСПРАВЛЕНО: Проблема с броском кубика - убрана проверка hasCurrentTask
+        // ИСПРАВЛЕНО: Проблема с броском кубика
         elements.rollDiceBtn.addEventListener('click', () => {
             if (gameState.gameOver || gameState.taskInProgress) return;
             
@@ -5242,8 +5348,10 @@
                 return;
             }
             
-            // ИСПРАВЛЕНИЕ: Убрана проверка hasCurrentTask, чтобы можно было бросить кубик
-            // даже если есть текущее задание (оно будет заменено новым)
+            if (hasCurrentTask) {
+                showNotification('Сначала выполните текущее задание!', 'warning');
+                return;
+            }
             
             elements.diceValue.classList.add('rolling');
             elements.diceValue.querySelector('.dice-value').textContent = '?';
@@ -5321,6 +5429,9 @@
                 
                 showNotification(`🎲 Вы переместились на ${value} клеток! Получено новое задание.`, 'success');
                 elements.buildBtn.disabled = true;
+                
+                // Обновляем состояние кнопки броска кубика
+                updateRollDiceButtonState();
             }, 1200);
         });
         
@@ -5385,6 +5496,9 @@
                 elements.checkTaskBtn.style.display = 'block';
                 createInteractiveTask(gameState.currentTask);
                 addLogEntry(`▶️ Вы начали выполнение задания: ${gameState.currentTask.description}`);
+                
+                // Обновляем состояние кнопки броска кубика
+                updateRollDiceButtonState();
                 
                 // Прокручиваем к заданию
                 setTimeout(() => {
@@ -5460,19 +5574,24 @@
         
         elements.inviteBtn.addEventListener('click', () => {
             const roomLink = `${window.location.origin}?room=${currentRoomId || gameState.roomId}`;
-            navigator.clipboard.writeText(roomLink)
+            const inviteMessage = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"! 🔢 Номер комнаты: ${currentRoomId || gameState.roomId} 🌐 Игра доступна по адресу: ${roomLink} 👥 Ждем вас!`;
+            
+            // Пытаемся скопировать полное сообщение
+            navigator.clipboard.writeText(inviteMessage)
                 .then(() => {
-                    showNotification('Ссылка на комнату скопирована в буфер обмена!', 'success');
-                    addLogEntry('📋 Ссылка на комнату скопирована в буфер обмена');
+                    showNotification('Приглашение скопировано в буфер обмена!', 'success');
+                    addLogEntry('📋 Приглашение скопировано в буфер обмена');
                 })
                 .catch(() => {
-                    showNotification(`Ссылка на комнату: ${roomLink}`, 'info');
+                    // Если не удалось скопировать, показываем ссылку
+                    showNotification(`Приглашение: ${inviteMessage}`, 'info');
                 });
         });
         
         elements.leaveRoomBtn.addEventListener('click', () => {
             if (confirm('Вы уверены, что хотите покинуть комнату?')) {
                 socket.emit('player-left');
+                resetGameState();
                 elements.authSection.style.display = 'block';
                 elements.gameContent.style.display = 'none';
                 elements.resourcesPlaceholder.style.display = 'none';
