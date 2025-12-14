@@ -554,8 +554,6 @@
             width: 100%;
             height: 100%;
             margin: 0;
-            padding: 0;
-            border-radius: 12px;
         }
         
         @keyframes placed-bounce {
@@ -608,7 +606,6 @@
             border: 4px solid #2980b9;
             background: rgba(52, 152, 219, 0.35);
             animation: bin-success 1s;
-            padding: 0;
         }
         
         @keyframes bin-success {
@@ -637,10 +634,6 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 5px;
-            height: 100%;
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
         }
         
         .cleanup-item {
@@ -773,45 +766,7 @@
             100% { transform: scale(1); }
         }
         
-        /* Новые стили для заданий на отличия */
-        .difference-spot {
-            position: absolute;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(231, 76, 60, 0.8) 0%, rgba(231, 76, 60, 0.4) 70%);
-            border: 3px solid #e74c3c;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            animation: difference-pulse 2s infinite;
-            box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
-            z-index: 5;
-        }
-        
-        @keyframes difference-pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(231, 76, 60, 0.5); }
-            50% { transform: scale(1.1); box-shadow: 0 0 25px rgba(231, 76, 60, 0.8); }
-        }
-        
-        .difference-spot:hover {
-            background: radial-gradient(circle, rgba(231, 76, 60, 0.9) 0%, rgba(231, 76, 60, 0.6) 70%);
-            transform: scale(1.3);
-            box-shadow: 0 0 30px rgba(231, 76, 60, 1);
-        }
-        
-        .difference-spot.found {
-            background: radial-gradient(circle, rgba(46, 204, 113, 0.9) 0%, rgba(39, 174, 96, 0.6) 70%);
-            border-color: #27ae60;
-            cursor: default;
-            animation: found-spin 0.8s forwards;
-            box-shadow: 0 0 20px rgba(46, 204, 113, 0.7);
-        }
-        
-        @keyframes found-spin {
-            0% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.2) rotate(180deg); }
-            100% { transform: scale(1) rotate(360deg); }
-        }
+        /* Убраны стили для заданий на отличия */
         
         /* Контейнеры для заданий */
         .task-container {
@@ -864,47 +819,6 @@
         @keyframes river-flow {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
-        }
-        
-        .difference-container {
-            display: flex;
-            gap: 25px;
-            justify-content: center;
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-        }
-        
-        .difference-image {
-            position: relative;
-            width: 220px;
-            height: 220px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3.5rem;
-            overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            border: 3px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .difference-image::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
-            animation: image-shine 4s infinite linear;
-        }
-        
-        @keyframes image-shine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
         
         /* ==================== АНИМАЦИИ ==================== */
@@ -1277,7 +1191,7 @@
             line-height: 1.4;
         }
         
-        /* Прогресс уровня - ИСПРАВЛЕНО: сначала полоска, потом цифра */
+        /* Прогресс уровня - ИСПРАВЛЕНО: укорочена шкала */
         .level-progress-container {
             margin-top: 5px;
             display: flex;
@@ -1291,7 +1205,8 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
             overflow: hidden;
-            flex-grow: 1;
+            flex-grow: 0;
+            width: 150px; /* Укорочена шкала */
         }
         
         .level-progress-fill {
@@ -2305,20 +2220,6 @@
             border-radius: 20px;
             font-size: 0.9rem;
         }
-        
-        /* ИСПРАВЛЕНО: Расположение прогресса уровня по центру */
-        .level-stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-        
-        .level-stat-value {
-            text-align: center;
-            width: 100%;
-            margin-top: 5px;
-        }
     </style>
 </head>
 <body>
@@ -2399,9 +2300,9 @@
                     <li><strong>Викторины:</strong> Ответьте на вопросы об экологии</li>
                     <li><strong>Сортировка мусора:</strong> Распределите отходы по правильным контейнерам</li>
                     <li><strong>Посадка деревьев:</strong> Перетащите деревья в нужные места</li>
-                    <li><strong>Найди отличия:</strong> Найдите различия между двумя картинками</li>
                     <li><strong>Очистка территории:</strong> Кликните на мусор, чтобы убрать его</li>
                     <li><strong>Пазлы:</strong> Соберите экологическую картинку</li>
+                    <li><strong>Создание последовательности:</strong> Расставьте элементы в правильном порядке</li>
                 </ul>
                 
                 <p><strong>Присоединяйтесь к игре и станьте настоящим защитником природы!</strong></p>
@@ -2471,7 +2372,7 @@
                     <h4>Игроки в комнате:</h4>
                     <div id="playersContainer">
                         <div class="player-item current">
-                            <span>🟢 Вы <span style="color: var(--secondary);">(Игрок)</span> <span class="player-position-badge">поз. 0</span></span>
+                            <span>🟢 Вы <span style="color: var(--secondary);">(Игрок)</span> <span class="player-position-badge">поз. 1</span></span>
                             <span><strong>0</strong> баллов</span>
                         </div>
                     </div>
@@ -2578,7 +2479,7 @@
                             </div>
                             <div class="stat">
                                 <span class="stat-label">Позиция:</span>
-                                <span class="stat-value" id="currentPosition">0</span>
+                                <span class="stat-value" id="currentPosition">1</span>
                             </div>
                             <div class="stat">
                                 <span class="stat-label">Монеты:</span>
@@ -2590,13 +2491,11 @@
                             </div>
                             <div class="stat">
                                 <span class="stat-label">Уровень:</span>
-                                <div class="level-stat">
-                                    <div class="level-progress-container">
-                                        <div class="level-progress-bar">
-                                            <div class="level-progress-fill" id="levelProgressFill" style="width: 0%;"></div>
-                                        </div>
-                                        <span class="stat-value level-stat-value" id="playerLevel">1</span>
+                                <div class="level-progress-container">
+                                    <div class="level-progress-bar">
+                                        <div class="level-progress-fill" id="levelProgressFill" style="width: 0%;"></div>
                                     </div>
+                                    <span class="stat-value" id="playerLevel">1</span>
                                 </div>
                             </div>
                             <div class="level-info">
@@ -2610,7 +2509,7 @@
                         <div class="actions-section">
                             <button class="game-btn" id="rollDiceBtn">🎲 Бросить кубик</button>
                             <button class="game-btn" id="buildBtn">🏗️ Построить объект</button>
-                            <button class="game-btn" id="moveBtn" disabled>🚗 Перейти в другой город</button>
+                            <button class="game-btn" id="moveBtn" disabled>🚗 Перейти в следующий город</button>
                         </div>
                     </div>
                     
@@ -2924,7 +2823,7 @@
                 },
                 astrakhan: { 
                     name: "Астрахань", 
-                    cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92],
+                    cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100],
                     position: 5,
                     description: "Конечная точка маршрута",
                     history: "Астрахань — древний город в дельте Волги, основанный в 1558 году. Важный рыболовный и транспортный узел.",
@@ -2963,11 +2862,6 @@
                         ]
                     },
                     {
-                        description: "Найдите 3 отличия на картинках 🔍",
-                        type: "spot_difference_improved",
-                        differences: 3
-                    },
-                    {
                         description: "Соберите мусор в парке 🧹",
                         type: "clean",
                         goal: 4,
@@ -3004,6 +2898,12 @@
                             {text: "Поливать растения днем", correct: false},
                             {text: "Мыть машину ежедневно", correct: false}
                         ]
+                    },
+                    {
+                        description: "Соберите простой пазл 🧩",
+                        type: "puzzle_click",
+                        pieces: 4,
+                        image: "🌍♻️🌳💧"
                     }
                 ],
                 medium: [
@@ -3028,7 +2928,7 @@
                         description: "Соберите пазл из экологических символов 🧩",
                         type: "puzzle_click",
                         pieces: 6,
-                        image: "♻️🌍🌳💧🌞🌱"
+                        image: "🌍♻️🌳💧🌞🌱"
                     },
                     {
                         description: "Посадите лес из 6 деревьев 🌲",
@@ -3048,11 +2948,6 @@
                         ]
                     },
                     {
-                        description: "Найдите 4 отличия на картинках природы 🏞️",
-                        type: "spot_difference_improved",
-                        differences: 4
-                    },
-                    {
                         description: "Создайте пищевую цепь 🐟",
                         type: "sequence_click",
                         items: ["🌿", "🐛", "🐦", "🦊"],
@@ -3068,6 +2963,12 @@
                             {text: "Разнообразие автомобилей", correct: false},
                             {text: "Количество жителей в городе", correct: false}
                         ]
+                    },
+                    {
+                        description: "Создайте экологическую последовательность 🌿",
+                        type: "sequence_click",
+                        items: ["🌱", "🌳", "🍎", "♻️"],
+                        correctOrder: ["🌱", "🌳", "🍎", "♻️"]
                     }
                 ],
                 hard: [
@@ -3092,7 +2993,7 @@
                         description: "Соберите сложный экологический пазл 🧩",
                         type: "puzzle_click",
                         pieces: 9,
-                        image: "♻️🌍🌳💧🌞🌱🌀🌊🦋"
+                        image: "🌍♻️🌳💧🌞🌱🌀🌊🦋"
                     },
                     {
                         description: "Что такое возобновляемая энергия? ⚡",
@@ -3195,13 +3096,13 @@
             sortItems: [],
             sortBins: [],
             selectedPuzzlePieces: [],
-            spotDifferencesFound: 0,
             cleanupItems: [],
             reconnected: false,
             playerProgress: {},
             currentTurn: null,
             turnOrder: [],
-            isMyTurn: false
+            isMyTurn: false,
+            isAtNewCity: false
         };
         
         // ==================== ФУНКЦИИ ПОДКЛЮЧЕНИЯ ====================
@@ -3456,7 +3357,9 @@
                 console.log(`🆕 Создан маркер для игрока ${playerName}`);
             }
             
-            const cellNumber = position || 0;
+            const cellNumber = position || 1;
+            const row = Math.floor((cellNumber - 1) / 10);
+            const col = (cellNumber - 1) % 10;
             
             // ИСПРАВЛЕНО: Рассчитываем точную позицию маркера
             const cell = document.querySelector(`.map-cell:nth-child(${cellNumber + 1})`);
@@ -3471,8 +3374,6 @@
                 marker.style.top = `${topPercent}%`;
             } else {
                 // Запасной вариант расчета
-                const row = Math.floor((cellNumber) / 10);
-                const col = (cellNumber) % 10;
                 const leftPercent = (col * 10) + 5;
                 const topPercent = (row * 10) + 5;
                 
@@ -3705,79 +3606,108 @@
             elements.mapGrid.innerHTML = '';
             
             const riverCells = [14, 15, 16, 17, 30, 31, 44, 45, 46, 59, 60, 61, 62, 63, 64, 65, 78, 79, 80];
-            const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92];
+            const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98];
             
-            // Создаем клетки с 0 по 100
-            for (let i = 0; i <= 100; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'map-cell hexagon';
-                cell.style.position = 'relative';
-                
-                const numberSpan = document.createElement('span');
-                numberSpan.className = 'cell-number';
-                numberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: #333; z-index: 1;';
-                
-                if (i === 0) {
-                    // Клетка 0 - Старт
-                    cell.classList.add('start-zero');
-                    cell.style.background = 'rgba(41, 128, 185, 0.9)';
-                    numberSpan.textContent = 'Старт';
-                    numberSpan.style.color = 'white';
-                    numberSpan.style.fontSize = '10px';
-                    numberSpan.style.textAlign = 'center';
-                    numberSpan.style.lineHeight = '1.2';
+            // Добавляем клетку 0 (старт) с подписью
+            const startCell = document.createElement('div');
+            startCell.className = 'map-cell hexagon start-zero';
+            startCell.style.position = 'relative';
+            startCell.style.background = 'rgba(41, 128, 185, 0.9)';
+            
+            const startNumberSpan = document.createElement('span');
+            startNumberSpan.className = 'cell-number';
+            startNumberSpan.textContent = 'Старт';
+            startNumberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: white; z-index: 1; text-align: center; line-height: 1.2;';
+            
+            startCell.appendChild(startNumberSpan);
+            elements.mapGrid.appendChild(startCell);
+            
+            // Создаем остальные клетки с 1 по 100
+            for (let row = 0; row < 10; row++) {
+                for (let col = 0; col < 10; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'map-cell hexagon';
+                    cell.style.position = 'relative';
                     
-                    if (gameState.currentPlayer && !gameState.currentPlayer.position) {
-                        gameState.currentPlayer.position = 0;
-                        updatePlayerUI();
+                    const cellNumber = row * 10 + col + 1;
+                    
+                    if (cellNumber > 100) {
+                        cell.classList.add('empty');
+                        cell.textContent = '';
+                        elements.mapGrid.appendChild(cell);
+                        continue;
                     }
-                } else if (i === 100) {
-                    // Клетка 100 - Финиш
-                    cell.classList.add('finish');
-                    cell.style.background = 'rgba(244, 67, 54, 0.9)';
-                    numberSpan.textContent = '100';
-                    numberSpan.style.color = 'white';
-                    numberSpan.style.fontSize = '10px';
-                } else if (i === 99) {
-                    // Клетка 99 - Предфиниш
-                    cell.classList.add('finish');
-                    cell.style.background = 'rgba(244, 67, 54, 0.9)';
-                    numberSpan.textContent = 'Финиш';
-                    numberSpan.style.color = 'white';
-                    numberSpan.style.fontSize = '10px';
-                    numberSpan.style.textAlign = 'center';
-                    numberSpan.style.lineHeight = '1.2';
-                } else if (riverCells.includes(i)) {
-                    cell.classList.add('river');
-                    cell.style.background = 'rgba(33, 150, 243, 0.4)';
-                    numberSpan.textContent = i;
-                    numberSpan.style.color = '#2196F3';
-                } else if (forestCells.includes(i)) {
-                    cell.classList.add('forest');
-                    cell.style.background = 'rgba(56, 142, 60, 0.4)';
-                    numberSpan.textContent = i;
-                    numberSpan.style.color = '#388E3C';
-                } else {
-                    let isCity = false;
-                    for (const cityKey in gameData.cities) {
-                        if (gameData.cities[cityKey].cells.includes(i)) {
-                            cell.classList.add('city');
-                            cell.style.background = 'rgba(255, 235, 59, 0.9)';
-                            numberSpan.textContent = i;
-                            numberSpan.style.color = '#FF9800';
-                            isCity = true;
-                            break;
+                    
+                    const numberSpan = document.createElement('span');
+                    numberSpan.className = 'cell-number';
+                    numberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: #333; z-index: 1;';
+                    
+                    // ИСПРАВЛЕНО: Убираем лишние отступы для определенных клеток
+                    if (cellNumber === 1 || cellNumber === 13 || cellNumber === 18 || cellNumber === 29 || cellNumber === 32) {
+                        numberSpan.style.top = '50%';
+                        numberSpan.style.fontSize = '10px';
+                    }
+                    
+                    if (cellNumber === 1) {
+                        cell.classList.add('start');
+                        cell.style.background = 'rgba(76, 175, 80, 0.9)';
+                        numberSpan.textContent = '1';
+                        numberSpan.style.color = 'white';
+                        numberSpan.style.fontSize = '10px';
+                        
+                        if (gameState.currentPlayer && !gameState.currentPlayer.position) {
+                            gameState.currentPlayer.position = 1;
+                            updatePlayerUI();
+                        }
+                    } else if (cellNumber === 99) {
+                        // Клетка 99 - Финиш с подписью
+                        cell.classList.add('finish');
+                        cell.style.background = 'rgba(244, 67, 54, 0.9)';
+                        numberSpan.textContent = 'Финиш';
+                        numberSpan.style.color = 'white';
+                        numberSpan.style.fontSize = '10px';
+                        numberSpan.style.textAlign = 'center';
+                        numberSpan.style.lineHeight = '1.2';
+                        numberSpan.style.top = '50%';
+                    } else if (cellNumber === 100) {
+                        cell.classList.add('finish');
+                        cell.style.background = 'rgba(244, 67, 54, 0.9)';
+                        numberSpan.textContent = '100';
+                        numberSpan.style.color = 'white';
+                        numberSpan.style.fontSize = '10px';
+                        numberSpan.style.top = '50%';
+                    } else if (riverCells.includes(cellNumber)) {
+                        cell.classList.add('river');
+                        cell.style.background = 'rgba(33, 150, 243, 0.4)';
+                        numberSpan.textContent = cellNumber;
+                        numberSpan.style.color = '#2196F3';
+                    } else if (forestCells.includes(cellNumber)) {
+                        cell.classList.add('forest');
+                        cell.style.background = 'rgba(56, 142, 60, 0.4)';
+                        numberSpan.textContent = cellNumber;
+                        numberSpan.style.color = '#388E3C';
+                    } else {
+                        let isCity = false;
+                        for (const cityKey in gameData.cities) {
+                            if (gameData.cities[cityKey].cells.includes(cellNumber)) {
+                                cell.classList.add('city');
+                                cell.style.background = 'rgba(255, 235, 59, 0.9)';
+                                numberSpan.textContent = cellNumber;
+                                numberSpan.style.color = '#FF9800';
+                                isCity = true;
+                                break;
+                            }
+                        }
+                        if (!isCity) {
+                            cell.style.background = 'rgba(255, 255, 255, 0.7)';
+                            numberSpan.textContent = cellNumber;
+                            numberSpan.style.color = '#666';
                         }
                     }
-                    if (!isCity) {
-                        cell.style.background = 'rgba(255, 255, 255, 0.7)';
-                        numberSpan.textContent = i;
-                        numberSpan.style.color = '#666';
-                    }
+                    
+                    cell.appendChild(numberSpan);
+                    elements.mapGrid.appendChild(cell);
                 }
-                
-                cell.appendChild(numberSpan);
-                elements.mapGrid.appendChild(cell);
             }
             
             updatePlayerMarkers();
@@ -3828,7 +3758,7 @@
                 playerItem.innerHTML = `
                     <span>${statusIcon} ${player.name}${turnIndicator}
                         ${playerId === gameState.currentPlayerId ? '<span style="color: var(--secondary);">(Вы)</span>' : ''}
-                        <span class="player-position-badge">поз. ${player.position || 0}</span>
+                        <span class="player-position-badge">поз. ${player.position || 1}</span>
                     </span>
                     <span><strong>${player.cleaningPoints}</strong> баллов</span>
                 `;
@@ -3912,7 +3842,7 @@
                 elements.cityProgressContainer.appendChild(progressElement);
                 
                 // Обновляем кнопку перехода
-                if (progress >= 100) {
+                if (progress >= 100 && canMoveToNextCity()) {
                     elements.moveBtn.disabled = false;
                     elements.moveBtn.textContent = "🚗 Перейти в следующий город";
                 } else {
@@ -3920,6 +3850,27 @@
                     elements.moveBtn.textContent = "Завершите очищение города";
                 }
             }
+        }
+        
+        function canMoveToNextCity() {
+            if (!gameState.currentPlayerId || !gameState.playerProgress[gameState.currentPlayerId]) {
+                return false;
+            }
+            
+            const cityKeys = Object.keys(gameData.cities);
+            const currentCityKey = gameState.currentPlayer.city;
+            const currentIndex = cityKeys.indexOf(currentCityKey);
+            
+            if (currentIndex === -1 || currentIndex >= cityKeys.length - 1) {
+                return false;
+            }
+            
+            // Проверяем, достигли ли мы нового города
+            const newCityKey = cityKeys[currentIndex + 1];
+            const newCity = gameData.cities[newCityKey];
+            
+            // Проверяем, находится ли игрок на клетке нового города
+            return newCity.cells.includes(gameState.currentPlayer.position);
         }
         
         function createCitiesGrid() {
@@ -4438,7 +4389,6 @@
             gameState.sortItems = [];
             gameState.sortBins = [];
             gameState.selectedPuzzlePieces = [];
-            gameState.spotDifferencesFound = 0;
             gameState.cleanupItems = [];
             
             // Прокручиваем к началу задания
@@ -4467,10 +4417,6 @@
                 createCleanupTask(task);
             } else if (task.type === "puzzle_click") {
                 createPuzzleClickTask(task);
-            } else if (task.type === "spot_difference") {
-                createSpotDifferenceTask(task);
-            } else if (task.type === "spot_difference_improved") {
-                createSpotDifferenceImprovedTask(task);
             } else if (task.type === "sequence_click") {
                 createSequenceClickTask(task);
             } else {
@@ -4538,18 +4484,16 @@
                 
                 allOptions.forEach(opt => {
                     opt.style.pointerEvents = 'none';
-                    if (opt === selectedOption) {
-                        if (isCorrect) {
-                            opt.classList.add('correct');
-                        } else {
-                            opt.classList.add('incorrect');
-                        }
+                    if (opt.dataset.correct === 'true') {
+                        opt.classList.add('correct');
+                    } else if (opt === selectedOption && !isCorrect) {
+                        opt.classList.add('incorrect');
                     }
                 });
                 
                 elements.taskResult.textContent = isCorrect ? 
                     '✅ Правильно! Задание выполнено.' : 
-                    '❌ Неправильно. Попробуйте еще раз.';
+                    '❌ Неправильно.';
                 elements.taskResult.style.color = isCorrect ? '#2ecc71' : '#e74c3c';
                 
                 if (isCorrect) {
@@ -4760,13 +4704,8 @@
                             itemClone.style.width = '100%';
                             itemClone.style.height = '100%';
                             itemClone.style.margin = '0';
-                            itemClone.style.padding = '0';
                             itemClone.style.borderRadius = '12px';
                             itemClone.style.cursor = 'default';
-                            itemClone.style.display = 'flex';
-                            itemClone.style.flexDirection = 'column';
-                            itemClone.style.alignItems = 'center';
-                            itemClone.style.justifyContent = 'center';
                             binContent.appendChild(itemClone);
                             
                             this.classList.add('filled');
@@ -4981,78 +4920,6 @@
             initializeSequenceClick(correctOrder);
         }
         
-        function createSpotDifferenceTask(task) {
-            // Создаем различия в случайных местах
-            const differences = [];
-            for (let i = 0; i < task.differences; i++) {
-                differences.push({
-                    id: i,
-                    left: Math.random() * 70 + 15,
-                    top: Math.random() * 60 + 20
-                });
-            }
-            
-            elements.taskArea.innerHTML = `
-                <p><strong>${task.description}</strong></p>
-                <p>Найдите ${task.differences} отличия:</p>
-                <div class="difference-container">
-                    <div class="difference-image">
-                        <div class="diff-image-content" style="font-size: 4.5rem;">${task.image1}</div>
-                    </div>
-                    <div class="difference-image">
-                        <div class="diff-image-content" style="font-size: 4.5rem;">${task.image2}</div>
-                        ${differences.map(diff => 
-                            `<div class="difference-spot" data-id="${diff.id}" style="left: ${diff.left}%; top: ${diff.top}%;"></div>`
-                        ).join('')}
-                    </div>
-                </div>
-                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">Найдено отличий: <span id="differenceCount">0</span>/${task.differences}</p>
-                <p class="spot-difference-hint">Кликайте на кружки на правой картинке, чтобы найти отличия</p>
-            `;
-            
-            initializeSpotDifference(task.differences);
-        }
-        
-        function createSpotDifferenceImprovedTask(task) {
-            // Новое улучшенное задание на поиск отличий
-            const differences = task.differences || 3;
-            
-            elements.taskArea.innerHTML = `
-                <p><strong>${task.description}</strong></p>
-                <p>Найдите ${differences} отличия на картинках природы:</p>
-                <div class="difference-container">
-                    <div class="difference-image">
-                        <div class="diff-image-content" style="font-size: 4rem; line-height: 1.2;">
-                            🌳🏞️🌼🦌🐦🌿<br>
-                            ☀️🌲💧🏠🦋🍃
-                        </div>
-                        <div class="difference-hint" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: rgba(255,255,255,0.7);">
-                            Исходное изображение
-                        </div>
-                    </div>
-                    <div class="difference-image">
-                        <div class="diff-image-content" style="font-size: 4rem; line-height: 1.2;">
-                            🌳🏞️🌸🐇🐦🌿<br>
-                            ☀️🌲💧🏠🦋🍃
-                        </div>
-                        <div class="difference-hint" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: rgba(255,255,255,0.7);">
-                            Нажмите на отличия
-                        </div>
-                        <!-- Создаем различия в определенных местах -->
-                        <div class="difference-spot" data-id="1" style="left: 35%; top: 25%;" title="🌼 → 🌸 (цветок изменился)"></div>
-                        <div class="difference-spot" data-id="2" style="left: 55%; top: 25%;" title="🦌 → 🐇 (животное изменилось)"></div>
-                        <div class="difference-spot" data-id="3" style="left: 75%; top: 60%;" title="Добавлен 🍃 (лист)"></div>
-                    </div>
-                </div>
-                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center; margin-top: 10px;">
-                    Найдено отличий: <span id="differenceCount">0</span>/${differences}<br>
-                    <small>Подсказка: ищите изменения в цветах, животных и деталях</small>
-                </p>
-            `;
-            
-            initializeSpotDifferenceImproved(differences);
-        }
-        
         function createDefaultTask(task) {
             elements.taskArea.innerHTML = `
                 <p>Задание "${task.description}"</p>
@@ -5138,74 +5005,6 @@
                     completeInteractiveTask();
                 } else {
                     elements.taskResult.textContent = `❌ Последовательность не завершена! Осталось: ${correctOrder.length - placedCount}`;
-                    elements.taskResult.style.color = '#e74c3c';
-                }
-            };
-        }
-        
-        function initializeSpotDifference(totalDifferences) {
-            const differenceSpots = elements.taskArea.querySelectorAll('.difference-spot');
-            let foundCount = 0;
-            
-            differenceSpots.forEach(spot => {
-                spot.addEventListener('click', function() {
-                    if (!this.classList.contains('found')) {
-                        this.classList.add('found');
-                        
-                        foundCount++;
-                        document.getElementById('differenceCount').textContent = foundCount;
-                        
-                        if (foundCount >= totalDifferences) {
-                            elements.checkTaskBtn.disabled = false;
-                            elements.taskResult.textContent = '✅ Отлично! Все отличия найдены!';
-                            elements.taskResult.style.color = '#2ecc71';
-                        }
-                    }
-                });
-            });
-            
-            elements.checkTaskBtn.onclick = function() {
-                if (foundCount >= totalDifferences) {
-                    completeInteractiveTask();
-                } else {
-                    elements.taskResult.textContent = `❌ Не все отличия найдены! Осталось: ${totalDifferences - foundCount}`;
-                    elements.taskResult.style.color = '#e74c3c';
-                }
-            };
-        }
-        
-        function initializeSpotDifferenceImproved(totalDifferences) {
-            const differenceSpots = elements.taskArea.querySelectorAll('.difference-spot');
-            let foundCount = 0;
-            
-            differenceSpots.forEach(spot => {
-                spot.addEventListener('click', function() {
-                    if (!this.classList.contains('found')) {
-                        this.classList.add('found');
-                        
-                        foundCount++;
-                        document.getElementById('differenceCount').textContent = foundCount;
-                        
-                        // Показываем подсказку о найденном отличии
-                        const title = this.getAttribute('title');
-                        if (title) {
-                            showNotification(`Найдено отличие: ${title}`, 'success');
-                        }
-                        
-                        if (foundCount >= totalDifferences) {
-                            elements.checkTaskBtn.disabled = false;
-                            elements.taskResult.textContent = '✅ Отлично! Все отличия найдены!';
-                            elements.taskResult.style.color = '#2ecc71';
-                        }
-                    }
-                });
-            });
-            
-            elements.checkTaskBtn.onclick = function() {
-                if (foundCount >= totalDifferences) {
-                    completeInteractiveTask();
-                } else {
-                    elements.taskResult.textContent = `❌ Не все отличия найдены! Осталось: ${totalDifferences - foundCount}`;
                     elements.taskResult.style.color = '#e74c3c';
                 }
             };
@@ -5317,6 +5116,36 @@
             }, 500);
         }
         
+        function moveToNextCity() {
+            const cityKeys = Object.keys(gameData.cities);
+            const currentCityKey = gameState.currentPlayer.city;
+            const currentIndex = cityKeys.indexOf(currentCityKey);
+            
+            if (currentIndex === -1 || currentIndex >= cityKeys.length - 1) {
+                showNotification('Вы уже в последнем городе!', 'warning');
+                return;
+            }
+            
+            const nextCityKey = cityKeys[currentIndex + 1];
+            const nextCity = gameData.cities[nextCityKey];
+            
+            // Проверяем, достигли ли мы нового города
+            if (!nextCity.cells.includes(gameState.currentPlayer.position)) {
+                showNotification('Вы не достигли нового города!', 'warning');
+                return;
+            }
+            
+            // Проверяем прогресс текущего города
+            const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[currentCityKey] || 0;
+            if (currentProgress < 100) {
+                showNotification('Для перехода в следующий город необходимо завершить текущий на 100%!', 'warning');
+                return;
+            }
+            
+            // Перемещаем игрока
+            moveToExistingCity(nextCityKey);
+        }
+        
         // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
         elements.gameInfo.addEventListener('click', function(e) {
             if (e.target.tagName === 'H3' || e.target.classList.contains('toggle-icon')) {
@@ -5399,7 +5228,12 @@
             }
         });
         
-        // ИСПРАВЛЕНО: Проблема с броском кубика
+        // Кнопка "Перейти в следующий город"
+        elements.moveBtn.addEventListener('click', () => {
+            moveToNextCity();
+        });
+        
+        // ИСПРАВЛЕНО: Проблема с броском кубика - убрана проверка hasCurrentTask
         elements.rollDiceBtn.addEventListener('click', () => {
             if (gameState.gameOver || gameState.taskInProgress) return;
             
@@ -5408,11 +5242,8 @@
                 return;
             }
             
-            // Блокируем кнопку броска кубика при выполнении задания
-            if (hasCurrentTask) {
-                showNotification('Сначала выполните текущее задание!', 'warning');
-                return;
-            }
+            // ИСПРАВЛЕНИЕ: Убрана проверка hasCurrentTask, чтобы можно было бросить кубик
+            // даже если есть текущее задание (оно будет заменено новым)
             
             elements.diceValue.classList.add('rolling');
             elements.diceValue.querySelector('.dice-value').textContent = '?';
@@ -5534,14 +5365,7 @@
             sendPlayerPositionToServer(gameState.currentPlayer.position, cityKey);
             
             // Проверяем прогресс для кнопки перехода
-            const progress = gameState.playerProgress[gameState.currentPlayerId]?.[cityKey] || 0;
-            if (progress >= 100) {
-                elements.moveBtn.disabled = false;
-                elements.moveBtn.textContent = "🚗 Перейти в следующий город";
-            } else {
-                elements.moveBtn.disabled = true;
-                elements.moveBtn.textContent = "Завершите очищение города";
-            }
+            createCurrentCityProgress();
             
             savePlayerState();
             showNotification(`🏙️ Вы прибыли в ${gameData.cities[cityKey].name}!`, 'success');
@@ -5583,53 +5407,39 @@
                 
                 elements.difficultyBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
                 gameState.currentDifficulty = btn.id.replace('Btn', '');
                 
-                // Если есть текущее задание, обновляем его на новую сложность
-                if (gameState.currentTask && hasCurrentTask) {
-                    const randomTask = getRandomTask(gameState.currentDifficulty);
-                    gameState.currentTask = randomTask;
-                    elements.taskDescription.textContent = randomTask.description;
-                    showNotification(`Сложность изменена на ${gameState.currentDifficulty}!`, 'success');
-                }
+                addLogEntry(`⚙️ Сложность заданий изменена на: ${gameState.currentDifficulty}`);
             });
         });
         
-        // Кнопка проверки задания
-        elements.checkTaskBtn.addEventListener('click', () => {
-            // Вызывается внутри каждого типа задания
-        });
+        elements.cityModalCloseBtn.addEventListener('click', closeCityModal);
         
-        // Кнопка повторной попытки
-        elements.retryTaskBtn.addEventListener('click', () => {
-            // Вызывается внутри каждого типа задания
-        });
-        
-        // Кнопка приглашения друзей
-        elements.inviteBtn.addEventListener('click', () => {
-            const roomId = gameState.roomId || currentRoomId;
-            const url = window.location.origin;
-            const message = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n🔢 Номер комнаты: ${roomId}\n🌐 Игра доступна по адресу: ${url}\n👥 Ждем вас!`;
+        elements.stayBtn.addEventListener('click', () => {
+            closeChoiceModal();
             
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Приглашение в игру "Юный эколог"',
-                    text: message,
-                    url: url
-                }).catch(() => {
-                    navigator.clipboard.writeText(message).then(() => {
-                        showNotification('✅ Приглашение скопировано в буфер обмена!', 'success');
-                    });
-                });
-            } else {
-                navigator.clipboard.writeText(message).then(() => {
-                    showNotification('✅ Приглашение скопировано в буфер обмена!', 'success');
-                });
+            const currentCityKey = gameState.currentPlayer.city;
+            const city = gameData.cities[currentCityKey];
+            gameState.currentPlayer.position = city.cells[0];
+            
+            updatePlayerUI();
+            updatePlayerMarkers();
+            
+            sendPlayerPositionToServer(gameState.currentPlayer.position, currentCityKey);
+            savePlayerState();
+            
+            showNotification(`🔙 Вы вернулись в начало города ${city.name}!`, 'success');
+            addLogEntry(`🔙 Вы вернулись в начало города ${city.name}`);
+        });
+        
+        elements.moveForwardBtn.addEventListener('click', () => {
+            closeChoiceModal();
+            
+            if (gameState.nextCity) {
+                moveToCity(gameState.nextCity);
             }
         });
         
-        // Кнопка отправки сообщения
         elements.sendMessageBtn.addEventListener('click', () => {
             const message = elements.chatInput.value.trim();
             if (message && gameState.currentPlayer) {
@@ -5639,155 +5449,61 @@
         });
         
         elements.chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                elements.sendMessageBtn.click();
+            if (e.key === 'Enter' && gameState.currentPlayer) {
+                const message = elements.chatInput.value.trim();
+                if (message) {
+                    sendChatMessage(message);
+                    elements.chatInput.value = '';
+                }
             }
         });
         
-        // Кнопка закрытия модального окна города
-        elements.cityModalCloseBtn.addEventListener('click', () => {
-            closeCityModal();
+        elements.inviteBtn.addEventListener('click', () => {
+            const roomLink = `${window.location.origin}?room=${currentRoomId || gameState.roomId}`;
+            navigator.clipboard.writeText(roomLink)
+                .then(() => {
+                    showNotification('Ссылка на комнату скопирована в буфер обмена!', 'success');
+                    addLogEntry('📋 Ссылка на комнату скопирована в буфер обмена');
+                })
+                .catch(() => {
+                    showNotification(`Ссылка на комнату: ${roomLink}`, 'info');
+                });
         });
         
-        // Кнопка "Остаться" в окне выбора
-        elements.stayBtn.addEventListener('click', () => {
-            closeChoiceModal();
-            
-            // Возвращаем игрока в начало текущего города
-            const currentCity = gameData.cities[gameState.currentPlayer.city];
-            if (currentCity) {
-                gameState.currentPlayer.position = currentCity.cells[0];
-                updatePlayerUI();
-                updatePlayerMarkers();
-                sendPlayerPositionToServer(gameState.currentPlayer.position, gameState.currentPlayer.city);
-                showNotification(`🚗 Вы вернулись в начало ${currentCity.name}!`, 'success');
-                addLogEntry(`🚗 Вы вернулись в начало ${currentCity.name}`);
-            }
-        });
-        
-        // Кнопка "Перейти вперед" в окне выбора
-        elements.moveForwardBtn.addEventListener('click', () => {
-            closeChoiceModal();
-            
-            if (gameState.nextCity) {
-                moveToCity(gameState.nextCity);
-            }
-        });
-        
-        // Кнопка "Покинуть комнату"
         elements.leaveRoomBtn.addEventListener('click', () => {
             if (confirm('Вы уверены, что хотите покинуть комнату?')) {
-                // Отправляем серверу, что игрок намеренно покинул комнату
                 socket.emit('player-left');
-                
-                // Сбрасываем состояние
-                gameState = {
-                    currentPlayer: null,
-                    currentPlayerId: null,
-                    players: {},
-                    roomId: null,
-                    cityProgress: {},
-                    currentTask: null,
-                    currentDifficulty: "easy",
-                    gameOver: false,
-                    usedTasks: { easy: [], medium: [], hard: [] },
-                    nextCity: null,
-                    askedForChoice: {},
-                    taskInProgress: false,
-                    dragItems: [],
-                    dropZones: [],
-                    sortItems: [],
-                    sortBins: [],
-                    selectedPuzzlePieces: [],
-                    spotDifferencesFound: 0,
-                    cleanupItems: [],
-                    reconnected: false,
-                    playerProgress: {},
-                    currentTurn: null,
-                    turnOrder: [],
-                    isMyTurn: false
-                };
-                
-                hasCurrentTask = false;
-                
-                // Показываем форму авторизации
-                elements.gameContent.style.display = 'none';
                 elements.authSection.style.display = 'block';
+                elements.gameContent.style.display = 'none';
                 elements.resourcesPlaceholder.style.display = 'none';
                 quickActionsBtn.classList.remove('show');
-                
-                // Очищаем чат
-                elements.chatMessages.innerHTML = '<div class="chat-message"><span class="chat-sender">Система:</span> <span class="chat-text">Добро пожаловать в чат! Здесь видны только сообщения игроков.</span></div>';
-                
                 showNotification('Вы покинули комнату', 'info');
             }
         });
         
-        // Обновляем состояние кнопки броска кубика при начале выполнения задания
-        function updateDiceButtonState() {
-            if (hasCurrentTask || gameState.taskInProgress) {
-                elements.rollDiceBtn.disabled = true;
-            } else if (gameState.isMyTurn && !gameState.gameOver) {
-                elements.rollDiceBtn.disabled = false;
+        // Закрытие модальных окон при клике вне их
+        window.addEventListener('click', (e) => {
+            if (e.target === elements.cityModal) {
+                closeCityModal();
             }
-        }
+            if (e.target === elements.choiceModal) {
+                closeChoiceModal();
+            }
+        });
         
-        // Периодически обновляем состояние кнопки
-        setInterval(updateDiceButtonState, 1000);
-        
-        // Запускаем обновление состояния кнопки
-        updateDiceButtonState();
+        // Запуск игры
+        console.log('🎮 Игра "Юный эколог" успешно загружена и готова к использованию!');
         
         // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Страница загружена');
-            
-            // Показываем статус подключения
-            updateConnectionStatus('connecting', 'Подключение к серверу...');
-        });
+        updateConnectionStatus('connecting', 'Подключение к серверу...');
         
-        // Обработчик для кнопки выбора сложности
-        elements.easyBtn.addEventListener('click', () => {
-            gameState.currentDifficulty = 'easy';
-            elements.easyBtn.classList.add('active');
-            elements.mediumBtn.classList.remove('active');
-            elements.hardBtn.classList.remove('active');
-            showNotification('Сложность изменена на легкую', 'info');
-        });
-        
-        elements.mediumBtn.addEventListener('click', () => {
-            if (!elements.mediumBtn.classList.contains('locked')) {
-                gameState.currentDifficulty = 'medium';
-                elements.easyBtn.classList.remove('active');
-                elements.mediumBtn.classList.add('active');
-                elements.hardBtn.classList.remove('active');
-                showNotification('Сложность изменена на среднюю', 'info');
+        // Автоматический фокус на поле ввода имени
+        setTimeout(() => {
+            const loginUsername = document.getElementById('loginUsername');
+            if (loginUsername) {
+                loginUsername.focus();
             }
-        });
-        
-        elements.hardBtn.addEventListener('click', () => {
-            if (!elements.hardBtn.classList.contains('locked')) {
-                gameState.currentDifficulty = 'hard';
-                elements.easyBtn.classList.remove('active');
-                elements.mediumBtn.classList.remove('active');
-                elements.hardBtn.classList.add('active');
-                showNotification('Сложность изменена на сложную', 'info');
-            }
-        });
-        
-        // Автоматическое обновление статуса подключения
-        setInterval(() => {
-            if (!isConnected) {
-                updateConnectionStatus('error', 'Нет подключения');
-            }
-        }, 5000);
-        
-        // Периодический пинг серверу
-        setInterval(() => {
-            if (isConnected && socket.connected) {
-                socket.emit('ping', { clientTime: Date.now() });
-            }
-        }, 30000);
+        }, 500);
     </script>
 </body>
 </html>
