@@ -1267,12 +1267,12 @@
             line-height: 1.4;
         }
         
-        /* Прогресс уровня - ИСПРАВЛЕНО: укорочена шкала и выровнена по центру */
+        /* Прогресс уровня - ИСПРАВЛЕНО: центрирование шкалы */
         .level-progress-container {
             margin-top: 5px;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: center;
             gap: 10px;
             width: 100%;
         }
@@ -1284,6 +1284,7 @@
             overflow: hidden;
             flex-grow: 1;
             max-width: 150px;
+            margin: 0 auto;
         }
         
         .level-progress-fill {
@@ -2320,6 +2321,27 @@
             border-radius: 20px;
             font-size: 0.9rem;
         }
+        
+        /* Стиль для кнопки приглашения */
+        .invite-link-box {
+            background: rgba(46, 204, 113, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border: 2px solid rgba(46, 204, 113, 0.5);
+        }
+        
+        .room-number-bold {
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -2938,8 +2960,9 @@
                         description: "Посадите 3 дерева в парке 🌳",
                         type: "drag_click",
                         goal: 3,
-                        items: ["🌳", "🌳", "🌳", "🌳", "🌳"],
-                        zones: 3
+                        items: ["🌲", "🌲", "🌲", "🌳", "🌳"],
+                        zones: 3,
+                        correctItems: ["🌲", "🌲", "🌲"]
                     },
                     {
                         description: "Сортируйте мусор по контейнерам 🗑️",
@@ -3001,16 +3024,16 @@
                         ]
                     },
                     {
-                        description: "Соберите простой пазл 🧩",
-                        type: "puzzle_click",
+                        description: "Соберите простой экологический пазл 🌍",
+                        type: "puzzle_image",
                         pieces: 4,
-                        image: "🌍♻️🌳💧"
+                        imageType: "ecology"
                     },
                     {
-                        description: "Найдите одинаковые экологические символы 🎯",
+                        description: "Найдите парные экологические символы 🎯",
                         type: "match_game",
                         pairs: 4,
-                        symbols: ["🌍", "♻️", "🌳", "💧", "🌱", "🌞", "🌀", "🦋"]
+                        symbols: ["🌍", "♻️", "🌳", "💧", "🐦", "🐝", "🦋", "🐠"]
                     }
                 ],
                 medium: [
@@ -3033,16 +3056,17 @@
                     },
                     {
                         description: "Соберите пазл из экологических символов 🧩",
-                        type: "puzzle_click",
+                        type: "puzzle_image",
                         pieces: 6,
-                        image: "🌍♻️🌳💧🌞🌱"
+                        imageType: "animals"
                     },
                     {
                         description: "Посадите лес из 6 деревьев 🌲",
                         type: "drag_click",
                         goal: 6,
                         items: ["🌲", "🌲", "🌲", "🌲", "🌲", "🌲", "🌳", "🌳"],
-                        zones: 6
+                        zones: 6,
+                        correctItems: ["🌲", "🌲", "🌲", "🌲", "🌲", "🌲"]
                     },
                     {
                         description: "Сортируйте опасные отходы ⚠️",
@@ -3081,7 +3105,7 @@
                         description: "Найдите парные экологические символы 🎯",
                         type: "match_game",
                         pairs: 6,
-                        symbols: ["🌍", "♻️", "🌳", "💧", "🌱", "🌞", "🌀", "🦋", "🐝", "🐞", "🦔", "🐠"]
+                        symbols: ["🌍", "♻️", "🌳", "💧", "🐦", "🐝", "🦋", "🐠", "🐻", "🦊", "🐸", "🦉"]
                     }
                 ],
                 hard: [
@@ -3104,9 +3128,9 @@
                     },
                     {
                         description: "Соберите сложный экологический пазл 🧩",
-                        type: "puzzle_click",
+                        type: "puzzle_image",
                         pieces: 9,
-                        image: "🌍♻️🌳💧🌞🌱🌀🌊🦋"
+                        imageType: "nature"
                     },
                     {
                         description: "Что такое возобновляемая энергия? ⚡",
@@ -3130,7 +3154,8 @@
                         type: "drag_click",
                         goal: 8,
                         items: ["🌱", "🌳", "💧", "☀️", "🦋", "🐝", "🐞", "🦔", "🌼", "🍄"],
-                        zones: 8
+                        zones: 8,
+                        correctItems: ["🌱", "🌳", "💧", "☀️", "🦋", "🐝", "🐞", "🦔"]
                     },
                     {
                         description: "Расставьте стадии переработки ♻️",
@@ -3150,10 +3175,10 @@
                         ]
                     },
                     {
-                        description: "Найдите все пары экологических символов 🎯",
+                        description: "Найдите все пары животных 🎯",
                         type: "match_game",
                         pairs: 8,
-                        symbols: ["🌍", "♻️", "🌳", "💧", "🌱", "🌞", "🌀", "🌊", "🦋", "🐝", "🐞", "🦔", "🐠", "🐟", "🐢", "🦉"]
+                        symbols: ["🐻", "🦊", "🐰", "🦉", "🐸", "🐢", "🦋", "🐝", "🐞", "🦔", "🐿️", "🦡", "🦅", "🦆", "🦩", "🦜"]
                     }
                 ]
             },
@@ -3857,6 +3882,13 @@
                         cell.style.background = 'rgba(255, 235, 59, 0.9)';
                         numberSpan.textContent = '1';
                         numberSpan.style.color = '#FF9800';
+                        numberSpan.style.fontSize = '10px';
+                    } else if (cellNumber === 13) {
+                        // ИСПРАВЛЕНО: Клетка 13 теперь зеленая (лес)
+                        cell.classList.add('forest');
+                        cell.style.background = 'rgba(56, 142, 60, 0.4)';
+                        numberSpan.textContent = '13';
+                        numberSpan.style.color = '#388E3C';
                         numberSpan.style.fontSize = '10px';
                     } else if (cellNumber === 99) {
                         // Клетка 99 - Финиш с подписью
@@ -4649,6 +4681,8 @@
                 createCleanupTask(task);
             } else if (task.type === "puzzle_click") {
                 createPuzzleClickTask(task);
+            } else if (task.type === "puzzle_image") {
+                createPuzzleImageTask(task);
             } else if (task.type === "sequence_click") {
                 createSequenceClickTask(task);
             } else if (task.type === "match_game") {
@@ -4768,11 +4802,11 @@
         function createDragClickTask(task) {
             elements.taskArea.innerHTML = `
                 <p><strong>${task.description}</strong></p>
-                <p>Нажмите на ${task.goal} предметов, затем нажмите на зоны для их размещения:</p>
+                <p>Нажмите на ${task.goal} правильных предметов, затем нажмите на зоны для их размещения:</p>
                 <div class="drag-container">
                     <div class="task-container" id="dragItemsContainer">
                         ${task.items.map((item, index) => 
-                            `<div class="draggable-item" data-index="${index}" data-emoji="${item}">
+                            `<div class="draggable-item" data-index="${index}" data-emoji="${item}" data-correct="${task.correctItems ? task.correctItems.includes(item) : true}">
                                 ${item}
                             </div>`
                         ).join('')}
@@ -4786,17 +4820,19 @@
                         ).join('')}
                     </div>
                 </div>
-                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Перетащено: <span id="dragCount">0</span>/${task.goal}</p>
+                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Правильно размещено: <span id="dragCount">0</span>/${task.goal}</p>
+                <p class="spot-difference-hint">Нужно разместить только правильные предметы: ${task.correctItems ? task.correctItems.join(' ') : 'все предметы'}</p>
             `;
             
-            initializeDragClickTask(task.goal);
+            initializeDragClickTask(task);
         }
         
-        function initializeDragClickTask(goal) {
+        function initializeDragClickTask(task) {
             const draggables = elements.taskArea.querySelectorAll('.draggable-item');
             const dropZones = elements.taskArea.querySelectorAll('.drop-zone');
             let selectedItem = null;
             let placedCount = 0;
+            let correctPlacedCount = 0;
             
             draggables.forEach(item => {
                 item.addEventListener('click', function() {
@@ -4823,9 +4859,11 @@
                         
                         // Размещаем предмет
                         const emoji = selectedItem.dataset.emoji;
+                        const isCorrect = selectedItem.dataset.correct === 'true';
                         this.innerHTML = `<div style="font-size: 2.2rem;">${emoji}</div>`;
                         this.classList.add('filled');
                         this.classList.remove('hover');
+                        this.dataset.correct = isCorrect;
                         
                         selectedItem.classList.remove('selected');
                         selectedItem.classList.add('placed');
@@ -4834,24 +4872,38 @@
                         selectedItem = null;
                         
                         placedCount++;
-                        document.getElementById('dragCount').textContent = placedCount;
+                        if (isCorrect) {
+                            correctPlacedCount++;
+                        }
+                        document.getElementById('dragCount').textContent = correctPlacedCount;
                         
-                        if (placedCount >= goal) {
+                        if (placedCount >= task.goal) {
                             elements.checkTaskBtn.disabled = false;
-                            elements.taskResult.textContent = '✅ Отлично! Все предметы размещены!';
-                            elements.taskResult.style.color = '#2ecc71';
+                            if (correctPlacedCount >= task.goal) {
+                                elements.taskResult.textContent = '✅ Отлично! Все правильные предметы размещены!';
+                                elements.taskResult.style.color = '#2ecc71';
+                            } else {
+                                elements.taskResult.textContent = `❌ Размещены не все правильные предметы! Правильных: ${correctPlacedCount}/${task.goal}`;
+                                elements.taskResult.style.color = '#e74c3c';
+                            }
                         }
                     }
                 });
             });
             
             elements.checkTaskBtn.onclick = function() {
-                if (placedCount >= goal) {
+                if (correctPlacedCount >= task.goal) {
                     completeInteractiveTask();
                 } else {
-                    elements.taskResult.textContent = `❌ Не все предметы размещены! Осталось: ${goal - placedCount}`;
+                    elements.taskResult.textContent = `❌ Не все правильные предметы размещены! Правильных: ${correctPlacedCount}/${task.goal}`;
                     elements.taskResult.style.color = '#e74c3c';
+                    elements.retryTaskBtn.style.display = 'block';
                 }
+            };
+            
+            elements.retryTaskBtn.onclick = function() {
+                // Сбрасываем задание
+                createDragClickTask(task);
             };
         }
         
@@ -4895,16 +4947,18 @@
                     </div>
                 </div>
                 <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Отсортировано: <span id="sortCount">0</span>/${task.items.length}</p>
+                <p class="spot-difference-hint">Сортируйте предметы в соответствующие контейнеры</p>
             `;
             
-            initializeSortClickTask(task.items.length);
+            initializeSortClickTask(task);
         }
         
-        function initializeSortClickTask(totalItems) {
+        function initializeSortClickTask(task) {
             const sortItems = elements.taskArea.querySelectorAll('.sort-item');
             const sortBins = elements.taskArea.querySelectorAll('.sort-bin');
             let selectedItem = null;
             let sortedCount = 0;
+            let errorShown = false;
             
             sortItems.forEach(item => {
                 item.addEventListener('click', function() {
@@ -4926,17 +4980,17 @@
             
             sortBins.forEach(bin => {
                 bin.addEventListener('click', function() {
-                    if (selectedItem && this.classList.contains('hover')) {
+                    if (selectedItem) {
                         const itemType = selectedItem.dataset.type;
                         const binType = this.dataset.type;
                         
+                        // Убираем подсветку со всех контейнеров
+                        sortBins.forEach(b => b.classList.remove('hover'));
+                        
                         if (itemType === binType) {
-                            // Убираем подсветку
-                            sortBins.forEach(b => b.classList.remove('hover'));
-                            
-                            // Размещаем предмет - ИСПРАВЛЕНО: полностью заполняем контейнер
+                            // Правильный выбор
                             const binContent = this.querySelector('.sort-bin-content');
-                            binContent.innerHTML = ''; // Очищаем перед добавлением
+                            binContent.innerHTML = '';
                             
                             const itemClone = selectedItem.cloneNode(true);
                             itemClone.classList.add('placed');
@@ -4959,11 +5013,27 @@
                             
                             sortedCount++;
                             document.getElementById('sortCount').textContent = sortedCount;
+                            errorShown = false;
                             
-                            if (sortedCount >= totalItems) {
+                            if (sortedCount >= task.items.length) {
                                 elements.checkTaskBtn.disabled = false;
-                                elements.taskResult.textContent = '✅ Отлично! Весь мусор отсортирован!';
+                                elements.taskResult.textContent = '✅ Отлично! Весь мусор отсортирован правильно!';
                                 elements.taskResult.style.color = '#2ecc71';
+                            }
+                        } else {
+                            // Неправильный выбор - показываем уведомление
+                            if (!errorShown) {
+                                showNotification('❌ Неправильный контейнер! Попробуйте другой.', 'warning');
+                                errorShown = true;
+                                
+                                // Сбрасываем выбор через 1 секунду
+                                setTimeout(() => {
+                                    if (selectedItem) {
+                                        selectedItem.classList.remove('selected');
+                                        selectedItem = null;
+                                    }
+                                    errorShown = false;
+                                }, 1000);
                             }
                         }
                     }
@@ -4971,12 +5041,18 @@
             });
             
             elements.checkTaskBtn.onclick = function() {
-                if (sortedCount >= totalItems) {
+                if (sortedCount >= task.items.length) {
                     completeInteractiveTask();
                 } else {
-                    elements.taskResult.textContent = `❌ Не весь мусор отсортирован! Осталось: ${totalItems - sortedCount}`;
+                    elements.taskResult.textContent = `❌ Не весь мусор отсортирован! Осталось: ${task.items.length - sortedCount}`;
                     elements.taskResult.style.color = '#e74c3c';
+                    elements.retryTaskBtn.style.display = 'block';
                 }
+            };
+            
+            elements.retryTaskBtn.onclick = function() {
+                // Сбрасываем задание
+                createSortClickTask(task);
             };
         }
         
@@ -4996,13 +5072,13 @@
                 <p class="spot-difference-hint">Найдите и кликните на весь мусор (🗑️)</p>
             `;
             
-            initializeCleanup(task.goal);
+            initializeCleanup(task);
         }
         
-        function initializeCleanup(goal) {
+        function initializeCleanup(task) {
             const cleanupItems = elements.taskArea.querySelectorAll('.cleanup-item');
             let cleanedCount = 0;
-            const totalTrash = goal;
+            const totalTrash = task.goal;
             
             cleanupItems.forEach(item => {
                 item.addEventListener('click', function() {
@@ -5017,6 +5093,8 @@
                             elements.taskResult.textContent = '✅ Отлично! Очистка завершена!';
                             elements.taskResult.style.color = '#2ecc71';
                         }
+                    } else if (this.dataset.trash === "false") {
+                        showNotification('Это не мусор! Кликайте только на мусор (🗑️)', 'warning');
                     }
                 });
             });
@@ -5027,48 +5105,75 @@
                 } else {
                     elements.taskResult.textContent = `❌ Не весь мусор очищен! Осталось: ${totalTrash - cleanedCount}`;
                     elements.taskResult.style.color = '#e74c3c';
+                    elements.retryTaskBtn.style.display = 'block';
                 }
+            };
+            
+            elements.retryTaskBtn.onclick = function() {
+                // Сбрасываем задание
+                createCleanupTask(task);
             };
         }
         
         function createPuzzleClickTask(task) {
-            const pieces = task.image.split('');
-            const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
+            // Устаревший тип задания - заменяем на puzzle_image
+            task.type = "puzzle_image";
+            task.imageType = "ecology";
+            createPuzzleImageTask(task);
+        }
+        
+        function createPuzzleImageTask(task) {
+            // Определяем изображение в зависимости от типа
+            let imagePieces = [];
             
-            // Проверяем, что все эмодзи корректны
-            const validPieces = shuffledPieces.filter(piece => piece && piece.trim() !== '');
+            switch(task.imageType) {
+                case "ecology":
+                    imagePieces = ["🌍", "♻️", "🌳", "💧", "🌱", "🌞", "🌀", "🌊", "🦋"];
+                    break;
+                case "animals":
+                    imagePieces = ["🐻", "🦊", "🐰", "🦉", "🐸", "🐢", "🦋", "🐝", "🐞"];
+                    break;
+                case "nature":
+                    imagePieces = ["🏔️", "🌲", "🌊", "☀️", "🌙", "⭐", "🌺", "🍄", "🪨"];
+                    break;
+                default:
+                    imagePieces = ["🌍", "♻️", "🌳", "💧", "🌱", "🌞", "🌀", "🌊", "🦋"];
+            }
+            
+            // Берем нужное количество кусочков
+            const pieces = imagePieces.slice(0, task.pieces);
+            const shuffledPieces = shuffleArray([...pieces]);
             
             elements.taskArea.innerHTML = `
                 <p><strong>${task.description}</strong></p>
-                <p>Нажмите на пазл, затем на слот для его размещения:</p>
+                <p>Нажмите на кусочек пазла, затем на слот для его размещения:</p>
                 <div class="puzzle-image-container">
-                    <div style="font-size: 3.5rem; margin: 10px;">${task.image}</div>
+                    <div style="font-size: 3rem; margin: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
+                        ${pieces.map(piece => `<span style="font-size: 2.5rem;">${piece}</span>`).join('')}
+                    </div>
                 </div>
                 <div class="puzzle-area">
                     <p>Соберите пазл в правильном порядке:</p>
                     <div class="task-container" id="puzzleTarget">
                         ${pieces.map((piece, index) => {
-                            // Проверяем, что эмодзи корректный
-                            const displayPiece = piece && piece.trim() !== '' ? piece : '❓';
                             return `<div class="puzzle-target-slot" data-index="${index}" data-expected="${piece}"></div>`;
                         }).join('')}
                     </div>
                     <p>Кусочки пазла:</p>
                     <div class="task-container" id="puzzlePieces">
-                        ${validPieces.map((piece, index) => {
-                            // Проверяем, что эмодзи корректный
-                            const displayPiece = piece && piece.trim() !== '' ? piece : '❓';
-                            return `<div class="puzzle-piece" data-piece="${piece}">${displayPiece}</div>`;
+                        ${shuffledPieces.map((piece, index) => {
+                            return `<div class="puzzle-piece" data-piece="${piece}">${piece}</div>`;
                         }).join('')}
                     </div>
                 </div>
                 <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Собрано: <span id="puzzleCount">0</span>/${pieces.length}</p>
+                <p class="spot-difference-hint">Соберите пазл в правильном порядке</p>
             `;
             
-            initializePuzzleClick(pieces);
+            initializePuzzleImage(pieces);
         }
         
-        function initializePuzzleClick(correctPieces) {
+        function initializePuzzleImage(correctPieces) {
             const puzzlePieces = elements.taskArea.querySelectorAll('.puzzle-piece');
             const puzzleSlots = elements.taskArea.querySelectorAll('.puzzle-target-slot');
             let selectedPiece = null;
@@ -5102,8 +5207,7 @@
                             puzzleSlots.forEach(s => s.classList.remove('hover'));
                             
                             // Размещаем пазл
-                            const displayEmoji = pieceEmoji && pieceEmoji.trim() !== '' ? pieceEmoji : '❓';
-                            this.innerHTML = `<div style="font-size: 2.2rem;">${displayEmoji}</div>`;
+                            this.innerHTML = `<div style="font-size: 2.2rem;">${pieceEmoji}</div>`;
                             this.classList.add('filled');
                             this.classList.remove('hover');
                             
@@ -5139,6 +5243,15 @@
                 } else {
                     elements.taskResult.textContent = `❌ Пазл не собран! Осталось: ${correctPieces.length - placedCount}`;
                     elements.taskResult.style.color = '#e74c3c';
+                    elements.retryTaskBtn.style.display = 'block';
+                }
+            };
+            
+            elements.retryTaskBtn.onclick = function() {
+                // Нужно получить оригинальный task
+                const originalTask = gameState.currentTask;
+                if (originalTask) {
+                    createPuzzleImageTask(originalTask);
                 }
             };
         }
@@ -5146,7 +5259,7 @@
         function createSequenceClickTask(task) {
             const items = task.sequence || task.items;
             const correctOrder = task.correctOrder || items;
-            const shuffledItems = [...items].sort(() => Math.random() - 0.5);
+            const shuffledItems = shuffleArray([...items]);
             
             elements.taskArea.innerHTML = `
                 <p><strong>${task.description}</strong></p>
@@ -5166,21 +5279,22 @@
                     </div>
                 </div>
                 <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Правильно размещено: <span id="sequenceCount">0</span>/${correctOrder.length}</p>
+                <p class="spot-difference-hint">Разместите элементы в правильном порядке</p>
             `;
             
             initializeSequenceClick(correctOrder);
         }
         
         function createMatchGameTask(task) {
-            const symbols = task.symbols || ['🌍', '♻️', '🌳', '💧', '🌱', '🌞', '🌀', '🦋'];
-            const pairs = task.pairs || 4;
+            const symbols = task.symbols;
+            const pairs = task.pairs;
             
             // Создаем пары символов
             let cards = [];
             for (let i = 0; i < pairs; i++) {
                 const symbol = symbols[i % symbols.length];
-                cards.push(symbol);
-                cards.push(symbol);
+                cards.push({symbol: symbol, id: i});
+                cards.push({symbol: symbol, id: i});
             }
             
             // Перемешиваем карточки
@@ -5188,24 +5302,25 @@
             
             elements.taskArea.innerHTML = `
                 <p><strong>${task.description}</strong></p>
-                <p>Найдите все пары одинаковых экологических символов:</p>
+                <p>Найдите все пары одинаковых символов:</p>
                 <div class="match-grid">
-                    ${cards.map((symbol, index) => 
-                        `<div class="match-card" data-index="${index}" data-symbol="${symbol}">
-                            <div class="card-back">❓</div>
-                            <div class="card-content">${symbol}</div>
+                    ${cards.map((card, index) => 
+                        `<div class="match-card" data-index="${index}" data-symbol="${card.symbol}" data-id="${card.id}">
+                            <div class="card-back">?</div>
+                            <div class="card-content">${card.symbol}</div>
                         </div>`
                     ).join('')}
                 </div>
                 <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center; margin-top: 10px;">
                     Найдено пар: <span id="matchCount">0</span>/${pairs}
                 </p>
+                <p class="spot-difference-hint">Найдите все пары одинаковых символов</p>
             `;
             
-            initializeMatchGame(pairs);
+            initializeMatchGame(task);
         }
         
-        function initializeMatchGame(totalPairs) {
+        function initializeMatchGame(task) {
             const cards = elements.taskArea.querySelectorAll('.match-card');
             gameState.matchGameState.cards = cards;
             gameState.matchGameState.matchedPairs = 0;
@@ -5230,7 +5345,7 @@
                         const card1 = gameState.matchGameState.flippedCards[0];
                         const card2 = gameState.matchGameState.flippedCards[1];
                         
-                        if (card1.dataset.symbol === card2.dataset.symbol) {
+                        if (card1.dataset.id === card2.dataset.id) {
                             // Найдена пара
                             setTimeout(() => {
                                 card1.classList.add('matched');
@@ -5241,7 +5356,7 @@
                                 gameState.matchGameState.matchedPairs++;
                                 document.getElementById('matchCount').textContent = gameState.matchGameState.matchedPairs;
                                 
-                                if (gameState.matchGameState.matchedPairs >= totalPairs) {
+                                if (gameState.matchGameState.matchedPairs >= task.pairs) {
                                     elements.checkTaskBtn.disabled = false;
                                     elements.taskResult.textContent = '✅ Отлично! Все пары найдены!';
                                     elements.taskResult.style.color = '#2ecc71';
@@ -5261,12 +5376,26 @@
             });
             
             elements.checkTaskBtn.onclick = function() {
-                if (gameState.matchGameState.matchedPairs >= totalPairs) {
+                if (gameState.matchGameState.matchedPairs >= task.pairs) {
                     completeInteractiveTask();
                 } else {
-                    elements.taskResult.textContent = `❌ Не все пары найдены! Осталось: ${totalPairs - gameState.matchGameState.matchedPairs}`;
+                    elements.taskResult.textContent = `❌ Не все пары найдены! Осталось: ${task.pairs - gameState.matchGameState.matchedPairs}`;
                     elements.taskResult.style.color = '#e74c3c';
+                    elements.retryTaskBtn.style.display = 'block';
                 }
+            };
+            
+            elements.retryTaskBtn.onclick = function() {
+                // Сбрасываем состояние
+                gameState.matchGameState = {
+                    cards: [],
+                    flippedCards: [],
+                    matchedPairs: 0,
+                    canFlip: true
+                };
+                
+                // Пересоздаем задание
+                createMatchGameTask(task);
             };
         }
         
@@ -5356,6 +5485,15 @@
                 } else {
                     elements.taskResult.textContent = `❌ Последовательность не завершена! Осталось: ${correctOrder.length - placedCount}`;
                     elements.taskResult.style.color = '#e74c3c';
+                    elements.retryTaskBtn.style.display = 'block';
+                }
+            };
+            
+            elements.retryTaskBtn.onclick = function() {
+                // Нужно получить оригинальный task
+                const originalTask = gameState.currentTask;
+                if (originalTask) {
+                    createSequenceClickTask(originalTask);
                 }
             };
         }
@@ -5502,6 +5640,88 @@
             moveToExistingCity(nextCityKey);
         }
         
+        // ==================== ИСПРАВЛЕНИЕ ОСНОВНОЙ ПРОБЛЕМЫ: ЗАДАНИЕ ПОСЛЕ БРОСКА КУБИКА ====================
+        
+        // Переписываем обработчик броска кубика
+        elements.rollDiceBtn.addEventListener('click', () => {
+            if (gameState.gameOver || gameState.taskInProgress) return;
+            
+            if (!gameState.isMyTurn) {
+                showNotification('Сейчас не ваш ход! Ожидайте своей очереди.', 'warning');
+                return;
+            }
+            
+            if (hasCurrentTask) {
+                showNotification('Сначала выполните текущее задание!', 'warning');
+                return;
+            }
+            
+            elements.diceValue.classList.add('rolling');
+            elements.diceValue.querySelector('.dice-value').textContent = '?';
+            elements.rollDiceBtn.disabled = true;
+            elements.buildBtn.disabled = true;
+            elements.moveBtn.disabled = true;
+            elements.completeTaskBtn.disabled = true;
+            
+            setTimeout(() => {
+                const value = Math.floor(Math.random() * 6) + 1;
+                
+                elements.diceValue.querySelector('.dice-value').textContent = value;
+                elements.diceValue.classList.remove('rolling');
+                
+                gameState.currentPlayer.position += value;
+                if (gameState.currentPlayer.position > 100) {
+                    gameState.currentPlayer.position = 100;
+                }
+                
+                updatePlayerUI();
+                updatePlayerCity();
+                
+                // ИСПРАВЛЕНИЕ: Всегда создаем задание после броска кубика
+                const randomTask = getRandomTask(gameState.currentDifficulty);
+                gameState.currentTask = randomTask;
+                hasCurrentTask = true;
+                
+                // Показываем задание
+                elements.currentTask.style.display = 'block';
+                elements.taskDescription.textContent = randomTask.description;
+                elements.noTaskMessage.style.display = 'none';
+                elements.completeTaskBtn.disabled = false;
+                elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
+                
+                // Отправляем информацию о броске на сервер
+                socket.emit('dice_roll', {
+                    diceValue: value,
+                    newPosition: gameState.currentPlayer.position,
+                    task: randomTask
+                });
+                
+                // Обновляем позицию на сервере
+                sendPlayerPositionToServer(gameState.currentPlayer.position, gameState.currentPlayer.city);
+                
+                addLogEntry(`🎲 Вы бросили кубик: ${value}. Новая позиция: ${gameState.currentPlayer.position}`);
+                
+                // Сохраняем состояние
+                savePlayerState();
+                
+                // Обновляем состояние кнопок
+                updateRollDiceButtonState();
+                
+                showNotification(`🎲 Вы бросили кубик: ${value}! Получите задание.`, 'success');
+                
+            }, 1200);
+        });
+        
+        // Обработчик кнопки "Начать выполнение задания"
+        elements.completeTaskBtn.addEventListener('click', () => {
+            if (gameState.currentTask && hasCurrentTask) {
+                elements.interactiveTask.style.display = 'block';
+                elements.currentTask.style.display = 'none';
+                createInteractiveTask(gameState.currentTask);
+                elements.completeTaskBtn.style.display = 'none';
+            }
+        });
+        
         // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
         elements.gameInfo.addEventListener('click', function(e) {
             if (e.target.tagName === 'H3' || e.target.classList.contains('toggle-icon')) {
@@ -5589,232 +5809,22 @@
             moveToNextCity();
         });
         
-        // ИСПРАВЛЕНО: Проблема с броском кубика
-        elements.rollDiceBtn.addEventListener('click', () => {
-            if (gameState.gameOver || gameState.taskInProgress) return;
-            
-            if (!gameState.isMyTurn) {
-                showNotification('Сейчас не ваш ход! Ожидайте своей очереди.', 'warning');
-                return;
-            }
-            
-            if (hasCurrentTask) {
-                showNotification('Сначала выполните текущее задание!', 'warning');
-                return;
-            }
-            
-            elements.diceValue.classList.add('rolling');
-            elements.diceValue.querySelector('.dice-value').textContent = '?';
-            elements.rollDiceBtn.disabled = true;
-            elements.buildBtn.disabled = true;
-            elements.moveBtn.disabled = true;
-            elements.completeTaskBtn.disabled = true;
-            
-            setTimeout(() => {
-                const value = Math.floor(Math.random() * 6) + 1;
-                
-                elements.diceValue.querySelector('.dice-value').textContent = value;
-                elements.diceValue.classList.remove('rolling');
-                
-                gameState.currentPlayer.position += value;
-                if (gameState.currentPlayer.position > 100) {
-                    gameState.currentPlayer.position = 100;
-                }
-                
-                updatePlayerUI();
-                updatePlayerCity();
-                
-                const randomTask = getRandomTask(gameState.currentDifficulty);
-                gameState.currentTask = randomTask;
-                hasCurrentTask = true;
-                
-                if (randomTask) {
-                    elements.currentTask.style.display = 'block';
-                    elements.taskDescription.textContent = randomTask.description;
-                    elements.noTaskMessage.style.display = 'none';
-                    elements.completeTaskBtn.disabled = false;
-                    
-                    elements.rollDiceBtn.disabled = true;
-                    elements.buildBtn.disabled = true;
-                } else {
-                    // Если задание не получено, создаем задание по умолчанию
-                    gameState.currentTask = {
-                        description: "Ответьте на вопрос об экологии",
-                        type: "quiz",
-                        question: "Что помогает сохранить природу?",
-                        options: [
-                            {text: "Посадка деревьев", correct: true},
-                            {text: "Сжигание мусора", correct: false},
-                            {text: "Вырубка лесов", correct: false},
-                            {text: "Загрязнение рек", correct: false}
-                        ]
-                    };
-                    elements.currentTask.style.display = 'block';
-                    elements.taskDescription.textContent = gameState.currentTask.description;
-                    elements.noTaskMessage.style.display = 'none';
-                    elements.completeTaskBtn.disabled = false;
-                    elements.rollDiceBtn.disabled = true;
-                    elements.buildBtn.disabled = true;
-                }
-                
-                addLogEntry(`🎲 Вы бросили кубик и выпало: ${value}. Новое положение: ${gameState.currentPlayer.position}`);
-                updatePlayerMarkers();
-                
-                socket.emit('dice_roll', {
-                    diceValue: value,
-                    newPosition: gameState.currentPlayer.position,
-                    task: randomTask || gameState.currentTask
-                });
-                
-                savePlayerState();
-                
-                if (gameState.currentPlayer) {
-                    setTimeout(() => {
-                        sendPlayerPositionToServer(
-                            gameState.currentPlayer.position,
-                            gameState.currentPlayer.city
-                        );
-                    }, 100);
-                }
-                
-                showNotification(`🎲 Вы переместились на ${value} клеток! Получено новое задание.`, 'success');
-                elements.buildBtn.disabled = true;
-                
-                // Обновляем состояние кнопки броска кубика
-                updateRollDiceButtonState();
-            }, 1200);
+        // Кнопка закрытия модального окна города
+        elements.cityModalCloseBtn.addEventListener('click', () => {
+            closeCityModal();
         });
         
-        function updatePlayerCity() {
-            const playerPosition = gameState.currentPlayer.position;
-            let newCity = gameState.currentPlayer.city;
-            
-            for (const cityKey in gameData.cities) {
-                if (gameData.cities[cityKey].cells.includes(playerPosition)) {
-                    newCity = cityKey;
-                    break;
-                }
-            }
-            
-            if (newCity !== gameState.currentPlayer.city) {
-                const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[gameState.currentPlayer.city] || 0;
-                const choiceKey = `${gameState.currentPlayer.city}_${newCity}`;
-                
-                // Проверяем, достигли ли мы нового города
-                if (currentProgress < 100 && !gameState.askedForChoice[choiceKey]) {
-                    showChoiceModal(newCity);
-                    gameState.askedForChoice[choiceKey] = true;
-                    return;
-                }
-                
-                moveToCity(newCity);
-            }
-        }
-        
-        function moveToCity(cityKey) {
-            gameState.currentPlayer.city = cityKey;
-            updatePlayerUI();
-            
-            document.querySelectorAll('.city-card').forEach(card => {
-                card.classList.remove('active');
-                if (card.dataset.city === cityKey) {
-                    card.classList.add('active');
-                }
-            });
-            
-            addLogEntry(`🏙️ Вы прибыли в город: ${gameData.cities[cityKey].name}`);
-            
-            sendPlayerPositionToServer(gameState.currentPlayer.position, cityKey);
-            
-            // Проверяем прогресс для кнопки перехода
-            createCurrentCityProgress();
-            
-            savePlayerState();
-            showNotification(`🏙️ Вы прибыли в ${gameData.cities[cityKey].name}!`, 'success');
-            
-            setTimeout(() => {
-                showCityModal(cityKey);
-            }, 500);
-        }
-        
-        // ИСПРАВЛЕНО: Кнопка теперь меняется на "Проверить выполнение"
-        elements.completeTaskBtn.addEventListener('click', () => {
-            if (gameState.currentTask && !gameState.taskInProgress) {
-                elements.currentTask.style.display = 'none';
-                elements.interactiveTask.style.display = 'block';
-                elements.completeTaskBtn.disabled = true;
-                elements.completeTaskBtn.style.display = 'none';
-                elements.checkTaskBtn.style.display = 'block';
-                createInteractiveTask(gameState.currentTask);
-                addLogEntry(`▶️ Вы начали выполнение задания: ${gameState.currentTask.description}`);
-                
-                // Обновляем состояние кнопки броска кубика
-                updateRollDiceButtonState();
-                
-                // Прокручиваем к заданию
-                setTimeout(() => {
-                    elements.interactiveTask.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
-            } else if (gameState.taskInProgress) {
-                showNotification('Задание уже выполняется!', 'warning');
-            } else {
-                showNotification('Сначала получите задание, бросив кубик!', 'warning');
-            }
-        });
-        
-        elements.difficultyBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (btn.classList.contains('locked')) {
-                    const requiredLevel = gameData.difficultyRequirements[btn.id.replace('Btn', '')].level;
-                    showNotification(`Для этой сложности требуется ${requiredLevel}-й уровень!`, 'warning');
-                    return;
-                }
-                
-                elements.difficultyBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                gameState.currentDifficulty = btn.id.replace('Btn', '');
-                
-                addLogEntry(`⚙️ Сложность заданий изменена на: ${gameState.currentDifficulty}`);
-            });
-        });
-        
-        elements.cityModalCloseBtn.addEventListener('click', closeCityModal);
-        
-        elements.stayBtn.addEventListener('click', () => {
-            closeChoiceModal();
-            
-            const currentCityKey = gameState.currentPlayer.city;
-            const city = gameData.cities[currentCityKey];
-            gameState.currentPlayer.position = city.cells[0];
-            
-            updatePlayerUI();
-            updatePlayerMarkers();
-            
-            sendPlayerPositionToServer(gameState.currentPlayer.position, currentCityKey);
-            savePlayerState();
-            
-            showNotification(`🔙 Вы вернулись в начало города ${city.name}!`, 'success');
-            addLogEntry(`🔙 Вы вернулись в начало города ${city.name}`);
-        });
-        
-        elements.moveForwardBtn.addEventListener('click', () => {
-            closeChoiceModal();
-            
-            if (gameState.nextCity) {
-                moveToCity(gameState.nextCity);
-            }
-        });
-        
+        // Кнопка отправки сообщения в чат
         elements.sendMessageBtn.addEventListener('click', () => {
             const message = elements.chatInput.value.trim();
-            if (message && gameState.currentPlayer) {
+            if (message) {
                 sendChatMessage(message);
                 elements.chatInput.value = '';
             }
         });
         
         elements.chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && gameState.currentPlayer) {
+            if (e.key === 'Enter') {
                 const message = elements.chatInput.value.trim();
                 if (message) {
                     sendChatMessage(message);
@@ -5823,57 +5833,131 @@
             }
         });
         
+        // Кнопка приглашения друзей
         elements.inviteBtn.addEventListener('click', () => {
-            const roomLink = `${window.location.origin}?room=${currentRoomId || gameState.roomId}`;
-            const inviteMessage = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n🔢 Номер комнаты: ${currentRoomId || gameState.roomId}\n🌐 Игра доступна по адресу: ${roomLink}\n👥 Ждем вас!`;
+            const roomId = currentRoomId || gameState.roomId;
+            const inviteText = `Присоединяйтесь к игре "Юный эколог"! Номер комнаты: ${roomId}`;
             
-            // Пытаемся скопировать полное сообщение
-            navigator.clipboard.writeText(inviteMessage)
-                .then(() => {
-                    showNotification('Приглашение скопировано в буфер обмена! Отправьте его друзьям.', 'success');
-                    addLogEntry('📋 Приглашение скопировано в буфер обмена');
-                })
-                .catch(() => {
-                    // Если не удалось скопировать, показываем ссылку
-                    showNotification(`Приглашение: ${inviteMessage}`, 'info');
+            // Создаем красивое модальное окно
+            const inviteModal = document.createElement('div');
+            inviteModal.className = 'city-modal active';
+            inviteModal.innerHTML = `
+                <div class="city-modal-content">
+                    <div class="city-modal-header">
+                        <h2 class="city-modal-title">Пригласить друзей</h2>
+                        <div class="city-modal-subtitle">Отправьте эту ссылку друзьям</div>
+                    </div>
+                    <div class="city-modal-body">
+                        <div class="invite-link-box">
+                            <p>Пригласите друзей присоединиться к вашей комнате:</p>
+                            <p style="text-align: center; margin: 15px 0;">
+                                <span class="room-number-bold">${roomId}</span>
+                            </p>
+                            <p>Попросите друзей ввести этот номер комнаты при входе в игру.</p>
+                            <p style="margin-top: 10px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                                Игра поддерживает до 6 игроков одновременно.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="city-modal-close">
+                        <button class="game-btn" id="copyInviteBtn">📋 Скопировать номер комнаты</button>
+                        <button class="game-btn" style="margin-top: 10px;" id="closeInviteBtn">Закрыть</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(inviteModal);
+            
+            // Копирование номера комнаты в буфер обмена
+            document.getElementById('copyInviteBtn').addEventListener('click', () => {
+                navigator.clipboard.writeText(roomId).then(() => {
+                    showNotification('Номер комнаты скопирован в буфер обмена!', 'success');
                 });
+            });
+            
+            // Закрытие модального окна
+            document.getElementById('closeInviteBtn').addEventListener('click', () => {
+                document.body.removeChild(inviteModal);
+            });
+            
+            // Закрытие при клике вне модального окна
+            inviteModal.addEventListener('click', (e) => {
+                if (e.target === inviteModal) {
+                    document.body.removeChild(inviteModal);
+                }
+            });
         });
         
+        // Кнопка выхода из комнаты
         elements.leaveRoomBtn.addEventListener('click', () => {
             if (confirm('Вы уверены, что хотите покинуть комнату?')) {
-                socket.emit('player-left');
-                resetGameState();
+                socket.emit('leave_room');
                 elements.authSection.style.display = 'block';
                 elements.gameContent.style.display = 'none';
                 elements.resourcesPlaceholder.style.display = 'none';
                 quickActionsBtn.classList.remove('show');
+                resetGameState();
                 showNotification('Вы покинули комнату', 'info');
             }
         });
         
-        // Закрытие модальных окон при клике вне их
-        window.addEventListener('click', (e) => {
-            if (e.target === elements.cityModal) {
-                closeCityModal();
-            }
-            if (e.target === elements.choiceModal) {
-                closeChoiceModal();
-            }
+        // Выбор сложности
+        elements.difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.classList.contains('locked')) return;
+                
+                elements.difficultyBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const difficulty = this.id.replace('Btn', '');
+                gameState.currentDifficulty = difficulty;
+                
+                showNotification(`Сложность заданий изменена на: ${this.textContent.trim()}`, 'info');
+            });
         });
         
-        // Запуск игры
-        console.log('🎮 Игра "Юный эколог" успешно загружена и готова к использованию!');
-        
-        // Инициализация при загрузке страницы
-        updateConnectionStatus('connecting', 'Подключение к серверу...');
-        
-        // Автоматический фокус на поле ввода имени
-        setTimeout(() => {
-            const loginUsername = document.getElementById('loginUsername');
-            if (loginUsername) {
-                loginUsername.focus();
+        // Обновление города игрока
+        function updatePlayerCity() {
+            if (!gameState.currentPlayer) return;
+            
+            const position = gameState.currentPlayer.position;
+            let newCity = gameState.currentPlayer.city;
+            
+            // Проверяем, в каком городе находится игрок
+            for (const cityKey in gameData.cities) {
+                if (gameData.cities[cityKey].cells.includes(position)) {
+                    newCity = cityKey;
+                    break;
+                }
             }
-        }, 500);
+            
+            // Если город изменился
+            if (newCity !== gameState.currentPlayer.city) {
+                const oldCity = gameState.currentPlayer.city;
+                gameState.currentPlayer.city = newCity;
+                
+                // Обновляем UI
+                updatePlayerUI();
+                createCitiesGrid();
+                createCurrentCityProgress();
+                
+                // Показываем информацию о новом городе
+                setTimeout(() => {
+                    showCityModal(newCity);
+                }, 500);
+                
+                addLogEntry(`🏙️ Вы прибыли в ${gameData.cities[newCity].name}`);
+            }
+        }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Игра "Юный эколог" инициализирована!');
+            updateConnectionStatus('connecting', 'Подключение к серверу...');
+            
+            // Запрашиваем соединение с сервером
+            socket.emit('connection_request');
+        });
     </script>
 </body>
 </html>
