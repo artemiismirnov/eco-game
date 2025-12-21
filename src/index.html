@@ -766,7 +766,83 @@
             100% { transform: scale(1); }
         }
         
-        /* Убраны стили для заданий на отличия */
+        /* Стили для заданий на поиск одинаковых карточек */
+        .match-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px auto;
+            max-width: 500px;
+        }
+        
+        .match-card {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        
+        .match-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+            transform: translateX(-100%);
+        }
+        
+        .match-card:hover::before {
+            transform: translateX(100%);
+            transition: transform 0.6s;
+        }
+        
+        .match-card:hover {
+            transform: scale(1.05) rotate(3deg);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .match-card.flipped {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            transform: rotateY(180deg);
+        }
+        
+        .match-card.matched {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            cursor: default;
+            animation: match-success 0.5s;
+        }
+        
+        @keyframes match-success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .match-card .card-content {
+            display: none;
+        }
+        
+        .match-card.flipped .card-content,
+        .match-card.matched .card-content {
+            display: block;
+        }
+        
+        .match-card .card-back {
+            font-size: 2rem;
+            color: white;
+        }
         
         /* Контейнеры для заданий */
         .task-container {
@@ -1020,69 +1096,94 @@
             animation: fadeInUp 0.8s ease-out 0.2s both;
         }
         
-        /* ==================== ВИЗУАЛЬНАЯ КАРТА ==================== */
         .game-map {
             width: 100%;
-            background: linear-gradient(to bottom, #1a4b1a, #2e7d32);
+            background: #e8f5e9;
             border-radius: 12px;
             position: relative;
             overflow: hidden;
             margin-bottom: 20px;
-            border: 5px solid #4a7c59;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            padding: 15px;
-            min-height: 500px;
+            border: 3px solid #2E7D32;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
-        #mapGrid {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 8px;
-        }
-        
-        .map-container {
-            position: relative;
-            width: 100%;
-            min-height: 500px;
-            background: linear-gradient(to bottom, #2e8b57, #3cb371);
-            border-radius: 10px;
-            overflow: hidden;
-            padding: 15px;
-        }
-        
-        /* Стили для визуальной карты */
-        .visual-map {
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.2;
-            white-space: pre;
-            color: #fff;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 0 auto;
-            max-width: 100%;
-            position: relative;
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            aspect-ratio: 1/1;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%238BC34A" opacity="0.3"/></svg>');
+            background-size: cover;
         }
         
         .map-cell {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-sizing: border-box;
+            border: 1px solid #a5d6a7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s;
+            color: #000 !important;
             cursor: pointer;
         }
         
-        .map-cell.grass { background: #2ecc71; }
-        .map-cell.water { background: #3498db; }
-        .map-cell.forest { background: #27ae60; }
-        .map-cell.mountain { background: #95a5a6; }
-        .map-cell.selected {
-            outline: 2px solid yellow;
+        .map-cell:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.05);
+            z-index: 5;
+        }
+        
+        .map-cell.start {
+            background: rgba(76, 175, 80, 0.9);
+            color: white !important;
+            font-weight: bold;
+            font-size: 11px;
+            background-image: none;
+        }
+        
+        .map-cell.start-zero {
+            background: rgba(41, 128, 185, 0.9);
+            color: white !important;
+            font-weight: bold;
+            font-size: 11px;
+            background-image: none;
+        }
+        
+        .map-cell.finish {
+            background: rgba(244, 67, 54, 0.9);
+            color: white !important;
+            font-weight: bold;
+            font-size: 11px;
+            background-image: none;
+        }
+        
+        .map-cell.city {
+            background: rgba(255, 235, 59, 0.9);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10 0L0 10h3v10h4v-6h6v6h4V10h3z" fill="%23FF9800"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center 5px;
+            background-size: 15px;
+            padding-top: 18px;
+        }
+        
+        .map-cell.river {
+            background: rgba(33, 150, 243, 0.4);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M0,10 Q5,5 10,10 T20,10" stroke="%232196F3" fill="none" stroke-width="2"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .map-cell.forest {
+            background: rgba(56, 142, 60, 0.4);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10,2 L12,7 L17,7 L13,10 L15,15 L10,12 L5,15 L7,10 L3,7 L8,7 Z" fill="%23388E3C"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .map-cell.empty {
+            background: rgba(200, 200, 200, 0.4);
+            color: #999 !important;
         }
         
         .map-legend {
@@ -1171,7 +1272,7 @@
             margin-top: 5px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-end;
             gap: 10px;
             width: 100%;
         }
@@ -1182,6 +1283,7 @@
             border-radius: 4px;
             overflow: hidden;
             flex-grow: 1;
+            max-width: 150px;
         }
         
         .level-progress-fill {
@@ -2074,6 +2176,17 @@
             .cities-grid {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
+            
+            .match-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            .match-card {
+                width: 60px;
+                height: 60px;
+                font-size: 1.4rem;
+            }
         }
         
         @media (max-width: 480px) {
@@ -2134,6 +2247,17 @@
             
             .resource-value {
                 font-size: 0.9rem;
+            }
+            
+            .match-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+            
+            .match-card {
+                width: 55px;
+                height: 55px;
+                font-size: 1.2rem;
             }
         }
         
@@ -2279,6 +2403,7 @@
                     <li><strong>Очистка территории:</strong> Кликните на мусор, чтобы убрать его</li>
                     <li><strong>Пазлы:</strong> Соберите экологическую картинку</li>
                     <li><strong>Создание последовательности:</strong> Расставьте элементы в правильном порядке</li>
+                    <li><strong>Найди пару:</strong> Найдите одинаковые экологические символы</li>
                 </ul>
                 
                 <p><strong>Присоединяйтесь к игре и станьте настоящим защитником природы!</strong></p>
@@ -2348,7 +2473,7 @@
                     <h4>Игроки в комнате:</h4>
                     <div id="playersContainer">
                         <div class="player-item current">
-                            <span>🟢 Вы <span style="color: var(--secondary);">(Игрок)</span> <span class="player-position-badge">поз. 1</span></span>
+                            <span>🟢 Вы <span style="color: var(--secondary);">(Игрок)</span> <span class="player-position-badge">поз. 0</span></span>
                             <span><strong>0</strong> баллов</span>
                         </div>
                     </div>
@@ -2375,69 +2500,37 @@
                 <!-- Игровая доска (левая часть) -->
                 <div class="game-board">
                     <h2 style="text-align: center;">Игровое поле</h2>
-                    
-                    <!-- ВИЗУАЛЬНАЯ КАРТА -->
                     <div class="game-map">
-                        <div class="visual-map" id="visualMap">
-╔═══════════════════════════════════════════════════════════════╗
-║                                                               ║
-║                    🌍 КАРТА ЭКОЛОГИЧЕСКОГО ПУТИ 🌍           ║
-║                                                               ║
-║   🟢 [Старт]                                                  ║
-║   🏙️ [Тверь]  [Кинешма]  [Набережные Челны]                ║
-║   🏙️ [Казань]  [Волгоград]  [Астрахань]                     ║
-║   🏁 [Финиш]                                                  ║
-║                                                               ║
-║   ╔═══════════════════════════════════════════════════════╗  ║
-║   ║  🟢 1   2   3   4   5   6   7   8   9   10           ║  ║
-║   ║  11  12  13  14  15  16  17  18  19  20              ║  ║
-║   ║  21  22  23  24  25  26  27  28  29  30              ║  ║
-║   ║  31  32  33  34  35  36  37  38  39  40              ║  ║
-║   ║  41  42  43  44  45  46  47  48  49  50              ║  ║
-║   ║  51  52  53  54  55  56  57  58  59  60              ║  ║
-║   ║  61  62  63  64  65  66  67  68  69  70              ║  ║
-║   ║  71  72  73  74  75  76  77  78  79  80              ║  ║
-║   ║  81  82  83  84  85  86  87  88  89  90              ║  ║
-║   ║  91  92  93  94  95  96  97  98  99  🏁             ║  ║
-║   ╚═══════════════════════════════════════════════════════╝  ║
-║                                                               ║
-║   🟩 - Трава   🟦 - Вода   🟫 - Горы   🟨 - Города            ║
-║   🟢 - Игроки  🏁 - Финиш  🏙️ - Города                       ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
-                        </div>
-                        
-                        <!-- Контейнер для интерактивных клеток карты -->
-                        <div id="interactiveMap" style="position: relative; width: 100%; height: 400px; margin-top: 20px; background: rgba(46, 204, 113, 0.2); border-radius: 8px;">
-                            <!-- Интерактивные клетки будут добавляться через JavaScript -->
+                        <div class="map-grid" id="mapGrid">
+                            <!-- Карта будет создана через JavaScript -->
                         </div>
                     </div>
                     
                     <!-- Легенда карты -->
                     <div class="map-legend">
                         <div class="legend-item">
-                            <div class="legend-color" style="background: #2ecc71;"></div>
-                            <span>Трава</span>
+                            <div class="legend-color" style="background: rgba(41, 128, 185, 0.9);"></div>
+                            <span>Старт</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color" style="background: #3498db;"></div>
-                            <span>Вода</span>
+                            <div class="legend-color" style="background: rgba(244, 67, 54, 0.9);"></div>
+                            <span>Финиш</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color" style="background: #95a5a6;"></div>
-                            <span>Горы</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #f1c40f;"></div>
+                            <div class="legend-color" style="background: rgba(255, 235, 59, 0.9);"></div>
                             <span>Города</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(33, 150, 243, 0.4);"></div>
+                            <span>Река</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: rgba(56, 142, 60, 0.4);"></div>
+                            <span>Лес</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: #4ecdc4;"></div>
                             <span>Игроки</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: #e74c3c;"></div>
-                            <span>Финиш</span>
                         </div>
                     </div>
                     
@@ -2487,7 +2580,7 @@
                             </div>
                             <div class="stat">
                                 <span class="stat-label">Позиция:</span>
-                                <span class="stat-value" id="currentPosition">1</span>
+                                <span class="stat-value" id="currentPosition">0</span>
                             </div>
                             <div class="stat">
                                 <span class="stat-label">Монеты:</span>
@@ -2500,10 +2593,10 @@
                             <div class="stat">
                                 <span class="stat-label">Уровень:</span>
                                 <div class="level-progress-container">
-                                    <span class="stat-value" id="playerLevel">1</span>
                                     <div class="level-progress-bar">
                                         <div class="level-progress-fill" id="levelProgressFill" style="width: 0%;"></div>
                                     </div>
+                                    <span class="stat-value" id="playerLevel">1</span>
                                 </div>
                             </div>
                             <div class="level-info">
@@ -2515,8 +2608,8 @@
                         
                         <!-- Действия игрока -->
                         <div class="actions-section">
-                            <button class="game-btn" id="rollDiceBtn">🎲 Бросить кубик</button>
-                            <button class="game-btn" id="buildBtn">🏗️ Построить объект</button>
+                            <button class="game-btn" id="rollDiceBtn" disabled>🎲 Бросить кубик</button>
+                            <button class="game-btn" id="buildBtn" disabled>🏗️ Построить объект</button>
                             <button class="game-btn" id="moveBtn" disabled>🚗 Перейти в следующий город</button>
                         </div>
                     </div>
@@ -2677,9 +2770,6 @@
         </button>
     </div>
 
-    <!-- Подключаем файл с картой -->
-    <script src="mapData.js"></script>
-
     <!-- Подключение Socket.IO и игровая логика -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
@@ -2712,8 +2802,7 @@
             registerTab: document.getElementById('registerTab'),
             loginForm: document.getElementById('loginForm'),
             registerForm: document.getElementById('registerForm'),
-            visualMap: document.getElementById('visualMap'),
-            interactiveMap: document.getElementById('interactiveMap'),
+            mapGrid: document.getElementById('mapGrid'),
             citiesGrid: document.getElementById('citiesGrid'),
             rollDiceBtn: document.getElementById('rollDiceBtn'),
             buildBtn: document.getElementById('buildBtn'),
@@ -2790,7 +2879,7 @@
             cities: {
                 tver: { 
                     name: "Тверь", 
-                    cells: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+                    cells: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
                     position: 0,
                     description: "Стартовый город",
                     history: "Тверь — один из древнейших городов России, основанный в 1135 году. Расположена на берегах рек Волга, Тверца и Тьмака.",
@@ -2916,6 +3005,12 @@
                         type: "puzzle_click",
                         pieces: 4,
                         image: "🌍♻️🌳💧"
+                    },
+                    {
+                        description: "Найдите одинаковые экологические символы 🎯",
+                        type: "match_game",
+                        pairs: 4,
+                        symbols: ["🌍", "♻️", "🌳", "💧", "🌱", "🌞", "🌀", "🦋"]
                     }
                 ],
                 medium: [
@@ -2981,6 +3076,12 @@
                         type: "sequence_click",
                         items: ["🌱", "🌳", "🍎", "♻️"],
                         correctOrder: ["🌱", "🌳", "🍎", "♻️"]
+                    },
+                    {
+                        description: "Найдите парные экологические символы 🎯",
+                        type: "match_game",
+                        pairs: 6,
+                        symbols: ["🌍", "♻️", "🌳", "💧", "🌱", "🌞", "🌀", "🦋", "🐝", "🐞", "🦔", "🐠"]
                     }
                 ],
                 hard: [
@@ -3047,6 +3148,12 @@
                             {text: "Использование удобрений", correct: false},
                             {text: "Строительство парков", correct: false}
                         ]
+                    },
+                    {
+                        description: "Найдите все пары экологических символов 🎯",
+                        type: "match_game",
+                        pairs: 8,
+                        symbols: ["🌍", "♻️", "🌳", "💧", "🌱", "🌞", "🌀", "🌊", "🦋", "🐝", "🐞", "🦔", "🐠", "🐟", "🐢", "🦉"]
                     }
                 ]
             },
@@ -3115,7 +3222,13 @@
             turnOrder: [],
             isMyTurn: false,
             isAtNewCity: false,
-            hasUnfinishedTask: false
+            hasUnfinishedTask: false,
+            matchGameState: {
+                cards: [],
+                flippedCards: [],
+                matchedPairs: 0,
+                canFlip: true
+            }
         };
         
         // ==================== ФУНКЦИИ ПОДКЛЮЧЕНИЯ ====================
@@ -3182,6 +3295,11 @@
             gameState.turnOrder = playerData.turnOrder || [];
             gameState.isMyTurn = playerData.isMyTurn || false;
             gameState.hasUnfinishedTask = playerData.hasUnfinishedTask || false;
+            
+            // Загружаем сохраненный прогресс игрока
+            if (playerData.playerProgress) {
+                gameState.playerProgress[playerData.playerId] = playerData.playerProgress;
+            }
             
             initializeGame(playerData);
             
@@ -3379,12 +3497,33 @@
                     tooltip.style.opacity = '0';
                 });
                 
-                document.querySelector('.game-map').appendChild(marker);
+                elements.mapGrid.appendChild(marker);
                 console.log(`🆕 Создан маркер для игрока ${playerName}`);
             }
             
-            // Рассчитываем позицию на карте
-            updateMarkerPosition(marker, position);
+            const cellNumber = position || 0;
+            const row = Math.floor((cellNumber) / 10);
+            const col = (cellNumber) % 10;
+            
+            // ИСПРАВЛЕНО: Рассчитываем точную позицию маркера
+            const cell = document.querySelector(`.map-cell:nth-child(${cellNumber + 1})`);
+            if (cell) {
+                const cellRect = cell.getBoundingClientRect();
+                const mapRect = elements.mapGrid.getBoundingClientRect();
+                
+                const leftPercent = ((cellRect.left + cellRect.width/2 - mapRect.left) / mapRect.width) * 100;
+                const topPercent = ((cellRect.top + cellRect.height/2 - mapRect.top) / mapRect.height) * 100;
+                
+                marker.style.left = `${leftPercent}%`;
+                marker.style.top = `${topPercent}%`;
+            } else {
+                // Запасной вариант расчета
+                const leftPercent = (col * 10) + 5;
+                const topPercent = (row * 10) + 5;
+                
+                marker.style.left = `${leftPercent}%`;
+                marker.style.top = `${topPercent}%`;
+            }
             
             const tooltip = marker.querySelector('.player-tooltip');
             if (tooltip) {
@@ -3392,23 +3531,6 @@
             }
             
             updatePlayerInList(playerId, position, playerName);
-        }
-        
-        function updateMarkerPosition(marker, position) {
-            // Упрощенная позиция маркера на визуальной карте
-            const mapRect = document.querySelector('.game-map').getBoundingClientRect();
-            const cellSize = 35;
-            
-            // Создаем простую сетку для позиционирования
-            const row = Math.floor((position - 1) / 10);
-            const col = (position - 1) % 10;
-            
-            // Рассчитываем позицию в процентах от размеров карты
-            const leftPercent = (col * 4.5) + 10;
-            const topPercent = (row * 4.5) + 15;
-            
-            marker.style.left = `${leftPercent}%`;
-            marker.style.top = `${topPercent}%`;
         }
         
         function getRandomColor(playerId) {
@@ -3536,7 +3658,7 @@
             updatePlayerUI();
             elements.roomNumber.textContent = currentRoomId || gameState.roomId;
             
-            createInteractiveCells();
+            createMap();
             createCitiesGrid();
             createBuildingsList();
             updateDifficultyButtons();
@@ -3589,7 +3711,13 @@
                 turnOrder: [],
                 isMyTurn: false,
                 isAtNewCity: false,
-                hasUnfinishedTask: false
+                hasUnfinishedTask: false,
+                matchGameState: {
+                    cards: [],
+                    flippedCards: [],
+                    matchedPairs: 0,
+                    canFlip: true
+                }
             };
             
             hasCurrentTask = false;
@@ -3678,121 +3806,112 @@
         }
         
         // ==================== ФУНКЦИИ ИНТЕРФЕЙСА ====================
-        function createInteractiveCells() {
-            elements.interactiveMap.innerHTML = '';
+        function createMap() {
+            elements.mapGrid.innerHTML = '';
             
-            // Создаем интерактивные клетки карты
-            for (let i = 1; i <= 100; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'map-cell';
-                cell.id = `cell-${i}`;
-                cell.dataset.number = i;
-                cell.dataset.type = 'grass';
-                
-                // Определяем тип клетки
-                if (i === 1) {
-                    cell.dataset.type = 'start';
-                    cell.style.background = '#2ecc71';
-                    cell.title = 'Старт';
-                } else if (i === 100) {
-                    cell.dataset.type = 'finish';
-                    cell.style.background = '#e74c3c';
-                    cell.title = 'Финиш';
-                } else if (i >= 14 && i <= 17) {
-                    cell.dataset.type = 'water';
-                    cell.style.background = '#3498db';
-                } else if (i >= 30 && i <= 31) {
-                    cell.dataset.type = 'water';
-                    cell.style.background = '#3498db';
-                } else if (i >= 44 && i <= 46) {
-                    cell.dataset.type = 'water';
-                    cell.style.background = '#3498db';
-                } else if (i >= 59 && i <= 65) {
-                    cell.dataset.type = 'water';
-                    cell.style.background = '#3498db';
-                } else if (i >= 78 && i <= 80) {
-                    cell.dataset.type = 'water';
-                    cell.style.background = '#3498db';
-                } else if (i >= 81 && i <= 92) {
-                    cell.dataset.type = 'forest';
-                    cell.style.background = '#27ae60';
-                } else if (i === 95 || i === 96) {
-                    cell.dataset.type = 'mountain';
-                    cell.style.background = '#95a5a6';
-                } else {
-                    cell.dataset.type = 'grass';
-                    cell.style.background = '#2ecc71';
-                }
-                
-                // Проверяем, является ли клетка городом
-                for (const cityKey in gameData.cities) {
-                    if (gameData.cities[cityKey].cells.includes(i)) {
-                        cell.dataset.type = 'city';
-                        cell.style.background = '#f1c40f';
-                        cell.title = gameData.cities[cityKey].name;
-                        break;
+            const riverCells = [14, 15, 16, 17, 30, 31, 44, 45, 46, 59, 60, 61, 62, 63, 64, 65, 78, 79, 80];
+            const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98];
+            
+            // Добавляем клетку 0 (старт) с подписью
+            const startCell = document.createElement('div');
+            startCell.className = 'map-cell hexagon start-zero';
+            startCell.style.position = 'relative';
+            startCell.style.background = 'rgba(41, 128, 185, 0.9)';
+            
+            const startNumberSpan = document.createElement('span');
+            startNumberSpan.className = 'cell-number';
+            startNumberSpan.textContent = 'Старт';
+            startNumberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: white; z-index: 1; text-align: center; line-height: 1.2;';
+            
+            startCell.appendChild(startNumberSpan);
+            elements.mapGrid.appendChild(startCell);
+            
+            // Создаем остальные клетки с 1 по 100
+            for (let row = 0; row < 10; row++) {
+                for (let col = 0; col < 10; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'map-cell hexagon';
+                    cell.style.position = 'relative';
+                    
+                    const cellNumber = row * 10 + col + 1;
+                    
+                    if (cellNumber > 100) {
+                        cell.classList.add('empty');
+                        cell.textContent = '';
+                        elements.mapGrid.appendChild(cell);
+                        continue;
                     }
+                    
+                    const numberSpan = document.createElement('span');
+                    numberSpan.className = 'cell-number';
+                    numberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: #333; z-index: 1;';
+                    
+                    // ИСПРАВЛЕНО: Убираем лишние отступы для определенных клеток
+                    if (cellNumber === 1 || cellNumber === 13 || cellNumber === 18 || cellNumber === 29 || cellNumber === 32) {
+                        numberSpan.style.top = '50%';
+                        numberSpan.style.fontSize = '10px';
+                    }
+                    
+                    if (cellNumber === 1) {
+                        cell.classList.add('city');
+                        cell.style.background = 'rgba(255, 235, 59, 0.9)';
+                        numberSpan.textContent = '1';
+                        numberSpan.style.color = '#FF9800';
+                        numberSpan.style.fontSize = '10px';
+                    } else if (cellNumber === 99) {
+                        // Клетка 99 - Финиш с подписью
+                        cell.classList.add('finish');
+                        cell.style.background = 'rgba(244, 67, 54, 0.9)';
+                        numberSpan.textContent = '99';
+                        numberSpan.style.color = 'white';
+                        numberSpan.style.fontSize = '10px';
+                        numberSpan.style.textAlign = 'center';
+                        numberSpan.style.lineHeight = '1.2';
+                        numberSpan.style.top = '50%';
+                    } else if (cellNumber === 100) {
+                        cell.classList.add('finish');
+                        cell.style.background = 'rgba(244, 67, 54, 0.9)';
+                        numberSpan.textContent = 'Финиш';
+                        numberSpan.style.color = 'white';
+                        numberSpan.style.fontSize = '10px';
+                        numberSpan.style.textAlign = 'center';
+                        numberSpan.style.lineHeight = '1.2';
+                        numberSpan.style.top = '50%';
+                    } else if (riverCells.includes(cellNumber)) {
+                        cell.classList.add('river');
+                        cell.style.background = 'rgba(33, 150, 243, 0.4)';
+                        numberSpan.textContent = cellNumber;
+                        numberSpan.style.color = '#2196F3';
+                    } else if (forestCells.includes(cellNumber)) {
+                        cell.classList.add('forest');
+                        cell.style.background = 'rgba(56, 142, 60, 0.4)';
+                        numberSpan.textContent = cellNumber;
+                        numberSpan.style.color = '#388E3C';
+                    } else {
+                        let isCity = false;
+                        for (const cityKey in gameData.cities) {
+                            if (gameData.cities[cityKey].cells.includes(cellNumber)) {
+                                cell.classList.add('city');
+                                cell.style.background = 'rgba(255, 235, 59, 0.9)';
+                                numberSpan.textContent = cellNumber;
+                                numberSpan.style.color = '#FF9800';
+                                isCity = true;
+                                break;
+                            }
+                        }
+                        if (!isCity) {
+                            cell.style.background = 'rgba(255, 255, 255, 0.7)';
+                            numberSpan.textContent = cellNumber;
+                            numberSpan.style.color = '#666';
+                        }
+                    }
+                    
+                    cell.appendChild(numberSpan);
+                    elements.mapGrid.appendChild(cell);
                 }
-                
-                cell.style.position = 'absolute';
-                cell.style.width = '40px';
-                cell.style.height = '40px';
-                cell.style.border = '1px solid rgba(255,255,255,0.1)';
-                cell.style.boxSizing = 'border-box';
-                cell.style.cursor = 'pointer';
-                cell.style.display = 'flex';
-                cell.style.alignItems = 'center';
-                cell.style.justifyContent = 'center';
-                cell.style.color = 'white';
-                cell.style.fontSize = '12px';
-                cell.style.fontWeight = 'bold';
-                cell.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
-                
-                // Добавляем номер клетки
-                const numberSpan = document.createElement('span');
-                numberSpan.textContent = i;
-                cell.appendChild(numberSpan);
-                
-                // Позиционируем клетку
-                const row = Math.floor((i - 1) / 10);
-                const col = (i - 1) % 10;
-                cell.style.left = `${col * 42 + 10}px`;
-                cell.style.top = `${row * 42 + 10}px`;
-                
-                // Добавляем обработчик клика
-                cell.addEventListener('click', function() {
-                    selectCell(this.dataset.number);
-                });
-                
-                elements.interactiveMap.appendChild(cell);
             }
             
             updatePlayerMarkers();
-        }
-        
-        function selectCell(cellNumber) {
-            const cell = document.getElementById(`cell-${cellNumber}`);
-            if (!cell) return;
-            
-            // Сбрасываем выделение всех клеток
-            document.querySelectorAll('.map-cell').forEach(c => {
-                c.classList.remove('selected');
-            });
-            
-            // Выделяем выбранную клетку
-            cell.classList.add('selected');
-            
-            // Показываем информацию о клетке
-            let cellInfo = `Клетка ${cellNumber}`;
-            if (cell.dataset.type === 'start') cellInfo += ' (Старт)';
-            else if (cell.dataset.type === 'finish') cellInfo += ' (Финиш)';
-            else if (cell.dataset.type === 'city') cellInfo += ` (${cell.title})`;
-            else if (cell.dataset.type === 'water') cellInfo += ' (Вода)';
-            else if (cell.dataset.type === 'forest') cellInfo += ' (Лес)';
-            else if (cell.dataset.type === 'mountain') cellInfo += ' (Горы)';
-            else cellInfo += ' (Трава)';
-            
-            showNotification(cellInfo, 'info');
         }
         
         function updatePlayerMarkers() {
@@ -4497,6 +4616,12 @@
             gameState.sortBins = [];
             gameState.selectedPuzzlePieces = [];
             gameState.cleanupItems = [];
+            gameState.matchGameState = {
+                cards: [],
+                flippedCards: [],
+                matchedPairs: 0,
+                canFlip: true
+            };
             
             // Прокручиваем к началу задания
             setTimeout(() => {
@@ -4526,6 +4651,8 @@
                 createPuzzleClickTask(task);
             } else if (task.type === "sequence_click") {
                 createSequenceClickTask(task);
+            } else if (task.type === "match_game") {
+                createMatchGameTask(task);
             } else {
                 createDefaultTask(task);
             }
@@ -4541,7 +4668,7 @@
             
             // Добавляем контейнер для прокрутки на мобильных устройствах
             if (window.innerWidth <= 768) {
-                const dragContainers = elements.taskArea.querySelectorAll('.task-container, .drag-container, .sorting-area, .puzzle-area, .sequence-area');
+                const dragContainers = elements.taskArea.querySelectorAll('.task-container, .drag-container, .sorting-area, .puzzle-area, .sequence-area, .match-grid');
                 dragContainers.forEach(container => {
                     container.parentNode.classList.add('drag-scroll-container');
                     container.classList.add('drag-scroll-content');
@@ -4603,18 +4730,18 @@
                     }
                 });
                 
-                elements.taskResult.textContent = isCorrect ? 
-                    '✅ Правильно! Задание выполнено.' : 
-                    '❌ Неправильно. Попробуйте еще раз.';
-                elements.taskResult.style.color = isCorrect ? '#2ecc71' : '#e74c3c';
-                
+                // ИСПРАВЛЕНО: Не показываем правильный ответ при ошибке
                 if (isCorrect) {
+                    elements.taskResult.textContent = '✅ Правильно! Задание выполнено.';
+                    elements.taskResult.style.color = '#2ecc71';
                     elements.checkTaskBtn.style.display = 'none';
                     elements.retryTaskBtn.style.display = 'none';
                     setTimeout(() => {
                         completeInteractiveTask();
                     }, 1500);
                 } else {
+                    elements.taskResult.textContent = '❌ Неправильно. Попробуйте еще раз.';
+                    elements.taskResult.style.color = '#e74c3c';
                     elements.checkTaskBtn.style.display = 'none';
                     elements.retryTaskBtn.style.display = 'block';
                 }
@@ -4761,8 +4888,8 @@
                     <div class="task-container" id="sortItemsContainer">
                         ${task.items.map((item, index) => 
                             `<div class="sort-item" data-index="${index}" data-type="${item.type}">
-                                <span class="item-emoji">${item.emoji}</span>
-                                <span class="item-name">${item.name}</span>
+                                <div style="font-size: 1.8rem;">${item.emoji}</div>
+                                <div style="font-size: 0.8rem; margin-top: 5px;">${item.name}</div>
                             </div>`
                         ).join('')}
                     </div>
@@ -4818,6 +4945,10 @@
                             itemClone.style.margin = '0';
                             itemClone.style.borderRadius = '12px';
                             itemClone.style.cursor = 'default';
+                            itemClone.style.display = 'flex';
+                            itemClone.style.flexDirection = 'column';
+                            itemClone.style.alignItems = 'center';
+                            itemClone.style.justifyContent = 'center';
                             binContent.appendChild(itemClone);
                             
                             this.classList.add('filled');
@@ -4904,6 +5035,9 @@
             const pieces = task.image.split('');
             const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
             
+            // Проверяем, что все эмодзи корректны
+            const validPieces = shuffledPieces.filter(piece => piece && piece.trim() !== '');
+            
             elements.taskArea.innerHTML = `
                 <p><strong>${task.description}</strong></p>
                 <p>Нажмите на пазл, затем на слот для его размещения:</p>
@@ -4913,15 +5047,19 @@
                 <div class="puzzle-area">
                     <p>Соберите пазл в правильном порядке:</p>
                     <div class="task-container" id="puzzleTarget">
-                        ${pieces.map((piece, index) => 
-                            `<div class="puzzle-target-slot" data-index="${index}" data-expected="${piece}"></div>`
-                        ).join('')}
+                        ${pieces.map((piece, index) => {
+                            // Проверяем, что эмодзи корректный
+                            const displayPiece = piece && piece.trim() !== '' ? piece : '❓';
+                            return `<div class="puzzle-target-slot" data-index="${index}" data-expected="${piece}"></div>`;
+                        }).join('')}
                     </div>
                     <p>Кусочки пазла:</p>
                     <div class="task-container" id="puzzlePieces">
-                        ${shuffledPieces.map((piece, index) => 
-                            `<div class="puzzle-piece" data-piece="${piece}">${piece}</div>`
-                        ).join('')}
+                        ${validPieces.map((piece, index) => {
+                            // Проверяем, что эмодзи корректный
+                            const displayPiece = piece && piece.trim() !== '' ? piece : '❓';
+                            return `<div class="puzzle-piece" data-piece="${piece}">${displayPiece}</div>`;
+                        }).join('')}
                     </div>
                 </div>
                 <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Собрано: <span id="puzzleCount">0</span>/${pieces.length}</p>
@@ -4964,7 +5102,8 @@
                             puzzleSlots.forEach(s => s.classList.remove('hover'));
                             
                             // Размещаем пазл
-                            this.innerHTML = `<div style="font-size: 2.2rem;">${pieceEmoji}</div>`;
+                            const displayEmoji = pieceEmoji && pieceEmoji.trim() !== '' ? pieceEmoji : '❓';
+                            this.innerHTML = `<div style="font-size: 2.2rem;">${displayEmoji}</div>`;
                             this.classList.add('filled');
                             this.classList.remove('hover');
                             
@@ -5030,6 +5169,105 @@
             `;
             
             initializeSequenceClick(correctOrder);
+        }
+        
+        function createMatchGameTask(task) {
+            const symbols = task.symbols || ['🌍', '♻️', '🌳', '💧', '🌱', '🌞', '🌀', '🦋'];
+            const pairs = task.pairs || 4;
+            
+            // Создаем пары символов
+            let cards = [];
+            for (let i = 0; i < pairs; i++) {
+                const symbol = symbols[i % symbols.length];
+                cards.push(symbol);
+                cards.push(symbol);
+            }
+            
+            // Перемешиваем карточки
+            cards = shuffleArray(cards);
+            
+            elements.taskArea.innerHTML = `
+                <p><strong>${task.description}</strong></p>
+                <p>Найдите все пары одинаковых экологических символов:</p>
+                <div class="match-grid">
+                    ${cards.map((symbol, index) => 
+                        `<div class="match-card" data-index="${index}" data-symbol="${symbol}">
+                            <div class="card-back">❓</div>
+                            <div class="card-content">${symbol}</div>
+                        </div>`
+                    ).join('')}
+                </div>
+                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center; margin-top: 10px;">
+                    Найдено пар: <span id="matchCount">0</span>/${pairs}
+                </p>
+            `;
+            
+            initializeMatchGame(pairs);
+        }
+        
+        function initializeMatchGame(totalPairs) {
+            const cards = elements.taskArea.querySelectorAll('.match-card');
+            gameState.matchGameState.cards = cards;
+            gameState.matchGameState.matchedPairs = 0;
+            gameState.matchGameState.flippedCards = [];
+            gameState.matchGameState.canFlip = true;
+            
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    if (!gameState.matchGameState.canFlip || 
+                        this.classList.contains('flipped') || 
+                        this.classList.contains('matched') ||
+                        gameState.matchGameState.flippedCards.length >= 2) {
+                        return;
+                    }
+                    
+                    this.classList.add('flipped');
+                    gameState.matchGameState.flippedCards.push(this);
+                    
+                    if (gameState.matchGameState.flippedCards.length === 2) {
+                        gameState.matchGameState.canFlip = false;
+                        
+                        const card1 = gameState.matchGameState.flippedCards[0];
+                        const card2 = gameState.matchGameState.flippedCards[1];
+                        
+                        if (card1.dataset.symbol === card2.dataset.symbol) {
+                            // Найдена пара
+                            setTimeout(() => {
+                                card1.classList.add('matched');
+                                card2.classList.add('matched');
+                                gameState.matchGameState.flippedCards = [];
+                                gameState.matchGameState.canFlip = true;
+                                
+                                gameState.matchGameState.matchedPairs++;
+                                document.getElementById('matchCount').textContent = gameState.matchGameState.matchedPairs;
+                                
+                                if (gameState.matchGameState.matchedPairs >= totalPairs) {
+                                    elements.checkTaskBtn.disabled = false;
+                                    elements.taskResult.textContent = '✅ Отлично! Все пары найдены!';
+                                    elements.taskResult.style.color = '#2ecc71';
+                                }
+                            }, 500);
+                        } else {
+                            // Не пара - переворачиваем обратно
+                            setTimeout(() => {
+                                card1.classList.remove('flipped');
+                                card2.classList.remove('flipped');
+                                gameState.matchGameState.flippedCards = [];
+                                gameState.matchGameState.canFlip = true;
+                            }, 1000);
+                        }
+                    }
+                });
+            });
+            
+            elements.checkTaskBtn.onclick = function() {
+                if (gameState.matchGameState.matchedPairs >= totalPairs) {
+                    completeInteractiveTask();
+                } else {
+                    elements.taskResult.textContent = `❌ Не все пары найдены! Осталось: ${totalPairs - gameState.matchGameState.matchedPairs}`;
+                    elements.taskResult.style.color = '#e74c3c';
+                }
+            };
         }
         
         function createDefaultTask(task) {
@@ -5462,6 +5700,7 @@
                 const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[gameState.currentPlayer.city] || 0;
                 const choiceKey = `${gameState.currentPlayer.city}_${newCity}`;
                 
+                // Проверяем, достигли ли мы нового города
                 if (currentProgress < 100 && !gameState.askedForChoice[choiceKey]) {
                     showChoiceModal(newCity);
                     gameState.askedForChoice[choiceKey] = true;
@@ -5586,12 +5825,12 @@
         
         elements.inviteBtn.addEventListener('click', () => {
             const roomLink = `${window.location.origin}?room=${currentRoomId || gameState.roomId}`;
-            const inviteMessage = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"! 🔢 Номер комнаты: ${currentRoomId || gameState.roomId} 🌐 Игра доступна по адресу: ${roomLink} 👥 Ждем вас!`;
+            const inviteMessage = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n🔢 Номер комнаты: ${currentRoomId || gameState.roomId}\n🌐 Игра доступна по адресу: ${roomLink}\n👥 Ждем вас!`;
             
             // Пытаемся скопировать полное сообщение
             navigator.clipboard.writeText(inviteMessage)
                 .then(() => {
-                    showNotification('Приглашение скопировано в буфер обмена!', 'success');
+                    showNotification('Приглашение скопировано в буфер обмена! Отправьте его друзьям.', 'success');
                     addLogEntry('📋 Приглашение скопировано в буфер обмена');
                 })
                 .catch(() => {
