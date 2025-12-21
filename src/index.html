@@ -1020,23 +1020,52 @@
             animation: fadeInUp 0.8s ease-out 0.2s both;
         }
         
+        /* ==================== ВИЗУАЛЬНАЯ КАРТА ==================== */
         .game-map {
             width: 100%;
-            background: #e8f5e9;
+            background: linear-gradient(to bottom, #1a4b1a, #2e7d32);
             border-radius: 12px;
             position: relative;
             overflow: hidden;
             margin-bottom: 20px;
-            border: 3px solid #2E7D32;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 5px solid #4a7c59;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            min-height: 500px;
         }
         
-        /* ==================== КАРТА (ОБНОВЛЕННЫЙ СТИЛЬ) ==================== */
         #mapGrid {
             width: 100%;
             height: auto;
             display: block;
+            border-radius: 8px;
+        }
+        
+        .map-container {
+            position: relative;
+            width: 100%;
+            min-height: 500px;
+            background: linear-gradient(to bottom, #2e8b57, #3cb371);
             border-radius: 10px;
+            overflow: hidden;
+            padding: 15px;
+        }
+        
+        /* Стили для визуальной карты */
+        .visual-map {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.2;
+            white-space: pre;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 0 auto;
+            max-width: 100%;
+            position: relative;
         }
         
         .map-cell {
@@ -1052,7 +1081,6 @@
         .map-cell.water { background: #3498db; }
         .map-cell.forest { background: #27ae60; }
         .map-cell.mountain { background: #95a5a6; }
-        
         .map-cell.selected {
             outline: 2px solid yellow;
         }
@@ -2347,35 +2375,69 @@
                 <!-- Игровая доска (левая часть) -->
                 <div class="game-board">
                     <h2 style="text-align: center;">Игровое поле</h2>
+                    
+                    <!-- ВИЗУАЛЬНАЯ КАРТА -->
                     <div class="game-map">
-                        <img id="mapGrid" alt="Игровая карта России">
+                        <div class="visual-map" id="visualMap">
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║                    🌍 КАРТА ЭКОЛОГИЧЕСКОГО ПУТИ 🌍           ║
+║                                                               ║
+║   🟢 [Старт]                                                  ║
+║   🏙️ [Тверь]  [Кинешма]  [Набережные Челны]                ║
+║   🏙️ [Казань]  [Волгоград]  [Астрахань]                     ║
+║   🏁 [Финиш]                                                  ║
+║                                                               ║
+║   ╔═══════════════════════════════════════════════════════╗  ║
+║   ║  🟢 1   2   3   4   5   6   7   8   9   10           ║  ║
+║   ║  11  12  13  14  15  16  17  18  19  20              ║  ║
+║   ║  21  22  23  24  25  26  27  28  29  30              ║  ║
+║   ║  31  32  33  34  35  36  37  38  39  40              ║  ║
+║   ║  41  42  43  44  45  46  47  48  49  50              ║  ║
+║   ║  51  52  53  54  55  56  57  58  59  60              ║  ║
+║   ║  61  62  63  64  65  66  67  68  69  70              ║  ║
+║   ║  71  72  73  74  75  76  77  78  79  80              ║  ║
+║   ║  81  82  83  84  85  86  87  88  89  90              ║  ║
+║   ║  91  92  93  94  95  96  97  98  99  🏁             ║  ║
+║   ╚═══════════════════════════════════════════════════════╝  ║
+║                                                               ║
+║   🟩 - Трава   🟦 - Вода   🟫 - Горы   🟨 - Города            ║
+║   🟢 - Игроки  🏁 - Финиш  🏙️ - Города                       ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+                        </div>
+                        
+                        <!-- Контейнер для интерактивных клеток карты -->
+                        <div id="interactiveMap" style="position: relative; width: 100%; height: 400px; margin-top: 20px; background: rgba(46, 204, 113, 0.2); border-radius: 8px;">
+                            <!-- Интерактивные клетки будут добавляться через JavaScript -->
+                        </div>
                     </div>
                     
                     <!-- Легенда карты -->
                     <div class="map-legend">
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(41, 128, 185, 0.9);"></div>
-                            <span>Старт</span>
+                            <div class="legend-color" style="background: #2ecc71;"></div>
+                            <span>Трава</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(244, 67, 54, 0.9);"></div>
-                            <span>Финиш</span>
+                            <div class="legend-color" style="background: #3498db;"></div>
+                            <span>Вода</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(255, 235, 59, 0.9);"></div>
+                            <div class="legend-color" style="background: #95a5a6;"></div>
+                            <span>Горы</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f1c40f;"></div>
                             <span>Города</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(33, 150, 243, 0.4);"></div>
-                            <span>Река</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: rgba(56, 142, 60, 0.4);"></div>
-                            <span>Лес</span>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: #4ecdc4;"></div>
                             <span>Игроки</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #e74c3c;"></div>
+                            <span>Финиш</span>
                         </div>
                     </div>
                     
@@ -2615,15 +2677,12 @@
         </button>
     </div>
 
+    <!-- Подключаем файл с картой -->
+    <script src="mapData.js"></script>
+
     <!-- Подключение Socket.IO и игровая логика -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
-        // Base64 изображение карты России (заглушка - замените на реальное Base64)
-        const mapBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDgwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTdmMGUxIi8+CiAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSIjMzMzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4KICAgICAgICDQsNC90YHRgtCw0L0g0LrQsNGA0LvQsCDQstC+0YHQutCw0Y8gKNCd0LDRgdGC0YDQvtC50LrQsCkKICAgIDwvdGV4dD4KICAgIDx0ZXh0IHg9IjUwJSIgeT0iNjAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPgogICAgICAgINCf0L7QtNC90L7QstCw0YLRjCDQv9GA0L7QtNCw0LvRjNC90L7RgdGC0Lgg0L/QvtC00LrQsNGC0LjQu9Cw0YbQuNGPINGB0LvQvtC20L3QvtGB0YLQuCDQuNC3INC60LDRgNC70LDRgtC+0LoKICAgIDwvdGV4dD4KPC9zdmc+";
-
-        // Подставляем Base64 в изображение
-        document.getElementById("mapGrid").src = mapBase64;
-        
         // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         console.log('🎮 Игра "Юный эколог" загружается...');
         
@@ -2653,6 +2712,9 @@
             registerTab: document.getElementById('registerTab'),
             loginForm: document.getElementById('loginForm'),
             registerForm: document.getElementById('registerForm'),
+            visualMap: document.getElementById('visualMap'),
+            interactiveMap: document.getElementById('interactiveMap'),
+            citiesGrid: document.getElementById('citiesGrid'),
             rollDiceBtn: document.getElementById('rollDiceBtn'),
             buildBtn: document.getElementById('buildBtn'),
             moveBtn: document.getElementById('moveBtn'),
@@ -3086,6 +3148,11 @@
                 socket.emit('player_reconnected');
                 console.log('🔄 Уведомили сервер о восстановлении соединения');
             }
+            
+            // Запрашиваем позиции всех игроков при подключении
+            setTimeout(() => {
+                requestAllPlayersPositions();
+            }, 2000);
         });
         
         socket.on('disconnect', () => {
@@ -3117,6 +3184,11 @@
             gameState.hasUnfinishedTask = playerData.hasUnfinishedTask || false;
             
             initializeGame(playerData);
+            
+            // Запрашиваем позиции всех игроков после присоединения к комнате
+            setTimeout(() => {
+                requestAllPlayersPositions();
+            }, 1500);
             
             // Обновляем индикатор очереди
             updateTurnIndicator();
@@ -3160,8 +3232,13 @@
             console.log('👥 Новый игрок:', data.player.name);
             gameState.players[data.playerId] = data.player;
             updatePlayersList();
+            updatePlayerMarkers();
             
             addLogEntry(`🎉 Игрок "${data.player.name}" присоединился к игре!`);
+            
+            setTimeout(() => {
+                requestAllPlayersPositions();
+            }, 1000);
         });
         
         socket.on('player_reconnected', (data) => {
@@ -3170,6 +3247,7 @@
                 gameState.players[data.playerId].connected = true;
             }
             updatePlayersList();
+            updatePlayerMarkers();
             
             addLogEntry(`🔌 Игрок "${data.playerName}" восстановил соединение`);
         });
@@ -3180,6 +3258,7 @@
                 gameState.players[data.playerId].connected = false;
             }
             updatePlayersList();
+            updatePlayerMarkers();
             
             addLogEntry(`👋 Игрок "${data.playerName}" покинул игру.`);
         });
@@ -3206,8 +3285,14 @@
             if (gameState.players[data.playerId] && data.playerId !== gameState.currentPlayerId) {
                 gameState.players[data.playerId].position = data.newPosition;
                 gameState.players[data.playerId].currentTask = data.task;
+                updatePlayerMarkers();
                 
                 addLogEntry(`🎲 Игрок "${gameState.players[data.playerId].name}" бросил кубик: ${data.diceValue}`);
+                
+                if (data.playerId !== socket.id) {
+                    console.log(`🎲 Игрок ${gameState.players[data.playerId].name} бросил кубик, новая позиция: ${data.newPosition}`);
+                    updateOtherPlayerMarker(data.playerId, gameState.players[data.playerId].name, data.newPosition, '', '');
+                }
             }
         });
         
@@ -3246,6 +3331,149 @@
                     showNotification(`⏳ Сейчас ходит ${currentPlayer.name}. Ожидайте своей очереди.`, 'info');
                     elements.rollDiceBtn.disabled = true;
                 }
+            }
+        });
+        
+        // ==================== СИНХРОНИЗАЦИЯ ДВИЖЕНИЯ ИГРОКОВ ====================
+        
+        function sendPlayerPositionToServer(position, city) {
+            if (socket.connected && gameState.currentPlayer) {
+                socket.emit('player_position_update', {
+                    position: position,
+                    city: city
+                });
+                console.log(`📤 Отправлена позиция на сервер: ${position}, город: ${city}`);
+            }
+        }
+        
+        function requestAllPlayersPositions() {
+            if (socket.connected) {
+                socket.emit('request_all_positions');
+                console.log('🔄 Запрос позиций всех игроков...');
+            }
+        }
+        
+        function updateOtherPlayerMarker(playerId, playerName, position, city, color) {
+            let marker = document.getElementById(`marker-${playerId}`);
+            
+            if (!marker) {
+                marker = document.createElement('div');
+                marker.className = 'player-marker';
+                marker.id = `marker-${playerId}`;
+                marker.setAttribute('data-player', playerName);
+                marker.style.background = color || getRandomColor(playerId);
+                marker.style.border = '2px solid white';
+                marker.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.7)';
+                marker.innerHTML = '<i class="fas fa-user" style="font-size: 10px; color: white;"></i>';
+                
+                const tooltip = document.createElement('div');
+                tooltip.className = 'player-tooltip';
+                tooltip.textContent = playerName;
+                tooltip.style.cssText = 'position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none;';
+                marker.appendChild(tooltip);
+                
+                marker.addEventListener('mouseenter', () => {
+                    tooltip.style.opacity = '1';
+                });
+                marker.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                });
+                
+                document.querySelector('.game-map').appendChild(marker);
+                console.log(`🆕 Создан маркер для игрока ${playerName}`);
+            }
+            
+            // Рассчитываем позицию на карте
+            updateMarkerPosition(marker, position);
+            
+            const tooltip = marker.querySelector('.player-tooltip');
+            if (tooltip) {
+                tooltip.textContent = `${playerName} (поз. ${position})`;
+            }
+            
+            updatePlayerInList(playerId, position, playerName);
+        }
+        
+        function updateMarkerPosition(marker, position) {
+            // Упрощенная позиция маркера на визуальной карте
+            const mapRect = document.querySelector('.game-map').getBoundingClientRect();
+            const cellSize = 35;
+            
+            // Создаем простую сетку для позиционирования
+            const row = Math.floor((position - 1) / 10);
+            const col = (position - 1) % 10;
+            
+            // Рассчитываем позицию в процентах от размеров карты
+            const leftPercent = (col * 4.5) + 10;
+            const topPercent = (row * 4.5) + 15;
+            
+            marker.style.left = `${leftPercent}%`;
+            marker.style.top = `${topPercent}%`;
+        }
+        
+        function getRandomColor(playerId) {
+            const colors = [
+                '#4ecdc4', '#ff6b6b', '#1dd1a1', '#54a0ff', '#ff9ff3',
+                '#feca57', '#ff9f43', '#00d2d3', '#5f27cd', '#ff9e1f'
+            ];
+            
+            let hash = 0;
+            for (let i = 0; i < playerId.length; i++) {
+                hash = playerId.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            
+            const index = Math.abs(hash) % colors.length;
+            return colors[index];
+        }
+        
+        function updatePlayerInList(playerId, position, playerName) {
+            const playerItems = document.querySelectorAll('.player-item');
+            let found = false;
+            
+            playerItems.forEach(item => {
+                if (item.textContent.includes(playerName) || item.dataset.playerId === playerId) {
+                    found = true;
+                    const positionSpan = item.querySelector('.player-position-badge');
+                    if (positionSpan) {
+                        positionSpan.textContent = `поз. ${position}`;
+                    } else {
+                        const posElement = document.createElement('span');
+                        posElement.className = 'player-position-badge';
+                        posElement.textContent = `поз. ${position}`;
+                        item.querySelector('span').appendChild(posElement);
+                    }
+                }
+            });
+            
+            if (!found) {
+                updatePlayersList();
+            }
+        }
+        
+        socket.on('player_position_update', (data) => {
+            const { playerId, playerName, position, city, color } = data;
+            
+            if (playerId !== socket.id) {
+                console.log(`📍 Получено обновление позиции игрока ${playerName}: ${position}, город: ${city}`);
+                updateOtherPlayerMarker(playerId, playerName, position, city, color);
+            }
+        });
+        
+        socket.on('all_players_positions', (data) => {
+            console.log('🔄 Получены позиции всех игроков:', data);
+            
+            const { players } = data;
+            
+            for (const playerId in players) {
+                const player = players[playerId];
+                
+                updateOtherPlayerMarker(
+                    playerId,
+                    player.name,
+                    player.position,
+                    player.city,
+                    player.color
+                );
             }
         });
         
@@ -3308,6 +3536,7 @@
             updatePlayerUI();
             elements.roomNumber.textContent = currentRoomId || gameState.roomId;
             
+            createInteractiveCells();
             createCitiesGrid();
             createBuildingsList();
             updateDifficultyButtons();
@@ -3392,6 +3621,7 @@
             }
             
             updatePlayersList();
+            updatePlayerMarkers();
             elements.onlinePlayers.textContent = Object.keys(gameState.players).filter(id => gameState.players[id].connected).length;
             
             createCurrentCityProgress();
@@ -3448,6 +3678,131 @@
         }
         
         // ==================== ФУНКЦИИ ИНТЕРФЕЙСА ====================
+        function createInteractiveCells() {
+            elements.interactiveMap.innerHTML = '';
+            
+            // Создаем интерактивные клетки карты
+            for (let i = 1; i <= 100; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'map-cell';
+                cell.id = `cell-${i}`;
+                cell.dataset.number = i;
+                cell.dataset.type = 'grass';
+                
+                // Определяем тип клетки
+                if (i === 1) {
+                    cell.dataset.type = 'start';
+                    cell.style.background = '#2ecc71';
+                    cell.title = 'Старт';
+                } else if (i === 100) {
+                    cell.dataset.type = 'finish';
+                    cell.style.background = '#e74c3c';
+                    cell.title = 'Финиш';
+                } else if (i >= 14 && i <= 17) {
+                    cell.dataset.type = 'water';
+                    cell.style.background = '#3498db';
+                } else if (i >= 30 && i <= 31) {
+                    cell.dataset.type = 'water';
+                    cell.style.background = '#3498db';
+                } else if (i >= 44 && i <= 46) {
+                    cell.dataset.type = 'water';
+                    cell.style.background = '#3498db';
+                } else if (i >= 59 && i <= 65) {
+                    cell.dataset.type = 'water';
+                    cell.style.background = '#3498db';
+                } else if (i >= 78 && i <= 80) {
+                    cell.dataset.type = 'water';
+                    cell.style.background = '#3498db';
+                } else if (i >= 81 && i <= 92) {
+                    cell.dataset.type = 'forest';
+                    cell.style.background = '#27ae60';
+                } else if (i === 95 || i === 96) {
+                    cell.dataset.type = 'mountain';
+                    cell.style.background = '#95a5a6';
+                } else {
+                    cell.dataset.type = 'grass';
+                    cell.style.background = '#2ecc71';
+                }
+                
+                // Проверяем, является ли клетка городом
+                for (const cityKey in gameData.cities) {
+                    if (gameData.cities[cityKey].cells.includes(i)) {
+                        cell.dataset.type = 'city';
+                        cell.style.background = '#f1c40f';
+                        cell.title = gameData.cities[cityKey].name;
+                        break;
+                    }
+                }
+                
+                cell.style.position = 'absolute';
+                cell.style.width = '40px';
+                cell.style.height = '40px';
+                cell.style.border = '1px solid rgba(255,255,255,0.1)';
+                cell.style.boxSizing = 'border-box';
+                cell.style.cursor = 'pointer';
+                cell.style.display = 'flex';
+                cell.style.alignItems = 'center';
+                cell.style.justifyContent = 'center';
+                cell.style.color = 'white';
+                cell.style.fontSize = '12px';
+                cell.style.fontWeight = 'bold';
+                cell.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
+                
+                // Добавляем номер клетки
+                const numberSpan = document.createElement('span');
+                numberSpan.textContent = i;
+                cell.appendChild(numberSpan);
+                
+                // Позиционируем клетку
+                const row = Math.floor((i - 1) / 10);
+                const col = (i - 1) % 10;
+                cell.style.left = `${col * 42 + 10}px`;
+                cell.style.top = `${row * 42 + 10}px`;
+                
+                // Добавляем обработчик клика
+                cell.addEventListener('click', function() {
+                    selectCell(this.dataset.number);
+                });
+                
+                elements.interactiveMap.appendChild(cell);
+            }
+            
+            updatePlayerMarkers();
+        }
+        
+        function selectCell(cellNumber) {
+            const cell = document.getElementById(`cell-${cellNumber}`);
+            if (!cell) return;
+            
+            // Сбрасываем выделение всех клеток
+            document.querySelectorAll('.map-cell').forEach(c => {
+                c.classList.remove('selected');
+            });
+            
+            // Выделяем выбранную клетку
+            cell.classList.add('selected');
+            
+            // Показываем информацию о клетке
+            let cellInfo = `Клетка ${cellNumber}`;
+            if (cell.dataset.type === 'start') cellInfo += ' (Старт)';
+            else if (cell.dataset.type === 'finish') cellInfo += ' (Финиш)';
+            else if (cell.dataset.type === 'city') cellInfo += ` (${cell.title})`;
+            else if (cell.dataset.type === 'water') cellInfo += ' (Вода)';
+            else if (cell.dataset.type === 'forest') cellInfo += ' (Лес)';
+            else if (cell.dataset.type === 'mountain') cellInfo += ' (Горы)';
+            else cellInfo += ' (Трава)';
+            
+            showNotification(cellInfo, 'info');
+        }
+        
+        function updatePlayerMarkers() {
+            document.querySelectorAll('.player-marker').forEach(marker => {
+                marker.remove();
+            });
+            
+            requestAllPlayersPositions();
+        }
+        
         function updatePlayersList() {
             elements.playersContainer.innerHTML = '';
             
@@ -4860,6 +5215,11 @@
             gameState.currentPlayer.city = cityKey;
             
             updatePlayerUI();
+            updatePlayerMarkers();
+            
+            // Отправляем обновление на сервер
+            sendPlayerPositionToServer(firstCell, cityKey);
+            savePlayerState();
             
             // Обновляем UI
             createCitiesGrid();
@@ -5060,6 +5420,7 @@
                 }
                 
                 addLogEntry(`🎲 Вы бросили кубик и выпало: ${value}. Новое положение: ${gameState.currentPlayer.position}`);
+                updatePlayerMarkers();
                 
                 socket.emit('dice_roll', {
                     diceValue: value,
@@ -5068,6 +5429,15 @@
                 });
                 
                 savePlayerState();
+                
+                if (gameState.currentPlayer) {
+                    setTimeout(() => {
+                        sendPlayerPositionToServer(
+                            gameState.currentPlayer.position,
+                            gameState.currentPlayer.city
+                        );
+                    }, 100);
+                }
                 
                 showNotification(`🎲 Вы переместились на ${value} клеток! Получено новое задание.`, 'success');
                 elements.buildBtn.disabled = true;
@@ -5114,6 +5484,8 @@
             });
             
             addLogEntry(`🏙️ Вы прибыли в город: ${gameData.cities[cityKey].name}`);
+            
+            sendPlayerPositionToServer(gameState.currentPlayer.position, cityKey);
             
             // Проверяем прогресс для кнопки перехода
             createCurrentCityProgress();
@@ -5177,7 +5549,9 @@
             gameState.currentPlayer.position = city.cells[0];
             
             updatePlayerUI();
+            updatePlayerMarkers();
             
+            sendPlayerPositionToServer(gameState.currentPlayer.position, currentCityKey);
             savePlayerState();
             
             showNotification(`🔙 Вы вернулись в начало города ${city.name}!`, 'success');
