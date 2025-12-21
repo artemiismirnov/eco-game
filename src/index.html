@@ -1031,83 +1031,30 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
-        .map-grid {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            grid-template-rows: repeat(10, 1fr);
-            aspect-ratio: 1/1;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%238BC34A" opacity="0.3"/></svg>');
-            background-size: cover;
+        /* ==================== КАРТА (ОБНОВЛЕННЫЙ СТИЛЬ) ==================== */
+        #mapGrid {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 10px;
         }
         
         .map-cell {
-            border: 1px solid #a5d6a7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background: rgba(255, 255, 255, 0.7);
-            transition: all 0.3s;
-            color: #000 !important;
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-sizing: border-box;
             cursor: pointer;
         }
         
-        .map-cell:hover {
-            background: rgba(255, 255, 255, 0.9);
-            transform: scale(1.05);
-            z-index: 5;
-        }
+        .map-cell.grass { background: #2ecc71; }
+        .map-cell.water { background: #3498db; }
+        .map-cell.forest { background: #27ae60; }
+        .map-cell.mountain { background: #95a5a6; }
         
-        .map-cell.start {
-            background: rgba(76, 175, 80, 0.9);
-            color: white !important;
-            font-weight: bold;
-            font-size: 11px;
-            background-image: none;
-        }
-        
-        .map-cell.start-zero {
-            background: rgba(41, 128, 185, 0.9);
-            color: white !important;
-            font-weight: bold;
-            font-size: 11px;
-            background-image: none;
-        }
-        
-        .map-cell.finish {
-            background: rgba(244, 67, 54, 0.9);
-            color: white !important;
-            font-weight: bold;
-            font-size: 11px;
-            background-image: none;
-        }
-        
-        .map-cell.city {
-            background: rgba(255, 235, 59, 0.9);
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10 0L0 10h3v10h4v-6h6v6h4V10h3z" fill="%23FF9800"/></svg>');
-            background-repeat: no-repeat;
-            background-position: center 5px;
-            background-size: 15px;
-            padding-top: 18px;
-        }
-        
-        .map-cell.river {
-            background: rgba(33, 150, 243, 0.4);
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M0,10 Q5,5 10,10 T20,10" stroke="%232196F3" fill="none" stroke-width="2"/></svg>');
-            background-repeat: no-repeat;
-            background-position: center;
-        }
-        
-        .map-cell.forest {
-            background: rgba(56, 142, 60, 0.4);
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10,2 L12,7 L17,7 L13,10 L15,15 L10,12 L5,15 L7,10 L3,7 L8,7 Z" fill="%23388E3C"/></svg>');
-            background-repeat: no-repeat;
-            background-position: center;
-        }
-        
-        .map-cell.empty {
-            background: rgba(200, 200, 200, 0.4);
-            color: #999 !important;
+        .map-cell.selected {
+            outline: 2px solid yellow;
         }
         
         .map-legend {
@@ -2401,9 +2348,7 @@
                 <div class="game-board">
                     <h2 style="text-align: center;">Игровое поле</h2>
                     <div class="game-map">
-                        <div class="map-grid" id="mapGrid">
-                            <!-- Карта будет создана через JavaScript -->
-                        </div>
+                        <img id="mapGrid" alt="Игровая карта России">
                     </div>
                     
                     <!-- Легенда карты -->
@@ -2673,6 +2618,12 @@
     <!-- Подключение Socket.IO и игровая логика -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
+        // Base64 изображение карты России (заглушка - замените на реальное Base64)
+        const mapBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgdmlld0JveD0iMCAwIDgwMCA2MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTdmMGUxIi8+CiAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSIjMzMzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4KICAgICAgICDQsNC90YHRgtCw0L0g0LrQsNGA0LvQsCDQstC+0YHQutCw0Y8gKNCd0LDRgdGC0YDQvtC50LrQsCkKICAgIDwvdGV4dD4KICAgIDx0ZXh0IHg9IjUwJSIgeT0iNjAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPgogICAgICAgINCf0L7QtNC90L7QstCw0YLRjCDQv9GA0L7QtNCw0LvRjNC90L7RgdGC0Lgg0L/QvtC00LrQsNGC0LjQu9Cw0YbQuNGPINGB0LvQvtC20L3QvtGB0YLQuCDQuNC3INC60LDRgNC70LDRgtC+0LoKICAgIDwvdGV4dD4KPC9zdmc+";
+
+        // Подставляем Base64 в изображение
+        document.getElementById("mapGrid").src = mapBase64;
+        
         // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         console.log('🎮 Игра "Юный эколог" загружается...');
         
@@ -2702,8 +2653,6 @@
             registerTab: document.getElementById('registerTab'),
             loginForm: document.getElementById('loginForm'),
             registerForm: document.getElementById('registerForm'),
-            mapGrid: document.getElementById('mapGrid'),
-            citiesGrid: document.getElementById('citiesGrid'),
             rollDiceBtn: document.getElementById('rollDiceBtn'),
             buildBtn: document.getElementById('buildBtn'),
             moveBtn: document.getElementById('moveBtn'),
@@ -3137,11 +3086,6 @@
                 socket.emit('player_reconnected');
                 console.log('🔄 Уведомили сервер о восстановлении соединения');
             }
-            
-            // Запрашиваем позиции всех игроков при подключении
-            setTimeout(() => {
-                requestAllPlayersPositions();
-            }, 2000);
         });
         
         socket.on('disconnect', () => {
@@ -3173,11 +3117,6 @@
             gameState.hasUnfinishedTask = playerData.hasUnfinishedTask || false;
             
             initializeGame(playerData);
-            
-            // Запрашиваем позиции всех игроков после присоединения к комнате
-            setTimeout(() => {
-                requestAllPlayersPositions();
-            }, 1500);
             
             // Обновляем индикатор очереди
             updateTurnIndicator();
@@ -3221,13 +3160,8 @@
             console.log('👥 Новый игрок:', data.player.name);
             gameState.players[data.playerId] = data.player;
             updatePlayersList();
-            updatePlayerMarkers();
             
             addLogEntry(`🎉 Игрок "${data.player.name}" присоединился к игре!`);
-            
-            setTimeout(() => {
-                requestAllPlayersPositions();
-            }, 1000);
         });
         
         socket.on('player_reconnected', (data) => {
@@ -3236,7 +3170,6 @@
                 gameState.players[data.playerId].connected = true;
             }
             updatePlayersList();
-            updatePlayerMarkers();
             
             addLogEntry(`🔌 Игрок "${data.playerName}" восстановил соединение`);
         });
@@ -3247,7 +3180,6 @@
                 gameState.players[data.playerId].connected = false;
             }
             updatePlayersList();
-            updatePlayerMarkers();
             
             addLogEntry(`👋 Игрок "${data.playerName}" покинул игру.`);
         });
@@ -3274,14 +3206,8 @@
             if (gameState.players[data.playerId] && data.playerId !== gameState.currentPlayerId) {
                 gameState.players[data.playerId].position = data.newPosition;
                 gameState.players[data.playerId].currentTask = data.task;
-                updatePlayerMarkers();
                 
                 addLogEntry(`🎲 Игрок "${gameState.players[data.playerId].name}" бросил кубик: ${data.diceValue}`);
-                
-                if (data.playerId !== socket.id) {
-                    console.log(`🎲 Игрок ${gameState.players[data.playerId].name} бросил кубик, новая позиция: ${data.newPosition}`);
-                    updateOtherPlayerMarker(data.playerId, gameState.players[data.playerId].name, data.newPosition, '', '');
-                }
             }
         });
         
@@ -3320,153 +3246,6 @@
                     showNotification(`⏳ Сейчас ходит ${currentPlayer.name}. Ожидайте своей очереди.`, 'info');
                     elements.rollDiceBtn.disabled = true;
                 }
-            }
-        });
-        
-        // ==================== СИНХРОНИЗАЦИЯ ДВИЖЕНИЯ ИГРОКОВ ====================
-        
-        function sendPlayerPositionToServer(position, city) {
-            if (socket.connected && gameState.currentPlayer) {
-                socket.emit('player_position_update', {
-                    position: position,
-                    city: city
-                });
-                console.log(`📤 Отправлена позиция на сервер: ${position}, город: ${city}`);
-            }
-        }
-        
-        function requestAllPlayersPositions() {
-            if (socket.connected) {
-                socket.emit('request_all_positions');
-                console.log('🔄 Запрос позиций всех игроков...');
-            }
-        }
-        
-        function updateOtherPlayerMarker(playerId, playerName, position, city, color) {
-            let marker = document.getElementById(`marker-${playerId}`);
-            
-            if (!marker) {
-                marker = document.createElement('div');
-                marker.className = 'player-marker';
-                marker.id = `marker-${playerId}`;
-                marker.setAttribute('data-player', playerName);
-                marker.style.background = color || getRandomColor(playerId);
-                marker.style.border = '2px solid white';
-                marker.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.7)';
-                marker.innerHTML = '<i class="fas fa-user" style="font-size: 10px; color: white;"></i>';
-                
-                const tooltip = document.createElement('div');
-                tooltip.className = 'player-tooltip';
-                tooltip.textContent = playerName;
-                tooltip.style.cssText = 'position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none;';
-                marker.appendChild(tooltip);
-                
-                marker.addEventListener('mouseenter', () => {
-                    tooltip.style.opacity = '1';
-                });
-                marker.addEventListener('mouseleave', () => {
-                    tooltip.style.opacity = '0';
-                });
-                
-                elements.mapGrid.appendChild(marker);
-                console.log(`🆕 Создан маркер для игрока ${playerName}`);
-            }
-            
-            const cellNumber = position || 0;
-            const row = Math.floor((cellNumber) / 10);
-            const col = (cellNumber) % 10;
-            
-            // ИСПРАВЛЕНО: Рассчитываем точную позицию маркера
-            const cell = document.querySelector(`.map-cell:nth-child(${cellNumber + 1})`);
-            if (cell) {
-                const cellRect = cell.getBoundingClientRect();
-                const mapRect = elements.mapGrid.getBoundingClientRect();
-                
-                const leftPercent = ((cellRect.left + cellRect.width/2 - mapRect.left) / mapRect.width) * 100;
-                const topPercent = ((cellRect.top + cellRect.height/2 - mapRect.top) / mapRect.height) * 100;
-                
-                marker.style.left = `${leftPercent}%`;
-                marker.style.top = `${topPercent}%`;
-            } else {
-                // Запасной вариант расчета
-                const leftPercent = (col * 10) + 5;
-                const topPercent = (row * 10) + 5;
-                
-                marker.style.left = `${leftPercent}%`;
-                marker.style.top = `${topPercent}%`;
-            }
-            
-            const tooltip = marker.querySelector('.player-tooltip');
-            if (tooltip) {
-                tooltip.textContent = `${playerName} (поз. ${position})`;
-            }
-            
-            updatePlayerInList(playerId, position, playerName);
-        }
-        
-        function getRandomColor(playerId) {
-            const colors = [
-                '#4ecdc4', '#ff6b6b', '#1dd1a1', '#54a0ff', '#ff9ff3',
-                '#feca57', '#ff9f43', '#00d2d3', '#5f27cd', '#ff9e1f'
-            ];
-            
-            let hash = 0;
-            for (let i = 0; i < playerId.length; i++) {
-                hash = playerId.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            
-            const index = Math.abs(hash) % colors.length;
-            return colors[index];
-        }
-        
-        function updatePlayerInList(playerId, position, playerName) {
-            const playerItems = document.querySelectorAll('.player-item');
-            let found = false;
-            
-            playerItems.forEach(item => {
-                if (item.textContent.includes(playerName) || item.dataset.playerId === playerId) {
-                    found = true;
-                    const positionSpan = item.querySelector('.player-position-badge');
-                    if (positionSpan) {
-                        positionSpan.textContent = `поз. ${position}`;
-                    } else {
-                        const posElement = document.createElement('span');
-                        posElement.className = 'player-position-badge';
-                        posElement.textContent = `поз. ${position}`;
-                        item.querySelector('span').appendChild(posElement);
-                    }
-                }
-            });
-            
-            if (!found) {
-                updatePlayersList();
-            }
-        }
-        
-        socket.on('player_position_update', (data) => {
-            const { playerId, playerName, position, city, color } = data;
-            
-            if (playerId !== socket.id) {
-                console.log(`📍 Получено обновление позиции игрока ${playerName}: ${position}, город: ${city}`);
-                updateOtherPlayerMarker(playerId, playerName, position, city, color);
-            }
-        });
-        
-        socket.on('all_players_positions', (data) => {
-            console.log('🔄 Получены позиции всех игроков:', data);
-            
-            const { players } = data;
-            
-            for (const playerId in players) {
-                const player = players[playerId];
-                
-                updateOtherPlayerMarker(
-                    playerId,
-                    player.name,
-                    player.position,
-                    player.city,
-                    player.color
-                );
             }
         });
         
@@ -3529,7 +3308,6 @@
             updatePlayerUI();
             elements.roomNumber.textContent = currentRoomId || gameState.roomId;
             
-            createMap();
             createCitiesGrid();
             createBuildingsList();
             updateDifficultyButtons();
@@ -3614,7 +3392,6 @@
             }
             
             updatePlayersList();
-            updatePlayerMarkers();
             elements.onlinePlayers.textContent = Object.keys(gameState.players).filter(id => gameState.players[id].connected).length;
             
             createCurrentCityProgress();
@@ -3671,126 +3448,6 @@
         }
         
         // ==================== ФУНКЦИИ ИНТЕРФЕЙСА ====================
-        function createMap() {
-            elements.mapGrid.innerHTML = '';
-            
-            const riverCells = [14, 15, 16, 17, 30, 31, 44, 45, 46, 59, 60, 61, 62, 63, 64, 65, 78, 79, 80];
-            const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98];
-            
-            // Добавляем клетку 0 (старт) с подписью
-            const startCell = document.createElement('div');
-            startCell.className = 'map-cell hexagon start-zero';
-            startCell.style.position = 'relative';
-            startCell.style.background = 'rgba(41, 128, 185, 0.9)';
-            
-            const startNumberSpan = document.createElement('span');
-            startNumberSpan.className = 'cell-number';
-            startNumberSpan.textContent = 'Старт';
-            startNumberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: white; z-index: 1; text-align: center; line-height: 1.2;';
-            
-            startCell.appendChild(startNumberSpan);
-            elements.mapGrid.appendChild(startCell);
-            
-            // Создаем остальные клетки с 1 по 100
-            for (let row = 0; row < 10; row++) {
-                for (let col = 0; col < 10; col++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'map-cell hexagon';
-                    cell.style.position = 'relative';
-                    
-                    const cellNumber = row * 10 + col + 1;
-                    
-                    if (cellNumber > 100) {
-                        cell.classList.add('empty');
-                        cell.textContent = '';
-                        elements.mapGrid.appendChild(cell);
-                        continue;
-                    }
-                    
-                    const numberSpan = document.createElement('span');
-                    numberSpan.className = 'cell-number';
-                    numberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: #333; z-index: 1;';
-                    
-                    // ИСПРАВЛЕНО: Убираем лишние отступы для определенных клеток
-                    if (cellNumber === 1 || cellNumber === 13 || cellNumber === 18 || cellNumber === 29 || cellNumber === 32) {
-                        numberSpan.style.top = '50%';
-                        numberSpan.style.fontSize = '10px';
-                    }
-                    
-                    if (cellNumber === 1) {
-                        cell.classList.add('start');
-                        cell.style.background = 'rgba(76, 175, 80, 0.9)';
-                        numberSpan.textContent = '1';
-                        numberSpan.style.color = 'white';
-                        numberSpan.style.fontSize = '10px';
-                        
-                        // ИСПРАВЛЕНО: Начальная позиция игрока теперь 0 (Старт)
-                        if (gameState.currentPlayer && gameState.currentPlayer.position === undefined) {
-                            gameState.currentPlayer.position = 0;
-                            updatePlayerUI();
-                        }
-                    } else if (cellNumber === 99) {
-                        // Клетка 99 - Финиш с подписью
-                        cell.classList.add('finish');
-                        cell.style.background = 'rgba(244, 67, 54, 0.9)';
-                        numberSpan.textContent = 'Финиш';
-                        numberSpan.style.color = 'white';
-                        numberSpan.style.fontSize = '10px';
-                        numberSpan.style.textAlign = 'center';
-                        numberSpan.style.lineHeight = '1.2';
-                        numberSpan.style.top = '50%';
-                    } else if (cellNumber === 100) {
-                        cell.classList.add('finish');
-                        cell.style.background = 'rgba(244, 67, 54, 0.9)';
-                        numberSpan.textContent = '100';
-                        numberSpan.style.color = 'white';
-                        numberSpan.style.fontSize = '10px';
-                        numberSpan.style.top = '50%';
-                    } else if (riverCells.includes(cellNumber)) {
-                        cell.classList.add('river');
-                        cell.style.background = 'rgba(33, 150, 243, 0.4)';
-                        numberSpan.textContent = cellNumber;
-                        numberSpan.style.color = '#2196F3';
-                    } else if (forestCells.includes(cellNumber)) {
-                        cell.classList.add('forest');
-                        cell.style.background = 'rgba(56, 142, 60, 0.4)';
-                        numberSpan.textContent = cellNumber;
-                        numberSpan.style.color = '#388E3C';
-                    } else {
-                        let isCity = false;
-                        for (const cityKey in gameData.cities) {
-                            if (gameData.cities[cityKey].cells.includes(cellNumber)) {
-                                cell.classList.add('city');
-                                cell.style.background = 'rgba(255, 235, 59, 0.9)';
-                                numberSpan.textContent = cellNumber;
-                                numberSpan.style.color = '#FF9800';
-                                isCity = true;
-                                break;
-                            }
-                        }
-                        if (!isCity) {
-                            cell.style.background = 'rgba(255, 255, 255, 0.7)';
-                            numberSpan.textContent = cellNumber;
-                            numberSpan.style.color = '#666';
-                        }
-                    }
-                    
-                    cell.appendChild(numberSpan);
-                    elements.mapGrid.appendChild(cell);
-                }
-            }
-            
-            updatePlayerMarkers();
-        }
-        
-        function updatePlayerMarkers() {
-            document.querySelectorAll('.player-marker').forEach(marker => {
-                marker.remove();
-            });
-            
-            requestAllPlayersPositions();
-        }
-        
         function updatePlayersList() {
             elements.playersContainer.innerHTML = '';
             
@@ -5203,11 +4860,6 @@
             gameState.currentPlayer.city = cityKey;
             
             updatePlayerUI();
-            updatePlayerMarkers();
-            
-            // Отправляем обновление на сервер
-            sendPlayerPositionToServer(firstCell, cityKey);
-            savePlayerState();
             
             // Обновляем UI
             createCitiesGrid();
@@ -5408,7 +5060,6 @@
                 }
                 
                 addLogEntry(`🎲 Вы бросили кубик и выпало: ${value}. Новое положение: ${gameState.currentPlayer.position}`);
-                updatePlayerMarkers();
                 
                 socket.emit('dice_roll', {
                     diceValue: value,
@@ -5417,15 +5068,6 @@
                 });
                 
                 savePlayerState();
-                
-                if (gameState.currentPlayer) {
-                    setTimeout(() => {
-                        sendPlayerPositionToServer(
-                            gameState.currentPlayer.position,
-                            gameState.currentPlayer.city
-                        );
-                    }, 100);
-                }
                 
                 showNotification(`🎲 Вы переместились на ${value} клеток! Получено новое задание.`, 'success');
                 elements.buildBtn.disabled = true;
@@ -5472,8 +5114,6 @@
             });
             
             addLogEntry(`🏙️ Вы прибыли в город: ${gameData.cities[cityKey].name}`);
-            
-            sendPlayerPositionToServer(gameState.currentPlayer.position, cityKey);
             
             // Проверяем прогресс для кнопки перехода
             createCurrentCityProgress();
@@ -5537,9 +5177,7 @@
             gameState.currentPlayer.position = city.cells[0];
             
             updatePlayerUI();
-            updatePlayerMarkers();
             
-            sendPlayerPositionToServer(gameState.currentPlayer.position, currentCityKey);
             savePlayerState();
             
             showNotification(`🔙 Вы вернулись в начало города ${city.name}!`, 'success');
