@@ -5833,44 +5833,37 @@
             }
         });
         
-        <!-- Модальное окно приглашения -->
-    <div class="invite-modal" id="inviteModal">
-        <div class="invite-modal-content">
-            <div class="invite-modal-header">
-                <h2 class="invite-modal-title">Пригласить друзей 👥</h2>
-            </div>
-            <div class="invite-modal-body">
-                <div class="invite-link-box">
-                    <p class="invite-text">
-<span class="invite-emoji">🎮</span> Присоединяйтесь к моей комнате в игре "Юный эколог"!
-
-<span class="invite-section">
-<span class="room-label">🔢 Номер комнаты:</span> <span class="room-number" id="inviteRoomNumber">1</span>
-</span>
-
-<span class="invite-section">
-<span class="room-label">🌐 Игра доступна по адресу:</span> 
-<a href="https://eco-game-dfb0.onrender.com" target="_blank" class="game-url">https://eco-game-dfb0.onrender.com</a>
-</span>
-
-<span class="invite-section">
-<span class="invite-emoji">👥</span> Ждем вас!
-</span>
-                    </p>
+        // Кнопка приглашения друзей
+        elements.inviteBtn.addEventListener('click', () => {
+            const roomId = currentRoomId || gameState.roomId;
+            const inviteText = `Присоединяйтесь к игре "Юный эколог"! Номер комнаты: ${roomId}`;
+            
+            // Создаем красивое модальное окно
+            const inviteModal = document.createElement('div');
+            inviteModal.className = 'city-modal active';
+            inviteModal.innerHTML = `
+                <div class="city-modal-content">
+                    <div class="city-modal-header">
+                        <h2 class="city-modal-title">Пригласить друзей</h2>
+                        <div class="city-modal-subtitle">Отправьте эту ссылку друзьям</div>
+                    </div>
+                    <div class="city-modal-body">
+                        <div class="invite-link-box">
+                            <p>Пригласите друзей присоединиться к вашей комнате:</p>
+                            <p style="text-align: center; margin: 15px 0;">
+                                <span class="room-number-bold">${roomId}</span>
+                            </p>
+                            <p>Попросите друзей ввести этот номер комнаты при входе в игру.</p>
+                            <p style="margin-top: 10px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                                Игра поддерживает до 6 игроков одновременно.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="city-modal-close">
+                        <button class="game-btn" id="copyInviteBtn">📋 Скопировать номер комнаты</button>
+                        <button class="game-btn" style="margin-top: 10px;" id="closeInviteBtn">Закрыть</button>
+                    </div>
                 </div>
-                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center; margin: 10px 0;">
-                    Отправьте этот текст друзьям, чтобы они присоединились к вашей комнате
-                </p>
-            </div>
-            <div class="invite-modal-actions">
-                <button class="copy-invite-btn" id="copyInviteBtn">
-                    <i class="fas fa-copy"></i> Скопировать приглашение
-                </button>
-                <button class="game-btn red" id="closeInviteBtn">Закрыть</button>
-            </div>
-        </div>
-
-
             `;
             
             document.body.appendChild(inviteModal);
