@@ -68,7 +68,7 @@
             margin-bottom: 20px;
         }
         
-        /* Индикатор подключения - маленькая точка в углу */
+        /* Индикатор подключения */
         .connection-status {
             position: fixed;
             top: 10px;
@@ -80,7 +80,6 @@
             z-index: 9999;
             box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
             animation: pulse 2s infinite;
-            display: none; /* Скрываем, показываем только при подключении */
         }
         
         .connection-status.disconnected {
@@ -1468,7 +1467,6 @@
             bottom: 20px;
             right: 20px;
             z-index: 9997;
-            display: none; /* Скрыта на главном экране */
         }
         
         .quick-actions-btn {
@@ -1685,7 +1683,7 @@
     </style>
 </head>
 <body>
-    <!-- Индикатор подключения - маленькая точка в углу -->
+    <!-- Индикатор подключения -->
     <div class="connection-status" id="connectionStatus"></div>
     
     <!-- Плашка с монетами и уровнем -->
@@ -2557,11 +2555,6 @@
 
         // Добавление сообщения в чат
         function addChatMessage(sender, message, isSystem = false) {
-            // В чат идут только сообщения игроков и присоединения
-            if (isSystem && !message.includes('присоединился') && !message.includes('покинул') && !message.includes('вернулся')) {
-                return; // Системные сообщения об играх не добавляем в чат
-            }
-            
             const messageElement = document.createElement('div');
             messageElement.className = 'log-entry ' + (isSystem ? 'system' : 'chat');
             messageElement.textContent = `${sender}: ${message}`;
@@ -2571,7 +2564,6 @@
 
         // Обновление статуса подключения
         function updateConnectionStatus(connected) {
-            connectionStatus.style.display = 'block'; // Показываем точку при подключении
             if (connected) {
                 connectionStatus.classList.remove('disconnected');
                 gameState.isConnected = true;
@@ -2599,7 +2591,7 @@
         function createHexMap() {
             hexGrid.innerHTML = '';
             
-            // Координаты для шестигранников
+            // Координаты для шестигранников (примерные)
             const hexPositions = [];
             const rows = 10;
             const cols = 10;
@@ -2901,7 +2893,7 @@
                         <div class="player-name">${player.name}</div>
                         <div class="player-stats">
                             Уровень: ${player.level} | 
-                            Баллы очищения: ${player.cleaningPoints} | 
+                            Баллы: ${player.cleaningPoints} | 
                             Монеты: ${player.coins}
                         </div>
                     </div>
@@ -3875,6 +3867,7 @@
             socket.on('connect', () => {
                 console.log('✅ Подключено к серверу');
                 updateConnectionStatus(true);
+                showNotification('Подключено к игровому серверу', 'success');
                 
                 // Восстанавливаем сессию, если есть
                 const savedSession = localStorage.getItem('ecoGameSession');
@@ -4115,18 +4108,15 @@
                 rollDiceBtn.disabled = false;
                 turnInfo.textContent = "🎲 Сейчас ваш ход! Бросьте кубик.";
                 turnInfo.style.color = "#FFD700";
-                showTurnIndicator();
             } else if (gameState.currentTurnPlayerId && gameState.players[gameState.currentTurnPlayerId]) {
                 const playerName = gameState.players[gameState.currentTurnPlayerId].name;
                 rollDiceBtn.disabled = true;
                 turnInfo.textContent = `⏳ Сейчас ходит: ${playerName}`;
                 turnInfo.style.color = "rgba(255, 255, 255, 0.7)";
-                hideTurnIndicator();
             } else {
                 rollDiceBtn.disabled = true;
                 turnInfo.textContent = "⏳ Ожидание хода...";
                 turnInfo.style.color = "rgba(255, 255, 255, 0.7)";
-                hideTurnIndicator();
             }
         }
 
@@ -4264,9 +4254,6 @@
                     
                     // Очищаем localStorage
                     localStorage.removeItem('ecoGameSession');
-                    
-                    // Очищаем чат
-                    chatMessages.innerHTML = '<div class="log-entry system">Добро пожаловать в чат! Напишите сообщение...</div>';
                     
                     // Возвращаемся к экрану авторизации
                     gameContent.style.display = 'none';
@@ -4417,7 +4404,7 @@
             }
             
             if (!gameState.isMyTurn) {
-                showNotification('Сейчас не ваш ход! Дождитесь своей очереди.', 'warning');
+                showNotification('Сейчас не ваш ход!', 'warning');
                 return;
             }
             
