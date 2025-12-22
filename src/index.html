@@ -766,19 +766,34 @@
             100% { transform: scale(1); }
         }
         
-        /* Стили для заданий на поиск одинаковых карточек */
+        /* ==================== СТИЛИ ДЛЯ ЗАДАНИЙ "НАЙТИ ПАРУ" (ОБНОВЛЕННЫЕ) ==================== */
+        .match-task-hint {
+            font-size: 1rem;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b6b;
+        }
+        
         .match-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 12px;
             margin: 20px auto;
-            max-width: 500px;
+            max-width: 550px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
         .match-card {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            width: 80px;
+            height: 80px;
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -790,6 +805,8 @@
             position: relative;
             overflow: hidden;
             margin: 0 auto;
+            perspective: 1000px;
+            transform-style: preserve-3d;
         }
         
         .match-card::before {
@@ -809,19 +826,58 @@
         }
         
         .match-card:hover {
-            transform: scale(1.05) rotate(3deg);
+            transform: scale(1.05) rotate(2deg);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
         
-        .match-card.flipped {
+        .match-card .card-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            font-size: 2rem;
+            transition: transform 0.6s;
+            transform: rotateY(0deg);
+        }
+        
+        .match-card .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            font-size: 2.2rem;
+            transition: transform 0.6s;
             transform: rotateY(180deg);
         }
         
+        .match-card.flipped .card-front {
+            transform: rotateY(180deg);
+        }
+        
+        .match-card.flipped .card-back {
+            transform: rotateY(0deg);
+        }
+        
         .match-card.matched {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
             cursor: default;
             animation: match-success 0.5s;
+        }
+        
+        .match-card.matched .card-back {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
         }
         
         @keyframes match-success {
@@ -830,18 +886,21 @@
             100% { transform: scale(1); }
         }
         
-        .match-card .card-content {
-            display: none;
+        .match-progress {
+            text-align: center;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
         }
         
-        .match-card.flipped .card-content,
-        .match-card.matched .card-content {
-            display: block;
-        }
-        
-        .match-card .card-back {
-            font-size: 2rem;
-            color: white;
+        .match-progress span {
+            color: var(--secondary);
+            font-size: 1.1rem;
         }
         
         /* Контейнеры для заданий */
@@ -1725,7 +1784,7 @@
         }
         
         /* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
-        .city-modal, .choice-modal {
+        .city-modal, .choice-modal, .invite-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -1741,12 +1800,12 @@
             transition: all 0.3s;
         }
         
-        .city-modal.active, .choice-modal.active {
+        .city-modal.active, .choice-modal.active, .invite-modal.active {
             opacity: 1;
             visibility: visible;
         }
         
-        .city-modal-content, .choice-modal-content {
+        .city-modal-content, .choice-modal-content, .invite-modal-content {
             background: var(--card-bg);
             border-radius: 15px;
             padding: 30px;
@@ -1760,16 +1819,17 @@
         }
         
         .city-modal.active .city-modal-content,
-        .choice-modal.active .choice-modal-content {
+        .choice-modal.active .choice-modal-content,
+        .invite-modal.active .invite-modal-content {
             transform: translateY(0);
         }
         
-        .city-modal-header, .choice-modal-header {
+        .city-modal-header, .choice-modal-header, .invite-modal-header {
             margin-bottom: 20px;
             text-align: center;
         }
         
-        .city-modal-title, .choice-modal-title {
+        .city-modal-title, .choice-modal-title, .invite-modal-title {
             font-size: 1.8rem;
             margin-bottom: 10px;
             color: var(--secondary);
@@ -1781,7 +1841,7 @@
             margin-bottom: 5px;
         }
         
-        .city-modal-body, .choice-modal-body {
+        .city-modal-body, .choice-modal-body, .invite-modal-body {
             margin-bottom: 20px;
         }
         
@@ -1800,11 +1860,11 @@
             color: rgba(255, 255, 255, 0.9);
         }
         
-        .city-modal-close, .choice-modal-actions {
+        .city-modal-close, .choice-modal-actions, .invite-modal-actions {
             text-align: center;
         }
         
-        .choice-modal-actions {
+        .choice-modal-actions, .invite-modal-actions {
             display: flex;
             gap: 15px;
             justify-content: center;
@@ -2047,6 +2107,115 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
+        /* ==================== СТИЛИ ДЛЯ ПРИГЛАШЕНИЯ ==================== */
+        .invite-link-box {
+            background: rgba(46, 204, 113, 0.15);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 2px solid rgba(46, 204, 113, 0.3);
+            text-align: left;
+        }
+        
+        .invite-text {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+            white-space: pre-line;
+            margin: 0;
+        }
+        
+        .invite-text .room-number {
+            font-weight: 900;
+            font-size: 1.3rem;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 3px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 2px 0;
+        }
+        
+        .invite-text .room-label {
+            font-weight: bold;
+            color: var(--secondary);
+            margin-right: 5px;
+        }
+        
+        .invite-text .game-url {
+            color: #4ecdc4;
+            text-decoration: none;
+            font-weight: bold;
+            word-break: break-all;
+        }
+        
+        .invite-text .game-url:hover {
+            text-decoration: underline;
+        }
+        
+        .copy-invite-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--secondary), #3eb4ab);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 15px;
+            box-shadow: 0 4px 0 rgba(62, 180, 171, 0.8);
+        }
+        
+        .copy-invite-btn:hover {
+            background: linear-gradient(135deg, #3eb4ab, #2e9c94);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(62, 180, 171, 0.8);
+        }
+        
+        .copy-invite-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 3px 0 rgba(62, 180, 171, 0.8);
+        }
+        
+        .copy-invite-btn.copied {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            box-shadow: 0 4px 0 rgba(39, 174, 96, 0.8);
+        }
+        
+        .invite-emoji {
+            font-size: 1.3rem;
+            margin-right: 5px;
+        }
+        
+        .invite-section {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+        
+        .invite-section:last-child {
+            border-bottom: none;
+        }
+        
+        .room-number-bold {
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        
         /* ==================== АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ ==================== */
         @media (max-width: 768px) {
             .game-container {
@@ -2061,7 +2230,7 @@
                 text-align: center;
             }
             
-            .choice-modal-actions {
+            .choice-modal-actions, .invite-modal-actions {
                 flex-direction: column;
             }
             
@@ -2184,9 +2353,12 @@
             }
             
             .match-card {
-                width: 60px;
-                height: 60px;
-                font-size: 1.4rem;
+                width: 70px;
+                height: 70px;
+            }
+            
+            .match-card .card-front, .match-card .card-back {
+                font-size: 1.8rem;
             }
         }
         
@@ -2256,9 +2428,16 @@
             }
             
             .match-card {
-                width: 55px;
-                height: 55px;
-                font-size: 1.2rem;
+                width: 65px;
+                height: 65px;
+            }
+            
+            .match-card .card-front, .match-card .card-back {
+                font-size: 1.6rem;
+            }
+            
+            .invite-text {
+                font-size: 0.85rem;
             }
         }
         
@@ -2320,27 +2499,6 @@
             padding: 5px 10px;
             border-radius: 20px;
             font-size: 0.9rem;
-        }
-        
-        /* Стиль для кнопки приглашения */
-        .invite-link-box {
-            background: rgba(46, 204, 113, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 10px;
-            border: 2px solid rgba(46, 204, 113, 0.5);
-        }
-        
-        .room-number-bold {
-            font-weight: 900;
-            font-size: 1.5rem;
-            color: #FFD700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            background: rgba(0, 0, 0, 0.3);
-            padding: 5px 15px;
-            border-radius: 8px;
-            display: inline-block;
-            margin: 5px 0;
         }
     </style>
 </head>
@@ -2764,6 +2922,44 @@
         </div>
     </div>
 
+    <!-- Модальное окно приглашения -->
+    <div class="invite-modal" id="inviteModal">
+        <div class="invite-modal-content">
+            <div class="invite-modal-header">
+                <h2 class="invite-modal-title">Пригласить друзей 👥</h2>
+            </div>
+            <div class="invite-modal-body">
+                <div class="invite-link-box">
+                    <p class="invite-text">
+<span class="invite-emoji">🎮</span> Присоединяйтесь к моей комнате в игре "Юный эколог"!
+
+<span class="invite-section">
+<span class="room-label">🔢 Номер комнаты:</span> <span class="room-number" id="inviteRoomNumber">1</span>
+</span>
+
+<span class="invite-section">
+<span class="room-label">🌐 Игра доступна по адресу:</span> 
+<a href="https://eco-game-dfb0.onrender.com" target="_blank" class="game-url">https://eco-game-dfb0.onrender.com</a>
+</span>
+
+<span class="invite-section">
+<span class="invite-emoji">👥</span> Ждем вас!
+</span>
+                    </p>
+                </div>
+                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center; margin: 10px 0;">
+                    Отправьте этот текст друзьям, чтобы они присоединились к вашей комнате
+                </p>
+            </div>
+            <div class="invite-modal-actions">
+                <button class="copy-invite-btn" id="copyInviteBtn">
+                    <i class="fas fa-copy"></i> Скопировать приглашение
+                </button>
+                <button class="game-btn red" id="closeInviteBtn">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Кнопка быстрых действий -->
     <button class="floating-action-btn" id="quickActionsBtn">
         <div class="icon">⚡</div>
@@ -2884,7 +3080,11 @@
             topCoinsCount: document.getElementById('topCoinsCount'),
             topPlayerLevel: document.getElementById('topPlayerLevel'),
             turnIndicator: document.getElementById('turnIndicator'),
-            turnMessage: document.getElementById('turnMessage')
+            turnMessage: document.getElementById('turnMessage'),
+            inviteModal: document.getElementById('inviteModal'),
+            inviteRoomNumber: document.getElementById('inviteRoomNumber'),
+            copyInviteBtn: document.getElementById('copyInviteBtn'),
+            closeInviteBtn: document.getElementById('closeInviteBtn')
         };
         
         // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -4375,6 +4575,42 @@
             elements.choiceModal.classList.remove('active');
         }
         
+        // ==================== ФУНКЦИИ ДЛЯ ПРИГЛАШЕНИЯ ====================
+        function showInviteModal() {
+            elements.inviteRoomNumber.textContent = elements.roomNumber.textContent;
+            elements.inviteModal.classList.add('active');
+        }
+        
+        function closeInviteModal() {
+            elements.inviteModal.classList.remove('active');
+        }
+        
+        function copyInvitationText() {
+            const invitationText = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!
+
+🔢 Номер комнаты: ${elements.roomNumber.textContent}
+
+🌐 Игра доступна по адресу: https://eco-game-dfb0.onrender.com
+
+👥 Ждем вас!`;
+            
+            navigator.clipboard.writeText(invitationText)
+                .then(() => {
+                    elements.copyInviteBtn.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
+                    elements.copyInviteBtn.classList.add('copied');
+                    showNotification('Приглашение скопировано в буфер обмена!', 'success');
+                    
+                    setTimeout(() => {
+                        elements.copyInviteBtn.innerHTML = '<i class="fas fa-copy"></i> Скопировать приглашение';
+                        elements.copyInviteBtn.classList.remove('copied');
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Ошибка копирования: ', err);
+                    showNotification('Не удалось скопировать приглашение', 'error');
+                });
+        }
+        
         function updateDifficultyButtons() {
             const playerLevel = gameState.currentPlayer?.level || 1;
             
@@ -4524,7 +4760,7 @@
                 quickActionsBtn.classList.remove('active');
                 quickActionsVisible = false;
                 
-                elements.inviteBtn.click();
+                showInviteModal();
             });
             
             document.addEventListener('click', function(event) {
@@ -5285,6 +5521,7 @@
             initializeSequenceClick(correctOrder);
         }
         
+        // ==================== ОБНОВЛЕННАЯ ФУНКЦИЯ ДЛЯ ЗАДАНИЙ "НАЙТИ ПАРУ" ====================
         function createMatchGameTask(task) {
             const symbols = task.symbols;
             const pairs = task.pairs;
@@ -5301,20 +5538,19 @@
             cards = shuffleArray(cards);
             
             elements.taskArea.innerHTML = `
-                <p><strong>${task.description}</strong></p>
-                <p>Найдите все пары одинаковых символов:</p>
+                <div class="match-task-hint">Найдите все пары одинаковых символов</div>
                 <div class="match-grid">
                     ${cards.map((card, index) => 
                         `<div class="match-card" data-index="${index}" data-symbol="${card.symbol}" data-id="${card.id}">
-                            <div class="card-back">?</div>
-                            <div class="card-content">${card.symbol}</div>
+                            <div class="card-front">?</div>
+                            <div class="card-back">${card.symbol}</div>
                         </div>`
                     ).join('')}
                 </div>
-                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center; margin-top: 10px;">
-                    Найдено пар: <span id="matchCount">0</span>/${pairs}
-                </p>
-                <p class="spot-difference-hint">Найдите все пары одинаковых символов</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <div class="match-progress">Найдено пар: <span id="matchCount">0</span>/${pairs}</div>
+                </div>
+                <p class="spot-difference-hint">Кликайте на карточки, чтобы найти одинаковые символы</p>
             `;
             
             initializeMatchGame(task);
@@ -5610,7 +5846,278 @@
             }, 500);
         }
         
-        function moveToNextCity() {
+        // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+        // Переключение вкладок авторизации
+        elements.loginTab.addEventListener('click', function() {
+            elements.loginTab.classList.add('active');
+            elements.registerTab.classList.remove('active');
+            elements.loginForm.classList.add('active');
+            elements.registerForm.classList.remove('active');
+        });
+        
+        elements.registerTab.addEventListener('click', function() {
+            elements.registerTab.classList.add('active');
+            elements.loginTab.classList.remove('active');
+            elements.registerForm.classList.add('active');
+            elements.loginForm.classList.remove('active');
+        });
+        
+        // Форма входа
+        elements.loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const roomId = document.getElementById('loginRoom').value.trim();
+            
+            if (username.length < 2 || username.length > 20) {
+                showNotification('Имя пользователя должно быть от 2 до 20 символов', 'warning');
+                return;
+            }
+            
+            if (!roomId) {
+                showNotification('Введите номер комнаты', 'warning');
+                return;
+            }
+            
+            joinGame(username, roomId, false);
+        });
+        
+        // Форма регистрации
+        elements.registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value.trim();
+            const roomId = document.getElementById('registerRoom').value.trim();
+            
+            if (username.length < 2 || username.length > 20) {
+                showNotification('Имя пользователя должно быть от 2 до 20 символов', 'warning');
+                return;
+            }
+            
+            if (!roomId) {
+                showNotification('Введите номер комнаты', 'warning');
+                return;
+            }
+            
+            joinGame(username, roomId, true);
+        });
+        
+        // Бросок кубика
+        elements.rollDiceBtn.addEventListener('click', function() {
+            if (!gameState.isMyTurn) {
+                showNotification('Сейчас не ваш ход!', 'warning');
+                return;
+            }
+            
+            if (hasCurrentTask) {
+                showNotification('Сначала выполните текущее задание!', 'warning');
+                return;
+            }
+            
+            if (gameState.taskInProgress) {
+                showNotification('Завершите текущее задание перед броском кубика!', 'warning');
+                return;
+            }
+            
+            elements.rollDiceBtn.disabled = true;
+            elements.diceValue.classList.add('rolling');
+            
+            // Анимация броска кубика
+            const diceValues = [1, 2, 3, 4, 5, 6];
+            let rollCount = 0;
+            const rollInterval = setInterval(() => {
+                const randomValue = diceValues[Math.floor(Math.random() * diceValues.length)];
+                elements.diceValue.querySelector('.dice-value').textContent = randomValue;
+                rollCount++;
+                
+                if (rollCount > 10) {
+                    clearInterval(rollInterval);
+                    
+                    const finalValue = diceValues[Math.floor(Math.random() * diceValues.length)];
+                    elements.diceValue.querySelector('.dice-value').textContent = finalValue;
+                    
+                    setTimeout(() => {
+                        elements.diceValue.classList.remove('rolling');
+                        processDiceRoll(finalValue);
+                    }, 300);
+                }
+            }, 100);
+        });
+        
+        function processDiceRoll(diceValue) {
+            if (!gameState.currentPlayer) return;
+            
+            const oldPosition = gameState.currentPlayer.position;
+            let newPosition = oldPosition + diceValue;
+            
+            // Проверяем, не вышли ли за пределы карты
+            if (newPosition > 100) {
+                newPosition = 100 - (newPosition - 100);
+                if (newPosition < 0) newPosition = 0;
+                showNotification('Вы превысили финиш и отскочили назад!', 'warning');
+            }
+            
+            gameState.currentPlayer.position = newPosition;
+            elements.currentPosition.textContent = newPosition;
+            
+            // Отправляем обновление позиции на сервер
+            sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
+            
+            // Проверяем, достигли ли мы нового города
+            checkForNewCity(newPosition);
+            
+            // Получаем задание
+            gameState.currentTask = getRandomTask(gameState.currentDifficulty);
+            elements.taskDescription.textContent = gameState.currentTask.description;
+            elements.currentTask.style.display = 'block';
+            elements.noTaskMessage.style.display = 'none';
+            elements.completeTaskBtn.disabled = false;
+            hasCurrentTask = true;
+            
+            // Обновляем состояние кнопки броска кубика
+            updateRollDiceButtonState();
+            
+            // Сохраняем состояние
+            savePlayerState();
+            
+            // Отправляем информацию о броске другим игрокам
+            socket.emit('dice_roll', {
+                diceValue: diceValue,
+                newPosition: newPosition,
+                task: gameState.currentTask
+            });
+            
+            addLogEntry(`🎲 Вы бросили кубик: ${diceValue}. Новая позиция: ${newPosition}`);
+            showNotification(`🎲 Вы бросили кубик: ${diceValue}`, 'success');
+            
+            // Обновляем маркер игрока
+            updatePlayerMarkers();
+        }
+        
+        function checkForNewCity(position) {
+            const cityKeys = Object.keys(gameData.cities);
+            const currentCityKey = gameState.currentPlayer.city;
+            const currentIndex = cityKeys.indexOf(currentCityKey);
+            
+            if (currentIndex === -1 || currentIndex >= cityKeys.length - 1) {
+                return;
+            }
+            
+            // Проверяем, достигли ли мы нового города
+            const newCityKey = cityKeys[currentIndex + 1];
+            const newCity = gameData.cities[newCityKey];
+            
+            if (newCity.cells.includes(position)) {
+                // Проверяем, завершен ли текущий город на 100%
+                const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[currentCityKey] || 0;
+                
+                if (currentProgress < 100) {
+                    // Показываем окно выбора
+                    showChoiceModal(newCityKey);
+                    gameState.isAtNewCity = true;
+                } else {
+                    // Автоматически переходим в новый город
+                    gameState.currentPlayer.city = newCityKey;
+                    updatePlayerUI();
+                    createCurrentCityProgress();
+                    showNotification(`🎉 Вы достигли нового города: ${newCity.name}!`, 'success');
+                    addLogEntry(`🎉 Вы достигли нового города: ${newCity.name}!`);
+                    savePlayerState();
+                }
+            }
+        }
+        
+        // Кнопка выбора остаться в текущем городе
+        elements.stayBtn.addEventListener('click', function() {
+            if (!gameState.nextCity) return;
+            
+            // Возвращаемся в начало текущего города
+            const currentCityKey = gameState.currentPlayer.city;
+            const currentCity = gameData.cities[currentCityKey];
+            const firstCell = currentCity.cells[0];
+            
+            gameState.currentPlayer.position = firstCell;
+            elements.currentPosition.textContent = firstCell;
+            sendPlayerPositionToServer(firstCell, currentCityKey);
+            
+            closeChoiceModal();
+            gameState.isAtNewCity = false;
+            
+            showNotification(`Вы вернулись в начало ${currentCity.name}`, 'info');
+            addLogEntry(`Вы вернулись в начало ${currentCity.name}`);
+            
+            updatePlayerMarkers();
+            savePlayerState();
+        });
+        
+        // Кнопка выбора перейти вперед
+        elements.moveForwardBtn.addEventListener('click', function() {
+            if (!gameState.nextCity) return;
+            
+            const newCityKey = gameState.nextCity;
+            const newCity = gameData.cities[newCityKey];
+            const firstCell = newCity.cells[0];
+            
+            // Обновляем город игрока
+            gameState.currentPlayer.city = newCityKey;
+            gameState.currentPlayer.position = firstCell;
+            elements.currentPosition.textContent = firstCell;
+            elements.currentCity.textContent = newCity.name;
+            
+            sendPlayerPositionToServer(firstCell, newCityKey);
+            
+            closeChoiceModal();
+            gameState.isAtNewCity = false;
+            
+            // Сбрасываем прогресс для нового города
+            updateCityProgress(newCityKey, 0);
+            
+            showNotification(`Вы перешли в новый город: ${newCity.name}!`, 'success');
+            addLogEntry(`Вы перешли в новый город: ${newCity.name}!`);
+            
+            updatePlayerMarkers();
+            savePlayerState();
+            
+            // Показываем информацию о новом городе
+            setTimeout(() => {
+                showCityModal(newCityKey);
+            }, 500);
+        });
+        
+        // Кнопка начала выполнения задания
+        elements.completeTaskBtn.addEventListener('click', function() {
+            if (!gameState.currentTask) {
+                showNotification('Сначала бросьте кубик, чтобы получить задание', 'warning');
+                return;
+            }
+            
+            elements.interactiveTask.style.display = 'block';
+            elements.currentTask.style.display = 'none';
+            elements.noTaskMessage.style.display = 'none';
+            createInteractiveTask(gameState.currentTask);
+        });
+        
+        // Кнопка постройки объекта
+        elements.buildBtn.addEventListener('click', function() {
+            if (hasCurrentTask) {
+                showNotification('Сначала выполните текущее задание!', 'warning');
+                return;
+            }
+            
+            // Прокручиваем к списку зданий
+            elements.buildingsSection.scrollIntoView({ behavior: 'smooth' });
+            elements.buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
+            elements.buildingsSection.style.transition = 'box-shadow 0.5s';
+            setTimeout(() => {
+                elements.buildingsSection.style.boxShadow = '';
+            }, 2000);
+        });
+        
+        // Кнопка перехода в следующий город
+        elements.moveBtn.addEventListener('click', function() {
+            if (!canMoveToNextCity()) {
+                showNotification('Вы не можете перейти в следующий город!', 'warning');
+                return;
+            }
+            
             const cityKeys = Object.keys(gameData.cities);
             const currentCityKey = gameState.currentPlayer.city;
             const currentIndex = cityKeys.indexOf(currentCityKey);
@@ -5622,200 +6129,90 @@
             
             const nextCityKey = cityKeys[currentIndex + 1];
             const nextCity = gameData.cities[nextCityKey];
+            const firstCell = nextCity.cells[0];
             
-            // Проверяем, достигли ли мы нового города
-            if (!nextCity.cells.includes(gameState.currentPlayer.position)) {
-                showNotification('Вы не достигли нового города!', 'warning');
-                return;
-            }
+            // Обновляем город игрока
+            gameState.currentPlayer.city = nextCityKey;
+            gameState.currentPlayer.position = firstCell;
+            elements.currentPosition.textContent = firstCell;
+            elements.currentCity.textContent = nextCity.name;
             
-            // Проверяем прогресс текущего города
-            const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[currentCityKey] || 0;
-            if (currentProgress < 100) {
-                showNotification('Для перехода в следующий город необходимо завершить текущий на 100%!', 'warning');
-                return;
-            }
+            sendPlayerPositionToServer(firstCell, nextCityKey);
             
-            // Перемещаем игрока
-            moveToExistingCity(nextCityKey);
-        }
-        
-        // ==================== ИСПРАВЛЕНИЕ ОСНОВНОЙ ПРОБЛЕМЫ: ЗАДАНИЕ ПОСЛЕ БРОСКА КУБИКА ====================
-        
-        // Переписываем обработчик броска кубика
-        elements.rollDiceBtn.addEventListener('click', () => {
-            if (gameState.gameOver || gameState.taskInProgress) return;
+            // Сбрасываем прогресс для нового города
+            updateCityProgress(nextCityKey, 0);
             
-            if (!gameState.isMyTurn) {
-                showNotification('Сейчас не ваш ход! Ожидайте своей очереди.', 'warning');
-                return;
-            }
+            showNotification(`Вы перешли в следующий город: ${nextCity.name}!`, 'success');
+            addLogEntry(`Вы перешли в следующий город: ${nextCity.name}!`);
             
-            if (hasCurrentTask) {
-                showNotification('Сначала выполните текущее задание!', 'warning');
-                return;
-            }
+            updatePlayerMarkers();
+            savePlayerState();
             
-            elements.diceValue.classList.add('rolling');
-            elements.diceValue.querySelector('.dice-value').textContent = '?';
-            elements.rollDiceBtn.disabled = true;
-            elements.buildBtn.disabled = true;
-            elements.moveBtn.disabled = true;
-            elements.completeTaskBtn.disabled = true;
-            
+            // Показываем информацию о новом городе
             setTimeout(() => {
-                const value = Math.floor(Math.random() * 6) + 1;
-                
-                elements.diceValue.querySelector('.dice-value').textContent = value;
-                elements.diceValue.classList.remove('rolling');
-                
-                gameState.currentPlayer.position += value;
-                if (gameState.currentPlayer.position > 100) {
-                    gameState.currentPlayer.position = 100;
-                }
-                
-                updatePlayerUI();
-                updatePlayerCity();
-                
-                // ИСПРАВЛЕНИЕ: Всегда создаем задание после броска кубика
-                const randomTask = getRandomTask(gameState.currentDifficulty);
-                gameState.currentTask = randomTask;
-                hasCurrentTask = true;
-                
-                // Показываем задание
-                elements.currentTask.style.display = 'block';
-                elements.taskDescription.textContent = randomTask.description;
-                elements.noTaskMessage.style.display = 'none';
-                elements.completeTaskBtn.disabled = false;
-                elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
-                
-                // Отправляем информацию о броске на сервер
-                socket.emit('dice_roll', {
-                    diceValue: value,
-                    newPosition: gameState.currentPlayer.position,
-                    task: randomTask
-                });
-                
-                // Обновляем позицию на сервере
-                sendPlayerPositionToServer(gameState.currentPlayer.position, gameState.currentPlayer.city);
-                
-                addLogEntry(`🎲 Вы бросили кубик: ${value}. Новая позиция: ${gameState.currentPlayer.position}`);
-                
-                // Сохраняем состояние
-                savePlayerState();
-                
-                // Обновляем состояние кнопок
-                updateRollDiceButtonState();
-                
-                showNotification(`🎲 Вы бросили кубик: ${value}! Получите задание.`, 'success');
-                
-            }, 1200);
-        });
-        
-        // Обработчик кнопки "Начать выполнение задания"
-        elements.completeTaskBtn.addEventListener('click', () => {
-            if (gameState.currentTask && hasCurrentTask) {
-                elements.interactiveTask.style.display = 'block';
-                elements.currentTask.style.display = 'none';
-                createInteractiveTask(gameState.currentTask);
-                elements.completeTaskBtn.style.display = 'none';
-            }
-        });
-        
-        // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
-        elements.gameInfo.addEventListener('click', function(e) {
-            if (e.target.tagName === 'H3' || e.target.classList.contains('toggle-icon')) {
-                elements.gameInfo.classList.toggle('expanded');
-            }
-        });
-        
-        elements.loginTab.addEventListener('click', () => {
-            elements.loginTab.classList.add('active');
-            elements.registerTab.classList.remove('active');
-            elements.loginForm.classList.add('active');
-            elements.registerForm.classList.remove('active');
-        });
-        
-        elements.registerTab.addEventListener('click', () => {
-            elements.registerTab.classList.add('active');
-            elements.loginTab.classList.remove('active');
-            elements.registerForm.classList.add('active');
-            elements.loginForm.classList.remove('active');
-        });
-        
-        elements.loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value.trim();
-            const room = document.getElementById('loginRoom').value.trim();
-            
-            if (username && room) {
-                if (username.length < 2) {
-                    showNotification('Имя должно содержать至少 2 символа', 'error');
-                    return;
-                }
-                if (room.length < 1) {
-                    showNotification('Введите номер комнаты', 'error');
-                    return;
-                }
-                joinGame(username, room, false);
-            } else {
-                showNotification('Заполните все поля', 'error');
-            }
-        });
-        
-        elements.registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('registerUsername').value.trim();
-            const room = document.getElementById('registerRoom').value.trim();
-            
-            if (username && room) {
-                if (username.length < 2) {
-                    showNotification('Имя должно содержать至少 2 символа', 'error');
-                    return;
-                }
-                if (room.length < 1) {
-                    showNotification('Введите номер комнаты', 'error');
-                    return;
-                }
-                joinGame(username, room, true);
-            } else {
-                showNotification('Заполните все поля', 'error');
-            }
-        });
-        
-        // Кнопка "Построить объект" - прокрутка к зданиям
-        elements.buildBtn.addEventListener('click', () => {
-            if (gameState.currentPlayer && gameState.currentPlayer.city) {
-                // Прокручиваем к секции зданий
-                const buildingsSection = document.getElementById('buildingsSection');
-                if (buildingsSection) {
-                    buildingsSection.scrollIntoView({ 
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                    
-                    // Добавляем эффект выделения
-                    buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
-                    buildingsSection.style.transition = 'box-shadow 0.5s';
-                    setTimeout(() => {
-                        buildingsSection.style.boxShadow = '';
-                    }, 2000);
-                }
-            }
-        });
-        
-        // Кнопка "Перейти в следующий город"
-        elements.moveBtn.addEventListener('click', () => {
-            moveToNextCity();
+                showCityModal(nextCityKey);
+            }, 500);
         });
         
         // Кнопка закрытия модального окна города
-        elements.cityModalCloseBtn.addEventListener('click', () => {
+        elements.cityModalCloseBtn.addEventListener('click', function() {
             closeCityModal();
         });
         
-        // Кнопка отправки сообщения в чат
-        elements.sendMessageBtn.addEventListener('click', () => {
+        // Кнопка закрытия модального окна при нажатии на фон
+        elements.cityModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCityModal();
+            }
+        });
+        
+        elements.choiceModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeChoiceModal();
+            }
+        });
+        
+        elements.inviteModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeInviteModal();
+            }
+        });
+        
+        // Кнопка приглашения друзей
+        elements.inviteBtn.addEventListener('click', function() {
+            showInviteModal();
+        });
+        
+        // Кнопка копирования приглашения
+        elements.copyInviteBtn.addEventListener('click', function() {
+            copyInvitationText();
+        });
+        
+        // Кнопка закрытия модального окна приглашения
+        elements.closeInviteBtn.addEventListener('click', function() {
+            closeInviteModal();
+        });
+        
+        // Кнопка покидания комнаты
+        elements.leaveRoomBtn.addEventListener('click', function() {
+            if (confirm('Вы действительно хотите покинуть комнату?')) {
+                if (isConnected) {
+                    socket.emit('leave_room');
+                }
+                
+                elements.authSection.style.display = 'block';
+                elements.gameContent.style.display = 'none';
+                elements.resourcesPlaceholder.style.display = 'none';
+                quickActionsBtn.classList.remove('show');
+                
+                resetGameState();
+                
+                showNotification('Вы покинули комнату', 'info');
+            }
+        });
+        
+        // Отправка сообщения в чат
+        elements.sendMessageBtn.addEventListener('click', function() {
             const message = elements.chatInput.value.trim();
             if (message) {
                 sendChatMessage(message);
@@ -5823,140 +6220,50 @@
             }
         });
         
-        elements.chatInput.addEventListener('keypress', (e) => {
+        elements.chatInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                const message = elements.chatInput.value.trim();
-                if (message) {
-                    sendChatMessage(message);
-                    elements.chatInput.value = '';
-                }
+                elements.sendMessageBtn.click();
             }
         });
         
-        // Кнопка приглашения друзей
-        elements.inviteBtn.addEventListener('click', () => {
-            const roomId = currentRoomId || gameState.roomId;
-            const inviteText = `Присоединяйтесь к игре "Юный эколог"! Номер комнаты: ${roomId}`;
-            
-            // Создаем красивое модальное окно
-            const inviteModal = document.createElement('div');
-            inviteModal.className = 'city-modal active';
-            inviteModal.innerHTML = `
-                <div class="city-modal-content">
-                    <div class="city-modal-header">
-                        <h2 class="city-modal-title">Пригласить друзей</h2>
-                        <div class="city-modal-subtitle">Отправьте эту ссылку друзьям</div>
-                    </div>
-                    <div class="city-modal-body">
-                        <div class="invite-link-box">
-                            <p>Пригласите друзей присоединиться к вашей комнате:</p>
-                            <p style="text-align: center; margin: 15px 0;">
-                                <span class="room-number-bold">${roomId}</span>
-                            </p>
-                            <p>Попросите друзей ввести этот номер комнаты при входе в игру.</p>
-                            <p style="margin-top: 10px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-                                Игра поддерживает до 6 игроков одновременно.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="city-modal-close">
-                        <button class="game-btn" id="copyInviteBtn">📋 Скопировать номер комнаты</button>
-                        <button class="game-btn" style="margin-top: 10px;" id="closeInviteBtn">Закрыть</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(inviteModal);
-            
-            // Копирование номера комнаты в буфер обмена
-            document.getElementById('copyInviteBtn').addEventListener('click', () => {
-                navigator.clipboard.writeText(roomId).then(() => {
-                    showNotification('Номер комнаты скопирован в буфер обмена!', 'success');
-                });
-            });
-            
-            // Закрытие модального окна
-            document.getElementById('closeInviteBtn').addEventListener('click', () => {
-                document.body.removeChild(inviteModal);
-            });
-            
-            // Закрытие при клике вне модального окна
-            inviteModal.addEventListener('click', (e) => {
-                if (e.target === inviteModal) {
-                    document.body.removeChild(inviteModal);
-                }
-            });
-        });
-        
-        // Кнопка выхода из комнаты
-        elements.leaveRoomBtn.addEventListener('click', () => {
-            if (confirm('Вы уверены, что хотите покинуть комнату?')) {
-                socket.emit('leave_room');
-                elements.authSection.style.display = 'block';
-                elements.gameContent.style.display = 'none';
-                elements.resourcesPlaceholder.style.display = 'none';
-                quickActionsBtn.classList.remove('show');
-                resetGameState();
-                showNotification('Вы покинули комнату', 'info');
-            }
-        });
-        
-        // Выбор сложности
+        // Выбор сложности задания
         elements.difficultyBtns.forEach(btn => {
             btn.addEventListener('click', function() {
-                if (this.classList.contains('locked')) return;
+                if (this.classList.contains('locked')) {
+                    showNotification('Этот уровень сложности заблокирован! Повысьте свой уровень.', 'warning');
+                    return;
+                }
                 
                 elements.difficultyBtns.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 
-                const difficulty = this.id.replace('Btn', '');
-                gameState.currentDifficulty = difficulty;
+                if (this === elements.easyBtn) {
+                    gameState.currentDifficulty = "easy";
+                } else if (this === elements.mediumBtn) {
+                    gameState.currentDifficulty = "medium";
+                } else if (this === elements.hardBtn) {
+                    gameState.currentDifficulty = "hard";
+                }
                 
                 showNotification(`Сложность заданий изменена на: ${this.textContent.trim()}`, 'info');
             });
         });
         
-        // Обновление города игрока
-        function updatePlayerCity() {
-            if (!gameState.currentPlayer) return;
-            
-            const position = gameState.currentPlayer.position;
-            let newCity = gameState.currentPlayer.city;
-            
-            // Проверяем, в каком городе находится игрок
-            for (const cityKey in gameData.cities) {
-                if (gameData.cities[cityKey].cells.includes(position)) {
-                    newCity = cityKey;
-                    break;
-                }
-            }
-            
-            // Если город изменился
-            if (newCity !== gameState.currentPlayer.city) {
-                const oldCity = gameState.currentPlayer.city;
-                gameState.currentPlayer.city = newCity;
-                
-                // Обновляем UI
-                updatePlayerUI();
-                createCitiesGrid();
-                createCurrentCityProgress();
-                
-                // Показываем информацию о новом городе
-                setTimeout(() => {
-                    showCityModal(newCity);
-                }, 500);
-                
-                addLogEntry(`🏙️ Вы прибыли в ${gameData.cities[newCity].name}`);
-            }
-        }
+        // Раскрытие информации об игре
+        elements.gameInfo.querySelector('h3').addEventListener('click', function() {
+            elements.gameInfo.classList.toggle('expanded');
+        });
         
-        // Инициализация при загрузке
-        document.addEventListener('DOMContentLoaded', () => {
+        // ==================== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ====================
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Игра "Юный эколог" инициализирована!');
-            updateConnectionStatus('connecting', 'Подключение к серверу...');
             
-            // Запрашиваем соединение с сервером
-            socket.emit('connection_request');
+            // Обновляем статус подключения
+            updateConnectionStatus('connecting', 'Подключение...');
+            
+            // Устанавливаем текущую дату в подвале
+            const currentYear = new Date().getFullYear();
+            document.querySelector('.copyright').innerHTML = `© ${currentYear} Юный Эколог - Многопользовательская экологическая игра`;
         });
     </script>
 </body>
