@@ -189,7 +189,7 @@
         .map-image-container {
             position: relative;
             width: 100%;
-            height: 650px;
+            min-height: 600px;
             background: #e8f5e9;
             border-radius: 12px;
             overflow: hidden;
@@ -198,12 +198,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 10px;
         }
         
         #mapImage {
-            width: 1052px;
-            height: 947px;
-            object-fit: cover;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
             background-color: #e8f5e9;
         }
         
@@ -925,6 +928,8 @@
         
         .match-card .card-content {
             display: none;
+            font-size: 2rem;
+            transform: rotateY(180deg);
         }
         
         .match-card.flipped .card-content,
@@ -933,8 +938,16 @@
         }
         
         .match-card .card-back {
-            font-size: 2rem;
+            font-size: 2.2rem;
             color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .match-card.flipped .card-back {
+            display: none;
         }
         
         /* Контейнеры для заданий */
@@ -2480,6 +2493,19 @@
             border-radius: 10px;
             margin-top: 10px;
             border: 2px solid rgba(46, 204, 113, 0.5);
+        }
+        
+        /* Стиль для текста вопроса в задании "найти пару" */
+        .match-instruction {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #ff6b6b;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #ff6b6b;
         }
     </style>
 </head>
@@ -5676,6 +5702,12 @@
             instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
             elements.taskArea.appendChild(instructionDiv);
             
+            // Добавляем красный текст вопроса
+            const matchInstruction = document.createElement('div');
+            matchInstruction.className = 'match-instruction';
+            matchInstruction.textContent = "Найдите все пары одинаковых эмодзи!";
+            elements.taskArea.appendChild(matchInstruction);
+            
             const matchGrid = document.createElement('div');
             matchGrid.className = 'match-grid';
             
@@ -5696,6 +5728,7 @@
                 const cardContent = document.createElement('div');
                 cardContent.className = 'card-content';
                 cardContent.textContent = symbol;
+                cardContent.style.display = 'none';
                 
                 card.appendChild(cardBack);
                 card.appendChild(cardContent);
@@ -5708,6 +5741,8 @@
                         gameState.matchGameState.flippedCards.length < 2) {
                         
                         this.classList.add('flipped');
+                        this.querySelector('.card-back').style.display = 'none';
+                        this.querySelector('.card-content').style.display = 'block';
                         gameState.matchGameState.flippedCards.push(this);
                         
                         if (gameState.matchGameState.flippedCards.length === 2) {
@@ -5743,7 +5778,13 @@
                                 // Не совпадают
                                 setTimeout(() => {
                                     card1.classList.remove('flipped');
+                                    card1.querySelector('.card-back').style.display = 'block';
+                                    card1.querySelector('.card-content').style.display = 'none';
+                                    
                                     card2.classList.remove('flipped');
+                                    card2.querySelector('.card-back').style.display = 'block';
+                                    card2.querySelector('.card-content').style.display = 'none';
+                                    
                                     gameState.matchGameState.flippedCards = [];
                                     gameState.matchGameState.canFlip = true;
                                 }, 1000);
