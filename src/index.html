@@ -185,24 +185,25 @@
             white-space: nowrap;
         }
         
-        /* ==================== ШЕСТИГРАННИКИ ДЛЯ КАРТЫ (УДАЛЕНО) ==================== */
-        
         /* ==================== НОВАЯ КАРТА НА ОСНОВЕ ИЗОБРАЖЕНИЯ ==================== */
         .map-image-container {
             position: relative;
             width: 100%;
-            height: 600px;
+            height: 650px;
             background: #e8f5e9;
             border-radius: 12px;
             overflow: hidden;
             border: 3px solid #2E7D32;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         #mapImage {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            width: 1052px;
+            height: 947px;
+            object-fit: cover;
             background-color: #e8f5e9;
         }
         
@@ -278,6 +279,31 @@
             padding: 1px 3px;
             border-radius: 2px;
             z-index: 1;
+        }
+        
+        /* Стиль для клеток в нередактируемом режиме */
+        .map-cell.hidden {
+            background: transparent;
+            border-color: transparent;
+        }
+        
+        .map-cell.hidden .map-cell-number {
+            display: none;
+        }
+        
+        /* Маленькие клетки в режиме редактирования */
+        .map-cell.small {
+            width: 20px !important;
+            height: 20px !important;
+            font-size: 8px;
+            border-width: 1px;
+        }
+        
+        .map-cell.small .map-cell-number {
+            font-size: 6px;
+            padding: 0 1px;
+            top: 0;
+            left: 0;
         }
         
         /* ==================== ЧАТ ==================== */
@@ -1713,7 +1739,7 @@
         }
         
         /* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
-        .city-modal, .choice-modal {
+        .city-modal, .choice-modal, .invite-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -1729,12 +1755,12 @@
             transition: all 0.3s;
         }
         
-        .city-modal.active, .choice-modal.active {
+        .city-modal.active, .choice-modal.active, .invite-modal.active {
             opacity: 1;
             visibility: visible;
         }
         
-        .city-modal-content, .choice-modal-content {
+        .city-modal-content, .choice-modal-content, .invite-modal-content {
             background: var(--card-bg);
             border-radius: 15px;
             padding: 30px;
@@ -1748,16 +1774,17 @@
         }
         
         .city-modal.active .city-modal-content,
-        .choice-modal.active .choice-modal-content {
+        .choice-modal.active .choice-modal-content,
+        .invite-modal.active .invite-modal-content {
             transform: translateY(0);
         }
         
-        .city-modal-header, .choice-modal-header {
+        .city-modal-header, .choice-modal-header, .invite-modal-header {
             margin-bottom: 20px;
             text-align: center;
         }
         
-        .city-modal-title, .choice-modal-title {
+        .city-modal-title, .choice-modal-title, .invite-modal-title {
             font-size: 1.8rem;
             margin-bottom: 10px;
             color: var(--secondary);
@@ -1769,7 +1796,7 @@
             margin-bottom: 5px;
         }
         
-        .city-modal-body, .choice-modal-body {
+        .city-modal-body, .choice-modal-body, .invite-modal-body {
             margin-bottom: 20px;
         }
         
@@ -1788,7 +1815,7 @@
             color: rgba(255, 255, 255, 0.9);
         }
         
-        .city-modal-close, .choice-modal-actions {
+        .city-modal-close, .choice-modal-actions, .invite-modal-actions {
             text-align: center;
         }
         
@@ -2105,6 +2132,52 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
+        /* ==================== СТИЛИ ДЛЯ ПРИГЛАШЕНИЯ ==================== */
+        .invite-text {
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid rgba(46, 204, 113, 0.3);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .invite-room-number {
+            font-weight: 900;
+            font-size: 1.8rem;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 10px 0;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .invite-bold {
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        
+        .invite-line {
+            margin: 8px 0;
+        }
+        
+        .copy-invite-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            background: linear-gradient(135deg, #4ecdc4, #2ecc71);
+        }
+        
+        .copy-invite-btn:hover {
+            background: linear-gradient(135deg, #3eb4ab, #27ae60);
+        }
+        
         /* ==================== АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ ==================== */
         @media (max-width: 768px) {
             .game-container {
@@ -2220,6 +2293,16 @@
                 font-size: 1rem;
             }
             
+            .map-image-container {
+                height: 400px;
+            }
+            
+            #mapImage {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+            
             /* Прокрутка при перетаскивании на мобильных */
             .task-area {
                 overflow-x: auto;
@@ -2245,10 +2328,6 @@
                 width: 60px;
                 height: 60px;
                 font-size: 1.4rem;
-            }
-            
-            .map-image-container {
-                height: 400px;
             }
         }
         
@@ -2326,6 +2405,12 @@
             .map-image-container {
                 height: 300px;
             }
+            
+            #mapImage {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
         }
         
         /* Стили для прокрутки при перетаскивании */
@@ -2395,18 +2480,6 @@
             border-radius: 10px;
             margin-top: 10px;
             border: 2px solid rgba(46, 204, 113, 0.5);
-        }
-        
-        .room-number-bold {
-            font-weight: 900;
-            font-size: 1.5rem;
-            color: #FFD700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            background: rgba(0, 0, 0, 0.3);
-            padding: 5px 15px;
-            border-radius: 8px;
-            display: inline-block;
-            margin: 5px 0;
         }
     </style>
 </head>
@@ -2883,6 +2956,41 @@
         </div>
     </div>
 
+    <!-- Модальное окно приглашения -->
+    <div class="invite-modal" id="inviteModal">
+        <div class="invite-modal-content">
+            <div class="invite-modal-header">
+                <h2 class="invite-modal-title">🎮 Пригласите друзей!</h2>
+            </div>
+            <div class="invite-modal-body">
+                <p style="text-align: center; margin-bottom: 20px;">Пригласите друзей присоединиться к вашей игре!</p>
+                
+                <div class="invite-text">
+                    <div class="invite-line">🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!</div>
+                    <div class="invite-line" style="margin-top: 15px; margin-bottom: 10px;">
+                        <span class="invite-bold">🔢 Номер комнаты:</span>
+                    </div>
+                    <div class="invite-room-number" id="inviteRoomNumber">0</div>
+                    <div class="invite-line" style="margin-top: 15px;">
+                        <span class="invite-bold">🌐 Игра доступна по адресу:</span><br>
+                        https://eco-game-dfb0.onrender.com
+                    </div>
+                    <div class="invite-line" style="margin-top: 10px;">
+                        <span class="invite-bold">👥 Ждем вас!</span>
+                    </div>
+                </div>
+                
+                <p style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                    Нажмите кнопку ниже, чтобы скопировать приглашение
+                </p>
+            </div>
+            <div class="invite-modal-actions">
+                <button class="game-btn copy-invite-btn" id="copyInviteBtn">📋 Скопировать приглашение</button>
+                <button class="game-btn" id="closeInviteBtn" style="margin-top: 10px;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Кнопка быстрых действий -->
     <button class="floating-action-btn" id="quickActionsBtn">
         <div class="icon">⚡</div>
@@ -3025,7 +3133,11 @@
             topCoinsCount: document.getElementById('topCoinsCount'),
             topPlayerLevel: document.getElementById('topPlayerLevel'),
             turnIndicator: document.getElementById('turnIndicator'),
-            turnMessage: document.getElementById('turnMessage')
+            turnMessage: document.getElementById('turnMessage'),
+            inviteModal: document.getElementById('inviteModal'),
+            inviteRoomNumber: document.getElementById('inviteRoomNumber'),
+            copyInviteBtn: document.getElementById('copyInviteBtn'),
+            closeInviteBtn: document.getElementById('closeInviteBtn')
         };
         
         // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -4023,8 +4135,8 @@
                 number: 1,
                 x: containerWidth * 0.1,
                 y: containerHeight * 0.5,
-                width: 60,
-                height: 60,
+                width: 20,
+                height: 20,
                 type: 'start',
                 city: 'tver',
                 description: 'Стартовая точка'
@@ -4064,6 +4176,16 @@
             cellElement.style.width = `${cell.width}px`;
             cellElement.style.height = `${cell.height}px`;
             
+            // Добавляем класс small для маленьких клеток
+            if (cell.width <= 25) {
+                cellElement.classList.add('small');
+            }
+            
+            // В нередактируемом режиме скрываем клетки
+            if (!mapData.editMode) {
+                cellElement.classList.add('hidden');
+            }
+            
             // Устанавливаем цвет в зависимости от типа
             if (cell.type === 'start') {
                 cellElement.classList.add('start');
@@ -4073,11 +4195,13 @@
                 cellElement.classList.add('city');
             }
             
-            // Добавляем номер клетки
-            const numberSpan = document.createElement('div');
-            numberSpan.className = 'map-cell-number';
-            numberSpan.textContent = cell.number;
-            cellElement.appendChild(numberSpan);
+            // Добавляем номер клетки (только в режиме редактирования)
+            if (mapData.editMode) {
+                const numberSpan = document.createElement('div');
+                numberSpan.className = 'map-cell-number';
+                numberSpan.textContent = cell.number;
+                cellElement.appendChild(numberSpan);
+            }
             
             // Добавляем обработчики событий
             cellElement.addEventListener('click', function(e) {
@@ -4134,10 +4258,10 @@
             const newCell = {
                 id: mapData.nextCellId++,
                 number: mapData.cells.length + 1,
-                x: x - 30, // Центрируем клетку
-                y: y - 30,
-                width: 60,
-                height: 60,
+                x: x - 10, // Центрируем маленькую клетку
+                y: y - 10,
+                width: 20, // Очень маленькая клетка
+                height: 20,
                 type: 'normal',
                 city: '',
                 description: ''
@@ -4147,7 +4271,7 @@
             createCellElement(newCell);
             selectCell(newCell.id);
             
-            console.log(`➕ Добавлена новая клетка №${newCell.number}`);
+            console.log(`➕ Добавлена новая маленькая клетка №${newCell.number}`);
             return newCell;
         }
         
@@ -4169,6 +4293,14 @@
                 
                 // Обновляем классы
                 cellElement.className = 'map-cell';
+                if (cell.width <= 25) {
+                    cellElement.classList.add('small');
+                }
+                
+                if (!mapData.editMode) {
+                    cellElement.classList.add('hidden');
+                }
+                
                 if (cell.type === 'start') {
                     cellElement.classList.add('start');
                 } else if (cell.type === 'finish') {
@@ -4177,10 +4309,16 @@
                     cellElement.classList.add('city');
                 }
                 
-                // Обновляем номер
+                // Обновляем номер (если есть)
                 const numberSpan = cellElement.querySelector('.map-cell-number');
                 if (numberSpan) {
                     numberSpan.textContent = cell.number;
+                } else if (mapData.editMode) {
+                    // Создаем номер если в режиме редактирования
+                    const newNumberSpan = document.createElement('div');
+                    newNumberSpan.className = 'map-cell-number';
+                    newNumberSpan.textContent = cell.number;
+                    cellElement.appendChild(newNumberSpan);
                 }
             }
             
@@ -4321,9 +4459,21 @@
                 elements.mapEditPanel.classList.add('active');
                 elements.mapOverlay.style.pointerEvents = 'auto';
                 
-                // Показываем все клетки
+                // Показываем все клетки с номерами
                 document.querySelectorAll('.map-cell').forEach(cell => {
-                    cell.style.display = 'block';
+                    cell.classList.remove('hidden');
+                    
+                    // Добавляем номера если их нет
+                    if (!cell.querySelector('.map-cell-number')) {
+                        const cellId = cell.dataset.cellId;
+                        const cellData = mapData.cells.find(c => c.id == cellId);
+                        if (cellData) {
+                            const numberSpan = document.createElement('div');
+                            numberSpan.className = 'map-cell-number';
+                            numberSpan.textContent = cellData.number;
+                            cell.appendChild(numberSpan);
+                        }
+                    }
                 });
                 
                 showNotification('Режим редактирования карты включен', 'info');
@@ -4335,14 +4485,22 @@
                 selectedCell = null;
                 elements.cellProperties.style.display = 'none';
                 
-                // Скрываем клетки в игровом режиме (делаем их невидимыми, но кликабельными)
+                // Скрываем клетки в игровом режиме
                 document.querySelectorAll('.map-cell').forEach(cell => {
-                    cell.style.background = 'transparent';
-                    cell.style.border = '2px solid transparent';
+                    cell.classList.add('hidden');
+                    
+                    // Убираем номера
+                    const numberSpan = cell.querySelector('.map-cell-number');
+                    if (numberSpan) {
+                        numberSpan.remove();
+                    }
                 });
                 
                 showNotification('Режим редактирования карты выключен', 'info');
             }
+            
+            // Обновляем состояние кнопки броска кубика
+            updateRollDiceButtonState();
         }
         
         // ==================== ФУНКЦИИ ИНТЕРФЕЙСА ====================
@@ -4771,6 +4929,26 @@
             elements.cityModal.classList.remove('active');
         }
         
+        function showInviteModal() {
+            elements.inviteRoomNumber.textContent = currentRoomId || gameState.roomId || '0';
+            elements.inviteModal.classList.add('active');
+        }
+        
+        function closeInviteModal() {
+            elements.inviteModal.classList.remove('active');
+        }
+        
+        function copyInvitation() {
+            const invitationText = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n\n🔢 Номер комнаты: ${currentRoomId || gameState.roomId || '0'}\n\n🌐 Игра доступна по адресу: https://eco-game-dfb0.onrender.com\n\n👥 Ждем вас!`;
+            
+            navigator.clipboard.writeText(invitationText).then(() => {
+                showNotification('Приглашение скопировано в буфер обмена!', 'success');
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+                showNotification('Не удалось скопировать приглашение', 'error');
+            });
+        }
+        
         function showChoiceModal(nextCity) {
             const currentCityKey = gameState.currentPlayer.city;
             const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[currentCityKey] || 0;
@@ -4812,213 +4990,6 @@
             entry.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
             elements.logEntries.appendChild(entry);
             elements.logEntries.scrollTop = elements.logEntries.scrollHeight;
-        }
-        
-        // ==================== КНОПКА БЫСТРЫХ ДЕЙСТВИЙ ====================
-        function initializeQuickActions() {
-            let quickActionsVisible = false;
-            
-            quickActionsBtn.classList.add('show');
-            
-            quickActionsBtn.addEventListener('click', function() {
-                quickActionsVisible = !quickActionsVisible;
-                if (quickActionsVisible) {
-                    quickActions.classList.add('show');
-                    quickActionsBtn.classList.add('active');
-                } else {
-                    quickActions.classList.remove('show');
-                    quickActionsBtn.classList.remove('active');
-                }
-            });
-            
-            function scrollToElement(elementId) {
-                const element = document.getElementById(elementId);
-                if (element) {
-                    element.scrollIntoView({ 
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                    element.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
-                    element.style.transition = 'box-shadow 0.5s';
-                    setTimeout(() => {
-                        element.style.boxShadow = '';
-                    }, 2000);
-                }
-            }
-            
-            quickDiceBtn.addEventListener('click', function() {
-                quickActions.classList.remove('show');
-                quickActionsBtn.classList.remove('active');
-                quickActionsVisible = false;
-                
-                scrollToElement('rollDiceBtn');
-                
-                setTimeout(() => {
-                    if (!elements.rollDiceBtn.disabled && !gameState.gameOver && !gameState.taskInProgress && !hasCurrentTask && !isEditingMap) {
-                        elements.rollDiceBtn.click();
-                    } else if (gameState.taskInProgress) {
-                        showNotification('Завершите текущее задание перед броском кубика!', 'warning');
-                    } else if (gameState.gameOver) {
-                        showNotification('Игра завершена!', 'warning');
-                    } else if (hasCurrentTask) {
-                        showNotification('Сначала выполните текущее задание!', 'warning');
-                    } else if (!gameState.isMyTurn) {
-                        showNotification('Сейчас не ваш ход!', 'warning');
-                    } else if (isEditingMap) {
-                        showNotification('Выйдите из режима редактирования карты!', 'warning');
-                    }
-                }, 500);
-            });
-            
-            quickBuildBtn.addEventListener('click', function() {
-                quickActions.classList.remove('show');
-                quickActionsBtn.classList.remove('active');
-                quickActionsVisible = false;
-                
-                if (elements.buildBtn.disabled) {
-                    showNotification('Сначала выполните задание, чтобы построить объект!', 'warning');
-                    return;
-                }
-                
-                setTimeout(() => {
-                    // Прокручиваем к доступным объектам
-                    const buildingsContainer = document.getElementById('buildingsContainer');
-                    if (buildingsContainer) {
-                        buildingsContainer.scrollIntoView({ 
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                        
-                        // Подсвечиваем секцию зданий
-                        elements.buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
-                        elements.buildingsSection.style.transition = 'box-shadow 0.5s';
-                        setTimeout(() => {
-                            elements.buildingsSection.style.boxShadow = '';
-                        }, 2000);
-                    }
-                }, 100);
-            });
-            
-            quickChatBtn.addEventListener('click', function() {
-                quickActions.classList.remove('show');
-                quickActionsBtn.classList.remove('active');
-                quickActionsVisible = false;
-                
-                setTimeout(() => {
-                    const chatSection = document.querySelector('.chat-section');
-                    if (chatSection) {
-                        chatSection.scrollIntoView({ 
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
-                        setTimeout(() => {
-                            elements.chatInput.focus();
-                        }, 300);
-                    }
-                }, 100);
-            });
-            
-            quickTasksBtn.addEventListener('click', function() {
-                quickActions.classList.remove('show');
-                quickActionsBtn.classList.remove('active');
-                quickActionsVisible = false;
-                
-                setTimeout(() => {
-                    const taskCard = document.querySelector('.task-card');
-                    if (taskCard) {
-                        taskCard.scrollIntoView({ 
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
-                    }
-                }, 100);
-            });
-            
-            quickInviteBtn.addEventListener('click', function() {
-                quickActions.classList.remove('show');
-                quickActionsBtn.classList.remove('active');
-                quickActionsVisible = false;
-                
-                elements.inviteBtn.click();
-            });
-            
-            quickEditBtn.addEventListener('click', function() {
-                quickActions.classList.remove('show');
-                quickActionsBtn.classList.remove('active');
-                quickActionsVisible = false;
-                
-                elements.toggleEditBtn.click();
-            });
-            
-            document.addEventListener('click', function(event) {
-                if (quickActionsVisible && 
-                    !quickActionsBtn.contains(event.target) && 
-                    !quickActions.contains(event.target)) {
-                    quickActions.classList.remove('show');
-                    quickActionsBtn.classList.remove('active');
-                    quickActionsVisible = false;
-                }
-            });
-            
-            function updateQuickButtons() {
-                updateRollDiceButtonState();
-                
-                if (gameState.gameOver) {
-                    quickDiceBtn.style.opacity = '0.5';
-                    quickDiceBtn.style.cursor = 'not-allowed';
-                    quickDiceBtn.title = 'Игра завершена';
-                    quickBuildBtn.style.opacity = '0.5';
-                    quickBuildBtn.style.cursor = 'not-allowed';
-                    quickBuildBtn.title = 'Игра завершена';
-                } else {
-                    if (!gameState.isMyTurn) {
-                        quickDiceBtn.style.opacity = '0.5';
-                        quickDiceBtn.style.cursor = 'not-allowed';
-                        quickDiceBtn.title = 'Сейчас не ваш ход';
-                    } else if (hasCurrentTask || gameState.taskInProgress) {
-                        quickDiceBtn.style.opacity = '0.5';
-                        quickDiceBtn.style.cursor = 'not-allowed';
-                        quickDiceBtn.title = 'Сначала выполните задание';
-                    } else if (isEditingMap) {
-                        quickDiceBtn.style.opacity = '0.5';
-                        quickDiceBtn.style.cursor = 'not-allowed';
-                        quickDiceBtn.title = 'Выйдите из режима редактирования';
-                    } else {
-                        quickDiceBtn.style.opacity = '1';
-                        quickDiceBtn.style.cursor = 'pointer';
-                        quickDiceBtn.title = 'Бросить кубик';
-                    }
-                    
-                    if (hasCurrentTask || gameState.taskInProgress) {
-                        quickBuildBtn.style.opacity = '0.5';
-                        quickBuildBtn.style.cursor = 'not-allowed';
-                        quickBuildBtn.title = 'Сначала выполните задание';
-                    } else {
-                        quickBuildBtn.style.opacity = '1';
-                        quickBuildBtn.style.cursor = 'pointer';
-                        quickBuildBtn.title = 'Построить объект';
-                    }
-                    
-                    if (isEditingMap) {
-                        quickEditBtn.style.opacity = '1';
-                        quickEditBtn.style.background = 'linear-gradient(135deg, #ff6b6b, var(--primary))';
-                        quickEditBtn.title = 'Режим редактирования (вкл)';
-                    } else {
-                        quickEditBtn.style.opacity = '1';
-                        quickEditBtn.style.background = 'linear-gradient(135deg, var(--primary), var(--dark))';
-                        quickEditBtn.title = 'Редактировать карту';
-                    }
-                }
-                
-                if (elements.gameContent.style.display === 'block') {
-                    quickActionsBtn.style.display = 'flex';
-                } else {
-                    quickActionsBtn.style.display = 'none';
-                }
-            }
-            
-            setInterval(updateQuickButtons, 1000);
-            updateQuickButtons();
         }
         
         // ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ====================
@@ -5147,8 +5118,749 @@
             }
         }
         
-        // Функции createQuizTask, createDragClickTask и другие остаются такими же как в оригинале
-        // Я опускаю их для краткости, так как они не изменились
+        function createQuizTask(task) {
+            const questionDiv = document.createElement('div');
+            questionDiv.innerHTML = `<h4 style="margin-bottom: 15px;">${task.question}</h4>`;
+            elements.taskArea.appendChild(questionDiv);
+            
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'task-container';
+            
+            task.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'quiz-option';
+                optionDiv.textContent = option.text;
+                optionDiv.dataset.index = index;
+                optionDiv.dataset.correct = option.correct;
+                
+                optionDiv.addEventListener('click', function() {
+                    if (gameState.taskInProgress) {
+                        // Снимаем выделение с других вариантов
+                        document.querySelectorAll('.quiz-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        
+                        // Выделяем выбранный вариант
+                        this.classList.add('selected');
+                        
+                        // Активируем кнопку проверки
+                        elements.checkTaskBtn.disabled = false;
+                    }
+                });
+                
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            elements.taskArea.appendChild(optionsContainer);
+            
+            elements.checkTaskBtn.onclick = function() {
+                const selectedOption = document.querySelector('.quiz-option.selected');
+                if (!selectedOption) {
+                    showNotification('Выберите вариант ответа!', 'warning');
+                    return;
+                }
+                
+                const isCorrect = selectedOption.dataset.correct === 'true';
+                
+                if (isCorrect) {
+                    selectedOption.classList.add('correct');
+                    elements.taskResult.textContent = '✅ Правильно! Задание выполнено.';
+                    elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
+                } else {
+                    selectedOption.classList.add('incorrect');
+                    elements.taskResult.textContent = '❌ Неправильно. Попробуйте еще раз.';
+                    elements.taskResult.style.color = 'var(--accent)';
+                    
+                    elements.retryTaskBtn.style.display = 'block';
+                }
+                
+                elements.checkTaskBtn.disabled = true;
+            };
+        }
+        
+        function createDragClickTask(task) {
+            const instructionDiv = document.createElement('div');
+            instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
+            elements.taskArea.appendChild(instructionDiv);
+            
+            const dragContainer = document.createElement('div');
+            dragContainer.className = 'drag-container';
+            
+            // Создаем перетаскиваемые элементы
+            task.items.forEach((item, index) => {
+                const draggable = document.createElement('div');
+                draggable.className = 'draggable-item';
+                draggable.textContent = item;
+                draggable.dataset.item = item;
+                draggable.dataset.index = index;
+                draggable.draggable = true;
+                
+                draggable.addEventListener('click', function() {
+                    if (gameState.taskInProgress && !this.classList.contains('placed')) {
+                        const dropZone = document.querySelector('.drop-zone:not(.filled)');
+                        if (dropZone) {
+                            this.classList.add('placed');
+                            dropZone.classList.add('filled');
+                            dropZone.textContent = item;
+                            
+                            // Проверяем завершение задания
+                            checkDragTaskCompletion(task);
+                        }
+                    }
+                });
+                
+                dragContainer.appendChild(draggable);
+                gameState.dragItems.push(draggable);
+            });
+            
+            elements.taskArea.appendChild(dragContainer);
+            
+            const dropContainer = document.createElement('div');
+            dropContainer.className = 'task-container';
+            dropContainer.style.marginTop = '20px';
+            
+            // Создаем зоны для сброса
+            for (let i = 0; i < task.zones; i++) {
+                const dropZone = document.createElement('div');
+                dropZone.className = 'drop-zone';
+                dropZone.textContent = `Зона ${i + 1}`;
+                dropZone.dataset.index = i;
+                
+                dropZone.addEventListener('click', function() {
+                    if (gameState.taskInProgress && this.classList.contains('filled')) {
+                        // Удаляем элемент из зоны
+                        this.classList.remove('filled');
+                        this.textContent = `Зона ${i + 1}`;
+                        
+                        // Находим соответствующий draggable и снимаем placed
+                        const placedItem = document.querySelector(`.draggable-item.placed[data-index="${this.dataset.originalItem}"]`);
+                        if (placedItem) {
+                            placedItem.classList.remove('placed');
+                        }
+                    }
+                });
+                
+                dropContainer.appendChild(dropZone);
+                gameState.dropZones.push(dropZone);
+            }
+            
+            elements.taskArea.appendChild(dropContainer);
+            
+            elements.checkTaskBtn.onclick = function() {
+                checkDragTaskCompletion(task);
+            };
+        }
+        
+        function checkDragTaskCompletion(task) {
+            const filledZones = document.querySelectorAll('.drop-zone.filled');
+            
+            if (filledZones.length >= task.goal) {
+                let allCorrect = true;
+                
+                filledZones.forEach(zone => {
+                    const item = zone.textContent;
+                    if (!task.correctItems.includes(item)) {
+                        allCorrect = false;
+                    }
+                });
+                
+                if (allCorrect) {
+                    elements.taskResult.textContent = '✅ Отлично! Все элементы правильно размещены.';
+                    elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
+                } else {
+                    elements.taskResult.textContent = '❌ Не все элементы размещены правильно. Попробуйте еще раз.';
+                    elements.taskResult.style.color = 'var(--accent)';
+                    elements.retryTaskBtn.style.display = 'block';
+                }
+            } else {
+                elements.taskResult.textContent = `❌ Разместите еще ${task.goal - filledZones.length} элемента(ов).`;
+                elements.taskResult.style.color = 'var(--accent)';
+            }
+        }
+        
+        function createSortClickTask(task) {
+            const instructionDiv = document.createElement('div');
+            instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
+            elements.taskArea.appendChild(instructionDiv);
+            
+            const itemsContainer = document.createElement('div');
+            itemsContainer.className = 'task-container';
+            itemsContainer.style.marginBottom = '20px';
+            
+            // Создаем элементы для сортировки
+            task.items.forEach((item, index) => {
+                const sortItem = document.createElement('div');
+                sortItem.className = 'sort-item';
+                sortItem.innerHTML = `<div style="font-size: 1.8rem;">${item.emoji}</div><div>${item.name}</div>`;
+                sortItem.dataset.type = item.type;
+                sortItem.dataset.index = index;
+                
+                sortItem.addEventListener('click', function() {
+                    if (gameState.taskInProgress && !this.classList.contains('placed')) {
+                        const availableBin = document.querySelector(`.sort-bin[data-type="${item.type}"]:not(.filled)`);
+                        if (availableBin) {
+                            this.classList.add('placed');
+                            availableBin.classList.add('filled');
+                            
+                            const binContent = availableBin.querySelector('.sort-bin-content');
+                            if (binContent) {
+                                const itemClone = this.cloneNode(true);
+                                itemClone.style.width = '40px';
+                                itemClone.style.height = '40px';
+                                itemClone.style.fontSize = '1.2rem';
+                                itemClone.style.margin = '2px';
+                                binContent.appendChild(itemClone);
+                            }
+                            
+                            // Проверяем завершение задания
+                            checkSortTaskCompletion(task);
+                        }
+                    }
+                });
+                
+                itemsContainer.appendChild(sortItem);
+                gameState.sortItems.push(sortItem);
+            });
+            
+            elements.taskArea.appendChild(itemsContainer);
+            
+            const binsContainer = document.createElement('div');
+            binsContainer.className = 'sorting-area';
+            
+            // Создаем контейнеры для сортировки
+            const binTypes = [...new Set(task.items.map(item => item.type))];
+            
+            binTypes.forEach(type => {
+                const bin = document.createElement('div');
+                bin.className = 'sort-bin';
+                bin.dataset.type = type;
+                
+                const typeName = task.items.find(item => item.type === type)?.name || type;
+                
+                bin.innerHTML = `
+                    <div class="bin-icon">🗑️</div>
+                    <div class="bin-name">${typeName}</div>
+                    <div class="sort-bin-content"></div>
+                `;
+                
+                binsContainer.appendChild(bin);
+                gameState.sortBins.push(bin);
+            });
+            
+            elements.taskArea.appendChild(binsContainer);
+            
+            elements.checkTaskBtn.onclick = function() {
+                checkSortTaskCompletion(task);
+            };
+        }
+        
+        function checkSortTaskCompletion(task) {
+            const placedItems = document.querySelectorAll('.sort-item.placed');
+            
+            if (placedItems.length >= task.items.length) {
+                elements.taskResult.textContent = '✅ Отлично! Все элементы правильно отсортированы.';
+                elements.taskResult.style.color = 'var(--success)';
+                
+                // Обновляем прогресс игрока
+                completeTask();
+                
+                setTimeout(() => {
+                    finishTask(true);
+                }, 1500);
+            } else {
+                elements.taskResult.textContent = `❌ Отсортируйте еще ${task.items.length - placedItems.length} элемента(ов).`;
+                elements.taskResult.style.color = 'var(--accent)';
+            }
+        }
+        
+        function createCleanupTask(task) {
+            const instructionDiv = document.createElement('div');
+            instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
+            elements.taskArea.appendChild(instructionDiv);
+            
+            const riverContainer = document.createElement('div');
+            riverContainer.className = 'river-container';
+            
+            // Счетчик очищенных элементов
+            const counterDiv = document.createElement('div');
+            counterDiv.className = 'cleanup-counter';
+            counterDiv.id = 'cleanupCounter';
+            counterDiv.textContent = `Очищено: 0/${task.goal}`;
+            riverContainer.appendChild(counterDiv);
+            
+            // Создаем мусорные элементы
+            let cleanedCount = 0;
+            
+            task.items.forEach((item, index) => {
+                const cleanupItem = document.createElement('div');
+                cleanupItem.className = 'cleanup-item';
+                cleanupItem.textContent = item;
+                cleanupItem.dataset.index = index;
+                
+                // Случайная позиция в контейнере
+                const left = 20 + Math.random() * 80;
+                const top = 20 + Math.random() * 60;
+                cleanupItem.style.left = `${left}%`;
+                cleanupItem.style.top = `${top}%`;
+                
+                cleanupItem.addEventListener('click', function() {
+                    if (gameState.taskInProgress && !this.classList.contains('cleaned')) {
+                        this.classList.add('cleaned');
+                        cleanedCount++;
+                        
+                        document.getElementById('cleanupCounter').textContent = `Очищено: ${cleanedCount}/${task.goal}`;
+                        
+                        // Проверяем завершение задания
+                        if (cleanedCount >= task.goal) {
+                            elements.taskResult.textContent = '✅ Отлично! Территория очищена.';
+                            elements.taskResult.style.color = 'var(--success)';
+                            
+                            // Обновляем прогресс игрока
+                            completeTask();
+                            
+                            setTimeout(() => {
+                                finishTask(true);
+                            }, 1500);
+                        }
+                    }
+                });
+                
+                riverContainer.appendChild(cleanupItem);
+                gameState.cleanupItems.push(cleanupItem);
+            });
+            
+            elements.taskArea.appendChild(riverContainer);
+            
+            elements.checkTaskBtn.onclick = function() {
+                if (cleanedCount >= task.goal) {
+                    elements.taskResult.textContent = '✅ Отлично! Территория очищена.';
+                    elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
+                } else {
+                    elements.taskResult.textContent = `❌ Очистите еще ${task.goal - cleanedCount} элемента(ов).`;
+                    elements.taskResult.style.color = 'var(--accent)';
+                }
+            };
+        }
+        
+        function createPuzzleClickTask(task) {
+            // Простая версия пазла для кликов
+            const instructionDiv = document.createElement('div');
+            instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
+            elements.taskArea.appendChild(instructionDiv);
+            
+            const puzzleContainer = document.createElement('div');
+            puzzleContainer.className = 'puzzle-area';
+            
+            // Создаем элементы пазла
+            const pieces = ['🌍', '♻️', '🌳', '💧', '🌱', '☀️'].slice(0, task.pieces || 4);
+            
+            pieces.forEach((piece, index) => {
+                const puzzlePiece = document.createElement('div');
+                puzzlePiece.className = 'puzzle-piece';
+                puzzlePiece.textContent = piece;
+                puzzlePiece.dataset.index = index;
+                
+                puzzlePiece.addEventListener('click', function() {
+                    if (gameState.taskInProgress) {
+                        this.classList.toggle('selected');
+                        
+                        if (this.classList.contains('selected')) {
+                            gameState.selectedPuzzlePieces.push(piece);
+                        } else {
+                            const idx = gameState.selectedPuzzlePieces.indexOf(piece);
+                            if (idx > -1) {
+                                gameState.selectedPuzzlePieces.splice(idx, 1);
+                            }
+                        }
+                    }
+                });
+                
+                puzzleContainer.appendChild(puzzlePiece);
+            });
+            
+            elements.taskArea.appendChild(puzzleContainer);
+            
+            elements.checkTaskBtn.onclick = function() {
+                if (gameState.selectedPuzzlePieces.length >= pieces.length) {
+                    elements.taskResult.textContent = '✅ Отлично! Пазл собран.';
+                    elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
+                } else {
+                    elements.taskResult.textContent = `❌ Выберите еще ${pieces.length - gameState.selectedPuzzlePieces.length} элемента(ов).`;
+                    elements.taskResult.style.color = 'var(--accent)';
+                }
+            };
+        }
+        
+        function createPuzzleImageTask(task) {
+            // Упрощенная версия пазла с изображением
+            const instructionDiv = document.createElement('div');
+            instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
+            elements.taskArea.appendChild(instructionDiv);
+            
+            const puzzleContainer = document.createElement('div');
+            puzzleContainer.className = 'puzzle-area';
+            
+            // Определяем эмодзи в зависимости от типа изображения
+            let emojis = ['🌍', '♻️', '🌳', '💧', '🌱', '☀️', '🐦', '🐝'];
+            
+            if (task.imageType === 'animals') {
+                emojis = ['🐻', '🦊', '🐰', '🦉', '🐸', '🐢', '🦋', '🐝'];
+            } else if (task.imageType === 'nature') {
+                emojis = ['🏔️', '🌲', '🌊', '☀️', '🌈', '🌺', '🦋', '🐦'];
+            }
+            
+            // Берем нужное количество эмодзи
+            const pieces = emojis.slice(0, task.pieces);
+            
+            pieces.forEach((piece, index) => {
+                const puzzlePiece = document.createElement('div');
+                puzzlePiece.className = 'puzzle-piece';
+                puzzlePiece.textContent = piece;
+                puzzlePiece.dataset.index = index;
+                
+                puzzlePiece.addEventListener('click', function() {
+                    if (gameState.taskInProgress) {
+                        this.classList.toggle('selected');
+                        
+                        if (this.classList.contains('selected')) {
+                            gameState.selectedPuzzlePieces.push(piece);
+                        } else {
+                            const idx = gameState.selectedPuzzlePieces.indexOf(piece);
+                            if (idx > -1) {
+                                gameState.selectedPuzzlePieces.splice(idx, 1);
+                            }
+                        }
+                    }
+                });
+                
+                puzzleContainer.appendChild(puzzlePiece);
+            });
+            
+            elements.taskArea.appendChild(puzzleContainer);
+            
+            elements.checkTaskBtn.onclick = function() {
+                if (gameState.selectedPuzzlePieces.length >= pieces.length) {
+                    elements.taskResult.textContent = '✅ Отлично! Пазл собран.';
+                    elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
+                } else {
+                    elements.taskResult.textContent = `❌ Выберите еще ${pieces.length - gameState.selectedPuzzlePieces.length} элемента(ов).`;
+                    elements.taskResult.style.color = 'var(--accent)';
+                }
+            };
+        }
+        
+        function createSequenceClickTask(task) {
+            const instructionDiv = document.createElement('div');
+            instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
+            elements.taskArea.appendChild(instructionDiv);
+            
+            const itemsContainer = document.createElement('div');
+            itemsContainer.className = 'task-container';
+            itemsContainer.style.marginBottom = '20px';
+            
+            // Перемешиваем элементы
+            const shuffledItems = shuffleArray([...task.items]);
+            
+            // Создаем элементы последовательности
+            shuffledItems.forEach((item, index) => {
+                const seqItem = document.createElement('div');
+                seqItem.className = 'sequence-piece';
+                seqItem.textContent = item;
+                seqItem.dataset.item = item;
+                seqItem.dataset.originalIndex = task.items.indexOf(item);
+                
+                seqItem.addEventListener('click', function() {
+                    if (gameState.taskInProgress && !this.classList.contains('selected')) {
+                        this.classList.add('selected');
+                        gameState.selectedPuzzlePieces.push(item);
+                        
+                        // Проверяем завершение задания
+                        checkSequenceTaskCompletion(task);
+                    }
+                });
+                
+                itemsContainer.appendChild(seqItem);
+            });
+            
+            elements.taskArea.appendChild(itemsContainer);
+            
+            const slotsContainer = document.createElement('div');
+            slotsContainer.className = 'sequence-area';
+            
+            // Создаем слоты для последовательности
+            task.items.forEach((_, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'sequence-slot';
+                slot.textContent = `Позиция ${index + 1}`;
+                slot.dataset.index = index;
+                
+                slotsContainer.appendChild(slot);
+            });
+            
+            elements.taskArea.appendChild(slotsContainer);
+            
+            elements.checkTaskBtn.onclick = function() {
+                checkSequenceTaskCompletion(task);
+            };
+        }
+        
+        function checkSequenceTaskCompletion(task) {
+            if (gameState.selectedPuzzlePieces.length >= task.items.length) {
+                // Проверяем правильность последовательности
+                let isCorrect = true;
+                for (let i = 0; i < gameState.selectedPuzzlePieces.length; i++) {
+                    if (gameState.selectedPuzzlePieces[i] !== task.correctOrder[i]) {
+                        isCorrect = false;
+                        break;
+                    }
+                }
+                
+                if (isCorrect) {
+                    elements.taskResult.textContent = '✅ Отлично! Последовательность правильная.';
+                    elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
+                } else {
+                    elements.taskResult.textContent = '❌ Последовательность неправильная. Попробуйте еще раз.';
+                    elements.taskResult.style.color = 'var(--accent)';
+                    elements.retryTaskBtn.style.display = 'block';
+                }
+            } else {
+                elements.taskResult.textContent = `❌ Добавьте еще ${task.items.length - gameState.selectedPuzzlePieces.length} элемента(ов).`;
+                elements.taskResult.style.color = 'var(--accent)';
+            }
+        }
+        
+        function createMatchGameTask(task) {
+            const instructionDiv = document.createElement('div');
+            instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
+            elements.taskArea.appendChild(instructionDiv);
+            
+            const matchGrid = document.createElement('div');
+            matchGrid.className = 'match-grid';
+            
+            // Создаем пары символов
+            const symbols = task.symbols.slice(0, task.pairs * 2);
+            const shuffledSymbols = shuffleArray([...symbols, ...symbols]);
+            
+            shuffledSymbols.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'match-card';
+                card.dataset.symbol = symbol;
+                card.dataset.index = index;
+                
+                const cardBack = document.createElement('div');
+                cardBack.className = 'card-back';
+                cardBack.textContent = '?';
+                
+                const cardContent = document.createElement('div');
+                cardContent.className = 'card-content';
+                cardContent.textContent = symbol;
+                
+                card.appendChild(cardBack);
+                card.appendChild(cardContent);
+                
+                card.addEventListener('click', function() {
+                    if (gameState.taskInProgress && 
+                        !this.classList.contains('flipped') && 
+                        !this.classList.contains('matched') &&
+                        gameState.matchGameState.canFlip &&
+                        gameState.matchGameState.flippedCards.length < 2) {
+                        
+                        this.classList.add('flipped');
+                        gameState.matchGameState.flippedCards.push(this);
+                        
+                        if (gameState.matchGameState.flippedCards.length === 2) {
+                            gameState.matchGameState.canFlip = false;
+                            
+                            const card1 = gameState.matchGameState.flippedCards[0];
+                            const card2 = gameState.matchGameState.flippedCards[1];
+                            
+                            if (card1.dataset.symbol === card2.dataset.symbol) {
+                                // Найдена пара
+                                setTimeout(() => {
+                                    card1.classList.add('matched');
+                                    card2.classList.add('matched');
+                                    gameState.matchGameState.matchedPairs++;
+                                    
+                                    gameState.matchGameState.flippedCards = [];
+                                    gameState.matchGameState.canFlip = true;
+                                    
+                                    // Проверяем завершение игры
+                                    if (gameState.matchGameState.matchedPairs >= task.pairs) {
+                                        elements.taskResult.textContent = '✅ Отлично! Все пары найдены.';
+                                        elements.taskResult.style.color = 'var(--success)';
+                                        
+                                        // Обновляем прогресс игрока
+                                        completeTask();
+                                        
+                                        setTimeout(() => {
+                                            finishTask(true);
+                                        }, 1500);
+                                    }
+                                }, 500);
+                            } else {
+                                // Не совпадают
+                                setTimeout(() => {
+                                    card1.classList.remove('flipped');
+                                    card2.classList.remove('flipped');
+                                    gameState.matchGameState.flippedCards = [];
+                                    gameState.matchGameState.canFlip = true;
+                                }, 1000);
+                            }
+                        }
+                    }
+                });
+                
+                matchGrid.appendChild(card);
+                gameState.matchGameState.cards.push(card);
+            });
+            
+            elements.taskArea.appendChild(matchGrid);
+            
+            elements.checkTaskBtn.onclick = function() {
+                if (gameState.matchGameState.matchedPairs >= task.pairs) {
+                    elements.taskResult.textContent = '✅ Отлично! Все пары найдены.';
+                    elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
+                } else {
+                    elements.taskResult.textContent = `❌ Найдено ${gameState.matchGameState.matchedPairs} из ${task.pairs} пар.`;
+                    elements.taskResult.style.color = 'var(--accent)';
+                }
+            };
+        }
+        
+        function createDefaultTask(task) {
+            const defaultDiv = document.createElement('div');
+            defaultDiv.innerHTML = `
+                <p style="text-align: center; margin-bottom: 15px;">${task.description}</p>
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🌱</div>
+                    <p>Это задание пока в разработке. Нажмите "Проверить выполнение" для завершения.</p>
+                </div>
+            `;
+            elements.taskArea.appendChild(defaultDiv);
+            
+            elements.checkTaskBtn.onclick = function() {
+                elements.taskResult.textContent = '✅ Задание выполнено!';
+                elements.taskResult.style.color = 'var(--success)';
+                
+                // Обновляем прогресс игрока
+                completeTask();
+                
+                setTimeout(() => {
+                    finishTask(true);
+                }, 1500);
+            };
+        }
+        
+        function completeTask() {
+            // Увеличиваем счетчик выполненных заданий
+            if (!gameState.currentPlayer.completedTasks) {
+                gameState.currentPlayer.completedTasks = 0;
+            }
+            gameState.currentPlayer.completedTasks++;
+            
+            // Добавляем монеты за выполнение задания
+            const coinsEarned = 10 + (gameState.currentPlayer.level * 5);
+            gameState.currentPlayer.coins += coinsEarned;
+            
+            // Добавляем баллы очищения
+            const pointsEarned = 25 + (gameState.currentPlayer.level * 10);
+            gameState.currentPlayer.cleaningPoints += pointsEarned;
+            
+            // Проверяем повышение уровня
+            if (gameState.currentPlayer.completedTasks % 3 === 0) {
+                gameState.currentPlayer.level++;
+                showNotification(`🎉 Поздравляем! Вы достигли ${gameState.currentPlayer.level} уровня!`, 'success');
+                updateDifficultyButtons();
+            }
+            
+            // Обновляем прогресс текущего города
+            const cityKey = gameState.currentPlayer.city;
+            const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[cityKey] || 0;
+            const newProgress = Math.min(100, currentProgress + 20);
+            
+            updateCityProgress(cityKey, newProgress);
+            
+            updatePlayerUI();
+            savePlayerState();
+            
+            addLogEntry(`✅ Задание выполнено! Получено ${coinsEarned} монет и ${pointsEarned} баллов очищения.`);
+        }
+        
+        function finishTask(success) {
+            gameState.taskInProgress = false;
+            hasCurrentTask = false;
+            
+            elements.interactiveTask.style.display = 'none';
+            elements.currentTask.style.display = 'none';
+            elements.noTaskMessage.style.display = 'block';
+            elements.completeTaskBtn.style.display = 'block';
+            elements.completeTaskBtn.disabled = true;
+            elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
+            elements.checkTaskBtn.style.display = 'none';
+            elements.retryTaskBtn.style.display = 'none';
+            
+            // Очищаем текущее задание
+            gameState.currentTask = null;
+            
+            // Обновляем состояние кнопки броска кубика
+            updateRollDiceButtonState();
+            
+            // Разблокируем кнопку постройки
+            elements.buildBtn.disabled = false;
+            
+            if (success) {
+                showNotification('Задание успешно выполнено!', 'success');
+            }
+        }
         
         // ==================== ФУНКЦИИ ПЕРЕМЕЩЕНИЯ МЕЖДУ ГОРОДАМИ ====================
         function moveToExistingCity(cityKey) {
@@ -5186,6 +5898,213 @@
             setTimeout(() => {
                 showCityModal(cityKey);
             }, 500);
+        }
+        
+        // ==================== КНОПКА БЫСТРЫХ ДЕЙСТВИЙ ====================
+        function initializeQuickActions() {
+            let quickActionsVisible = false;
+            
+            quickActionsBtn.classList.add('show');
+            
+            quickActionsBtn.addEventListener('click', function() {
+                quickActionsVisible = !quickActionsVisible;
+                if (quickActionsVisible) {
+                    quickActions.classList.add('show');
+                    quickActionsBtn.classList.add('active');
+                } else {
+                    quickActions.classList.remove('show');
+                    quickActionsBtn.classList.remove('active');
+                }
+            });
+            
+            function scrollToElement(elementId) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    element.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
+                    element.style.transition = 'box-shadow 0.5s';
+                    setTimeout(() => {
+                        element.style.boxShadow = '';
+                    }, 2000);
+                }
+            }
+            
+            quickDiceBtn.addEventListener('click', function() {
+                quickActions.classList.remove('show');
+                quickActionsBtn.classList.remove('active');
+                quickActionsVisible = false;
+                
+                scrollToElement('rollDiceBtn');
+                
+                setTimeout(() => {
+                    if (!elements.rollDiceBtn.disabled && !gameState.gameOver && !gameState.taskInProgress && !hasCurrentTask && !isEditingMap) {
+                        elements.rollDiceBtn.click();
+                    } else if (gameState.taskInProgress) {
+                        showNotification('Завершите текущее задание перед броском кубика!', 'warning');
+                    } else if (gameState.gameOver) {
+                        showNotification('Игра завершена!', 'warning');
+                    } else if (hasCurrentTask) {
+                        showNotification('Сначала выполните текущее задание!', 'warning');
+                    } else if (!gameState.isMyTurn) {
+                        showNotification('Сейчас не ваш ход!', 'warning');
+                    } else if (isEditingMap) {
+                        showNotification('Выйдите из режима редактирования карты!', 'warning');
+                    }
+                }, 500);
+            });
+            
+            quickBuildBtn.addEventListener('click', function() {
+                quickActions.classList.remove('show');
+                quickActionsBtn.classList.remove('active');
+                quickActionsVisible = false;
+                
+                if (elements.buildBtn.disabled) {
+                    showNotification('Сначала выполните задание, чтобы построить объект!', 'warning');
+                    return;
+                }
+                
+                setTimeout(() => {
+                    // Прокручиваем к доступным объектам
+                    const buildingsContainer = document.getElementById('buildingsContainer');
+                    if (buildingsContainer) {
+                        buildingsContainer.scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                        
+                        // Подсвечиваем секцию зданий
+                        elements.buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
+                        elements.buildingsSection.style.transition = 'box-shadow 0.5s';
+                        setTimeout(() => {
+                            elements.buildingsSection.style.boxShadow = '';
+                        }, 2000);
+                    }
+                }, 100);
+            });
+            
+            quickChatBtn.addEventListener('click', function() {
+                quickActions.classList.remove('show');
+                quickActionsBtn.classList.remove('active');
+                quickActionsVisible = false;
+                
+                setTimeout(() => {
+                    const chatSection = document.querySelector('.chat-section');
+                    if (chatSection) {
+                        chatSection.scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                        setTimeout(() => {
+                            elements.chatInput.focus();
+                        }, 300);
+                    }
+                }, 100);
+            });
+            
+            quickTasksBtn.addEventListener('click', function() {
+                quickActions.classList.remove('show');
+                quickActionsBtn.classList.remove('active');
+                quickActionsVisible = false;
+                
+                setTimeout(() => {
+                    const taskCard = document.querySelector('.task-card');
+                    if (taskCard) {
+                        taskCard.scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }
+                }, 100);
+            });
+            
+            quickInviteBtn.addEventListener('click', function() {
+                quickActions.classList.remove('show');
+                quickActionsBtn.classList.remove('active');
+                quickActionsVisible = false;
+                
+                showInviteModal();
+            });
+            
+            quickEditBtn.addEventListener('click', function() {
+                quickActions.classList.remove('show');
+                quickActionsBtn.classList.remove('active');
+                quickActionsVisible = false;
+                
+                elements.toggleEditBtn.click();
+            });
+            
+            document.addEventListener('click', function(event) {
+                if (quickActionsVisible && 
+                    !quickActionsBtn.contains(event.target) && 
+                    !quickActions.contains(event.target)) {
+                    quickActions.classList.remove('show');
+                    quickActionsBtn.classList.remove('active');
+                    quickActionsVisible = false;
+                }
+            });
+            
+            function updateQuickButtons() {
+                updateRollDiceButtonState();
+                
+                if (gameState.gameOver) {
+                    quickDiceBtn.style.opacity = '0.5';
+                    quickDiceBtn.style.cursor = 'not-allowed';
+                    quickDiceBtn.title = 'Игра завершена';
+                    quickBuildBtn.style.opacity = '0.5';
+                    quickBuildBtn.style.cursor = 'not-allowed';
+                    quickBuildBtn.title = 'Игра завершена';
+                } else {
+                    if (!gameState.isMyTurn) {
+                        quickDiceBtn.style.opacity = '0.5';
+                        quickDiceBtn.style.cursor = 'not-allowed';
+                        quickDiceBtn.title = 'Сейчас не ваш ход';
+                    } else if (hasCurrentTask || gameState.taskInProgress) {
+                        quickDiceBtn.style.opacity = '0.5';
+                        quickDiceBtn.style.cursor = 'not-allowed';
+                        quickDiceBtn.title = 'Сначала выполните задание';
+                    } else if (isEditingMap) {
+                        quickDiceBtn.style.opacity = '0.5';
+                        quickDiceBtn.style.cursor = 'not-allowed';
+                        quickDiceBtn.title = 'Выйдите из режима редактирования';
+                    } else {
+                        quickDiceBtn.style.opacity = '1';
+                        quickDiceBtn.style.cursor = 'pointer';
+                        quickDiceBtn.title = 'Бросить кубик';
+                    }
+                    
+                    if (hasCurrentTask || gameState.taskInProgress) {
+                        quickBuildBtn.style.opacity = '0.5';
+                        quickBuildBtn.style.cursor = 'not-allowed';
+                        quickBuildBtn.title = 'Сначала выполните задание';
+                    } else {
+                        quickBuildBtn.style.opacity = '1';
+                        quickBuildBtn.style.cursor = 'pointer';
+                        quickBuildBtn.title = 'Построить объект';
+                    }
+                    
+                    if (isEditingMap) {
+                        quickEditBtn.style.opacity = '1';
+                        quickEditBtn.style.background = 'linear-gradient(135deg, #ff6b6b, var(--primary))';
+                        quickEditBtn.title = 'Режим редактирования (вкл)';
+                    } else {
+                        quickEditBtn.style.opacity = '1';
+                        quickEditBtn.style.background = 'linear-gradient(135deg, var(--primary), var(--dark))';
+                        quickEditBtn.title = 'Редактировать карту';
+                    }
+                }
+                
+                if (elements.gameContent.style.display === 'block') {
+                    quickActionsBtn.style.display = 'flex';
+                } else {
+                    quickActionsBtn.style.display = 'none';
+                }
+            }
+            
+            setInterval(updateQuickButtons, 1000);
+            updateQuickButtons();
         }
         
         // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
@@ -5332,6 +6251,20 @@
             createInteractiveTask(gameState.currentTask);
         });
         
+        elements.checkTaskBtn.addEventListener('click', () => {
+            if (elements.checkTaskBtn.onclick) {
+                elements.checkTaskBtn.onclick();
+            }
+        });
+        
+        elements.retryTaskBtn.addEventListener('click', () => {
+            if (gameState.currentTask) {
+                elements.taskResult.textContent = '';
+                elements.retryTaskBtn.style.display = 'none';
+                createInteractiveTask(gameState.currentTask);
+            }
+        });
+        
         elements.sendMessageBtn.addEventListener('click', () => {
             const message = elements.chatInput.value.trim();
             if (message) {
@@ -5348,12 +6281,15 @@
         });
         
         elements.inviteBtn.addEventListener('click', () => {
-            const roomLink = `${window.location.origin}?room=${currentRoomId || gameState.roomId}`;
-            navigator.clipboard.writeText(roomLink).then(() => {
-                showNotification('Ссылка на комнату скопирована в буфер обмена!', 'success');
-            }).catch(err => {
-                showNotification('Не удалось скопировать ссылку: ' + err, 'error');
-            });
+            showInviteModal();
+        });
+        
+        elements.copyInviteBtn.addEventListener('click', () => {
+            copyInvitation();
+        });
+        
+        elements.closeInviteBtn.addEventListener('click', () => {
+            closeInviteModal();
         });
         
         elements.leaveRoomBtn.addEventListener('click', () => {
@@ -5393,6 +6329,40 @@
         // Обработчик для сворачивания/разворачивания информации об игре
         elements.gameInfo.querySelector('h3').addEventListener('click', function() {
             elements.gameInfo.classList.toggle('expanded');
+        });
+        
+        // Выбор сложности задания
+        elements.easyBtn.addEventListener('click', function() {
+            if (!this.classList.contains('locked')) {
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                gameState.currentDifficulty = 'easy';
+                showNotification('Установлена легкая сложность заданий', 'info');
+            }
+        });
+        
+        elements.mediumBtn.addEventListener('click', function() {
+            if (!this.classList.contains('locked')) {
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                gameState.currentDifficulty = 'medium';
+                showNotification('Установлена средняя сложность заданий', 'info');
+            }
+        });
+        
+        elements.hardBtn.addEventListener('click', function() {
+            if (!this.classList.contains('locked')) {
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                gameState.currentDifficulty = 'hard';
+                showNotification('Установлена высокая сложность заданий', 'info');
+            }
         });
         
         // Инициализация при загрузке страницы
