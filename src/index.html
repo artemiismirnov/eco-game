@@ -45,20 +45,7 @@
             z-index: 10000;
         }
         
-        /* Новогодняя елка внизу экрана */
-        .christmas-tree {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 250px;
-            z-index: 9990;
-            pointer-events: none;
-            display: none;
-        }
-        
-        /* Новогодняя шапка у заголовка */
+                /* Новогодняя шапка у заголовка */
         .santa-hat {
             position: absolute;
             top: -15px;
@@ -2563,30 +2550,6 @@
     <!-- Снег на переднем фоне -->
     <div class="snow-overlay" id="snowOverlay"></div>
     
-    <!-- Новогодняя елка -->
-    <div class="christmas-tree" id="christmasTree">
-        <div style="position: relative; width: 100%; height: 100%;">
-            <!-- Ствол -->
-            <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 50px; background: #8B4513; border-radius: 5px;"></div>
-            <!-- Ярусы елки -->
-            <div style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 60px solid transparent; border-right: 60px solid transparent; border-bottom: 80px solid #2E8B57;"></div>
-            <div style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 70px solid #3CB371;"></div>
-            <div style="position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 40px solid transparent; border-right: 40px solid transparent; border-bottom: 60px solid #4CAF50;"></div>
-            <!-- Украшения -->
-            <div style="position: absolute; bottom: 40px; left: 40%; width: 15px; height: 15px; background: #FF0000; border-radius: 50%;"></div>
-            <div style="position: absolute; bottom: 60px; left: 60%; width: 15px; height: 15px; background: #FFD700; border-radius: 50%;"></div>
-            <div style="position: absolute; bottom: 100px; left: 45%; width: 15px; height: 15px; background: #1E90FF; border-radius: 50%;"></div>
-            <div style="position: absolute; bottom: 120px; left: 55%; width: 15px; height: 15px; background: #FF69B4; border-radius: 50%;"></div>
-            <div style="position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); width: 15px; height: 15px; background: #FFD700; border-radius: 50%;"></div>
-            <!-- Звезда -->
-            <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); font-size: 2rem; color: #FFD700; filter: drop-shadow(0 0 5px gold);">★</div>
-            <!-- Подарки -->
-            <div style="position: absolute; bottom: 0; left: 30%; width: 30px; height: 20px; background: #FF6B6B; border-radius: 5px;"></div>
-            <div style="position: absolute; bottom: 0; left: 60%; width: 25px; height: 25px; background: #4ECDC4; border-radius: 5px;"></div>
-        </div>
-    </div>
-    
-    <div class="container">
         <!-- Шапка -->
         <header>
             <div style="position: relative; display: inline-block;">
