@@ -66,6 +66,23 @@
         }
         
         /* ==================== СТАТУС ПОДКЛЮЧЕНИЯ ==================== */
+        .connection-status-mini {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 8px 16px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
         .connection-status-compact {
             position: fixed;
             top: 20px;
@@ -167,7 +184,7 @@
             white-space: nowrap;
         }
         
-        /* ==================== КАРТА ==================== */
+        /* ==================== НОВАЯ КАРТА НА ОСНОВЕ ИЗОБРАЖЕНИЯ ==================== */
         .map-image-container {
             position: relative;
             width: 100%;
@@ -204,8 +221,8 @@
         /* ==================== НЕВИДИМЫЕ КЛЕТКИ НА КАРТЕ ==================== */
         .map-cell {
             position: absolute;
-            border: 2px solid transparent;
-            background: transparent;
+            border: 2px solid rgba(255, 0, 0, 0.5);
+            background: rgba(0, 255, 0, 0.2);
             border-radius: 5px;
             display: flex;
             align-items: center;
@@ -222,32 +239,35 @@
         }
         
         .map-cell:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 0, 0.4);
+            border-color: rgba(255, 0, 0, 0.8);
             transform: scale(1.05);
             z-index: 15;
         }
         
         .map-cell.selected {
-            background: rgba(255, 165, 0, 0.3);
-            border-color: rgba(255, 165, 0, 0.5);
-            box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
+            background: rgba(255, 165, 0, 0.6);
+            border-color: #ff4500;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.8);
             z-index: 20;
         }
         
         .map-cell.start {
-            background: rgba(41, 128, 185, 0.3);
-            border-color: rgba(41, 128, 185, 0.5);
+            background: rgba(41, 128, 185, 0.6);
+            border-color: #2980b9;
+            color: white;
         }
         
         .map-cell.finish {
-            background: rgba(231, 76, 60, 0.3);
-            border-color: rgba(231, 76, 60, 0.5);
+            background: rgba(231, 76, 60, 0.6);
+            border-color: #e74c3c;
+            color: white;
         }
         
         .map-cell.city {
-            background: rgba(241, 196, 15, 0.3);
-            border-color: rgba(241, 196, 15, 0.5);
+            background: rgba(241, 196, 15, 0.6);
+            border-color: #f1c40f;
+            color: #000;
         }
         
         .map-cell-number {
@@ -261,6 +281,16 @@
             padding: 1px 3px;
             border-radius: 2px;
             z-index: 1;
+        }
+        
+        /* Стиль для клеток в нередактируемом режиме */
+        .map-cell.hidden {
+            background: transparent;
+            border-color: transparent;
+        }
+        
+        .map-cell.hidden .map-cell-number {
+            display: none;
         }
         
         /* ==================== ЧАТ ==================== */
@@ -339,7 +369,7 @@
             align-items: center;
             justify-content: center;
             margin: 8px;
-            cursor: grab;
+            cursor: pointer;
             user-select: none;
             transition: all 0.3s ease;
             color: white;
@@ -349,12 +379,6 @@
             touch-action: manipulation;
             position: relative;
             overflow: hidden;
-        }
-        
-        .draggable-item.dragging {
-            opacity: 0.7;
-            transform: scale(0.95);
-            cursor: grabbing;
         }
         
         .draggable-item::before {
@@ -520,7 +544,7 @@
             box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
         }
         
-        /* Стили для заданий с кликами */
+        /* Новые стили для заданий с кликами */
         .clickable-item {
             width: 70px;
             height: 70px;
@@ -846,8 +870,6 @@
             position: relative;
             overflow: hidden;
             margin: 0 auto;
-            transform-style: preserve-3d;
-            transform: rotateY(0deg);
         }
         
         .match-card::before {
@@ -867,7 +889,7 @@
         }
         
         .match-card:hover {
-            transform: rotateY(0deg) scale(1.05) rotate(3deg);
+            transform: scale(1.05) rotate(3deg);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
         
@@ -880,13 +902,12 @@
             background: linear-gradient(135deg, #2ecc71, #27ae60);
             cursor: default;
             animation: match-success 0.5s;
-            transform: rotateY(180deg);
         }
         
         @keyframes match-success {
-            0% { transform: rotateY(180deg) scale(1); }
-            50% { transform: rotateY(180deg) scale(1.1); }
-            100% { transform: rotateY(180deg) scale(1); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
         
         .match-card .card-content {
@@ -910,10 +931,6 @@
         }
         
         .match-card.flipped .card-back {
-            display: none;
-        }
-        
-        .match-card.matched .card-back {
             display: none;
         }
         
@@ -2404,6 +2421,40 @@
             border-radius: 8px;
             border-left: 3px solid #ff6b6b;
         }
+        
+        /* Новые стили для заданий */
+        .task-completion-message {
+            text-align: center;
+            font-size: 1.1rem;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+            animation: fadeIn 0.5s;
+        }
+        
+        .task-progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .task-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4ecdc4, #2ecc71);
+            width: 0%;
+            transition: width 0.5s;
+            border-radius: 5px;
+        }
+        
+        .task-counter {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -2440,13 +2491,13 @@
                 
                 <p><strong>Основные особенности игры:</strong></p>
                 <ul>
-                    <li>Реалистичная карта России с маршрутом экологического путешествия</li>
+                    <li>Реалистичная карта России в виде изображения</li>
                     <li>Разнообразные интерактивные экологические задания</li>
                     <li>Возможность строить экологические объекты</li>
                     <li>Многопользовательский режим до 6 игроков</li>
                     <li>Система уровней и достижений</li>
                     <li>Рабочие задания с перетаскиванием, сортировкой, викторинами</li>
-                    <li>Автоматически загружаемая карта с предустановленными городами</li>
+                    <li>Загруженная карта городов России</li>
                 </ul>
                 
                 <p><strong>Как начать играть:</strong></p>
@@ -2590,7 +2641,7 @@
                         <div class="map-image-container" id="mapContainer">
                             <img id="mapImage" src="" alt="Карта России">
                             <div class="map-overlay" id="mapOverlay">
-                                <!-- Здесь будут создаваться невидимые клетки из загруженной карты -->
+                                <!-- Здесь будут создаваться невидимые клетки -->
                             </div>
                         </div>
                     </div>
@@ -3078,26 +3129,26 @@
                         type: "quiz",
                         question: "Какой из этих материалов разлагается дольше всего?",
                         options: [
-                            {text: "Бумага (2-4 недели)", correct: false},
-                            {text: "Пластиковая бутылка (450 лет)", correct: true},
-                            {text: "Банан (2-5 дней)", correct: false},
-                            {text: "Хлопковая футболка (5 месяцев)", correct: false}
+                            {text: "Бумага", correct: false},
+                            {text: "Пластиковая бутылка", correct: true},
+                            {text: "Банановая кожура", correct: false},
+                            {text: "Хлопковая ткань", correct: false}
                         ]
                     },
                     {
                         description: "Соберите мусор в парке 🧹",
                         type: "clean",
                         goal: 4,
-                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
+                        items: ["🗑️", "🗑️", "🗑️", "🗑️"]
                     },
                     {
                         description: "Что такое переработка отходов? ♻️",
                         type: "quiz",
                         question: "Что такое переработка отходов?",
                         options: [
-                            {text: "Повторное использование материалов для создания новых продуктов", correct: true},
-                            {text: "Сжигание мусора на специальных заводах", correct: false},
-                            {text: "Закапывание отходов на полигонах", correct: false},
+                            {text: "Повторное использование материалов", correct: true},
+                            {text: "Сжигание мусора", correct: false},
+                            {text: "Закапывание отходов", correct: false},
                             {text: "Вывоз мусора на свалку", correct: false}
                         ]
                     },
@@ -3116,10 +3167,10 @@
                         type: "quiz",
                         question: "Какой способ помогает экономить воду?",
                         options: [
-                            {text: "Принимать душ вместо ванны (экономит до 100 литров)", correct: true},
+                            {text: "Принимать душ вместо ванны", correct: true},
                             {text: "Оставлять воду течь при чистке зубов", correct: false},
-                            {text: "Поливать растения днем в жару", correct: false},
-                            {text: "Мыть машину ежедневно с шланга", correct: false}
+                            {text: "Поливать растения днем", correct: false},
+                            {text: "Мыть машину ежедневно", correct: false}
                         ]
                     },
                     {
@@ -3140,7 +3191,7 @@
                         description: "Очистите реку от 5 единиц мусора 🌊",
                         type: "clean",
                         goal: 5,
-                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
+                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️"]
                     },
                     {
                         description: "Что такое устойчивое развитие? 🌱",
@@ -3148,9 +3199,9 @@
                         question: "Что такое устойчивое развитие?",
                         options: [
                             {text: "Развитие, удовлетворяющее потребности настоящего без ущерба для будущего", correct: true},
-                            {text: "Быстрое экономическое развитие без ограничений", correct: false},
+                            {text: "Быстрое экономическое развитие", correct: false},
                             {text: "Развитие только сельского хозяйства", correct: false},
-                            {text: "Развитие промышленности без учета экологии", correct: false}
+                            {text: "Развитие промышленности без ограничений", correct: false}
                         ]
                     },
                     {
@@ -3190,7 +3241,7 @@
                         options: [
                             {text: "Разнообразие живых организмов в экосистеме", correct: true},
                             {text: "Количество заводов в регионе", correct: false},
-                            {text: "Разнообразие автомобилей на дорогах", correct: false},
+                            {text: "Разнообразие автомобилей", correct: false},
                             {text: "Количество жителей в городе", correct: false}
                         ]
                     },
@@ -3223,7 +3274,7 @@
                         description: "Решите экологическую головоломку 🧠",
                         type: "sequence_click",
                         items: ["🌱", "🌳", "🏭", "💨", "🌍", "🔥"],
-                        correctOrder: ["🌱", "🌳", "🏭", "💨", "🔥", "🌍"]
+                        correctOrder: ["🌱", "🌳", "🏭", "💨", "🌍", "🔥"]
                     },
                     {
                         description: "Соберите сложный экологический пазл 🧩",
@@ -3239,14 +3290,14 @@
                             {text: "Энергия из неиссякаемых источников (солнце, ветер, вода)", correct: true},
                             {text: "Энергия из угля и нефти", correct: false},
                             {text: "Атомная энергия", correct: false},
-                            {text: "Энергия из природного газа", correct: false}
+                            {text: "Энергия из газа", correct: false}
                         ]
                     },
                     {
                         description: "Очистите океан от мусора 🌊",
                         type: "clean",
                         goal: 8,
-                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🐠", "🐟", "🐡"]
+                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️"]
                     },
                     {
                         description: "Создайте экосистему из 8 элементов 🏞️",
@@ -3269,8 +3320,8 @@
                         options: [
                             {text: "Вырубка лесов и эрозия", correct: true},
                             {text: "Посадка деревьев", correct: false},
-                            {text: "Использование органических удобрений", correct: false},
-                            {text: "Строительство парков и скверов", correct: false}
+                            {text: "Использование удобрений", correct: false},
+                            {text: "Строительство парков", correct: false}
                         ]
                     },
                     {
@@ -3346,6 +3397,7 @@
             sortBins: [],
             selectedPuzzlePieces: [],
             cleanupItems: [],
+            cleanupCount: 0,
             reconnected: false,
             playerProgress: {},
             currentTurn: null,
@@ -3358,7 +3410,8 @@
                 flippedCards: [],
                 matchedPairs: 0,
                 canFlip: true
-            }
+            },
+            quizSelectedAnswer: null
         };
         
         // ==================== ФУНКЦИИ ПОДКЛЮЧЕНИЯ ====================
@@ -3818,6 +3871,7 @@
                 sortBins: [],
                 selectedPuzzlePieces: [],
                 cleanupItems: [],
+                cleanupCount: 0,
                 reconnected: false,
                 playerProgress: {},
                 currentTurn: null,
@@ -3830,7 +3884,8 @@
                     flippedCards: [],
                     matchedPairs: 0,
                     canFlip: true
-                }
+                },
+                quizSelectedAnswer: null
             };
             
             hasCurrentTask = false;
@@ -3919,18 +3974,18 @@
         }
         
         // ==================== ФУНКЦИИ ДЛЯ КАРТЫ ====================
-        async function loadMap() {
+        function loadMap() {
             console.log('🗺️ Загрузка карты...');
             
-            // Загружаем карту из mapData.js
+            // Используем карту из mapData.js
             if (window.mapData && window.mapData.imageUrl) {
                 elements.mapImage.src = window.mapData.imageUrl;
                 elements.mapImage.onload = function() {
                     console.log('✅ Изображение карты загружено');
                     mapData.imageLoaded = true;
                     
-                    // Загружаем предустановленную карту
-                    loadPredefinedMap();
+                    // Загружаем сохраненную карту из файла
+                    loadSavedMap();
                     
                     // Обновляем маркеры игроков
                     updatePlayerMarkers();
@@ -3942,132 +3997,81 @@
                     mapData.imageLoaded = false;
                     
                     // Создаем заглушку
-                    createDefaultCells();
+                    loadSavedMap();
                 };
             } else {
                 console.error('❐ Данные карты не найдены в mapData.js');
                 showNotification('Данные карты не найдены', 'error');
                 
-                // Создаем заглушку
-                createDefaultCells();
+                // Загружаем сохраненную карту из файла
+                loadSavedMap();
             }
         }
         
-        async function loadPredefinedMap() {
-            try {
-                // Пробуем загрузить сохраненную карту из файла
-                const response = await fetch('eco-game-map-2025-12-27.json');
-                if (!response.ok) {
-                    throw new Error('Файл карты не найден');
-                }
-                
-                const mapFile = await response.json();
-                console.log('📂 Загружена карта из файла:', mapFile.cells?.length, 'клеток');
-                
-                if (mapFile.cells && Array.isArray(mapFile.cells)) {
-                    mapData.cells = mapFile.cells;
-                    createMapCells();
-                    return;
-                }
-            } catch (error) {
-                console.log('❌ Не удалось загрузить карту из файла:', error.message);
-                // Если не удалось загрузить из файла, создаем стандартную карту
-                createDefaultCells();
-            }
+        function loadSavedMap() {
+            console.log('📂 Загрузка сохраненной карты...');
+            
+            // Загружаем предустановленную карту
+            fetch('eco-game-map-2025-12-27.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Файл карты не найден');
+                    }
+                    return response.json();
+                })
+                .then(savedMap => {
+                    if (savedMap.cells && Array.isArray(savedMap.cells)) {
+                        mapData.cells = savedMap.cells;
+                        console.log(`✅ Загружена карта с ${mapData.cells.length} клетками`);
+                        
+                        // Создаем клетки на карте
+                        createMapCells();
+                        
+                        // Если есть игроки, обновляем их маркеры
+                        updatePlayerMarkers();
+                        
+                        showNotification('Карта городов России успешно загружена!', 'success');
+                    } else {
+                        throw new Error('Некорректный формат файла карты');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Ошибка загрузки карты:', error);
+                    
+                    // Создаем базовую карту с городами
+                    createDefaultMap();
+                    showNotification('Используется стандартная карта городов', 'info');
+                });
         }
         
-        function createDefaultCells() {
-            console.log('📍 Создание стандартных клеток карты');
+        function createDefaultMap() {
+            console.log('📍 Создание стандартной карты городов');
             
             const containerWidth = elements.mapContainer.offsetWidth;
             const containerHeight = elements.mapContainer.offsetHeight;
             
-            // Создаем стандартные клетки для городов
-            const defaultCells = [
-                {
-                    id: 1,
-                    number: 1,
-                    x: containerWidth * 0.1,
-                    y: containerHeight * 0.5,
-                    width: 40,
-                    height: 40,
-                    type: 'start',
-                    city: 'tver',
-                    description: 'Стартовая точка - Тверь'
-                },
-                {
-                    id: 2,
-                    number: 2,
-                    x: containerWidth * 0.25,
-                    y: containerHeight * 0.4,
-                    width: 40,
-                    height: 40,
-                    type: 'city',
-                    city: 'kineshma',
-                    description: 'Город Кинешма'
-                },
-                {
-                    id: 3,
-                    number: 3,
-                    x: containerWidth * 0.4,
-                    y: containerHeight * 0.35,
-                    width: 40,
-                    height: 40,
-                    type: 'city',
-                    city: 'naberezhnye_chelny',
-                    description: 'Город Набережные Челны'
-                },
-                {
-                    id: 4,
-                    number: 4,
-                    x: containerWidth * 0.55,
-                    y: containerHeight * 0.45,
-                    width: 40,
-                    height: 40,
-                    type: 'city',
-                    city: 'kazan',
-                    description: 'Город Казань'
-                },
-                {
-                    id: 5,
-                    number: 5,
-                    x: containerWidth * 0.7,
-                    y: containerHeight * 0.55,
-                    width: 40,
-                    height: 40,
-                    type: 'city',
-                    city: 'volgograd',
-                    description: 'Город Волгоград'
-                },
-                {
-                    id: 6,
-                    number: 6,
-                    x: containerWidth * 0.85,
-                    y: containerHeight * 0.65,
-                    width: 40,
-                    height: 40,
-                    type: 'finish',
-                    city: 'astrakhan',
-                    description: 'Финиш - Астрахань'
-                }
+            // Создаем клетки для каждого города
+            const cityPositions = [
+                { city: 'tver', x: containerWidth * 0.1, y: containerHeight * 0.3, number: 1, type: 'start' },
+                { city: 'kineshma', x: containerWidth * 0.3, y: containerHeight * 0.4, number: 2, type: 'city' },
+                { city: 'naberezhnye_chelny', x: containerWidth * 0.5, y: containerHeight * 0.3, number: 3, type: 'city' },
+                { city: 'kazan', x: containerWidth * 0.7, y: containerHeight * 0.4, number: 4, type: 'city' },
+                { city: 'volgograd', x: containerWidth * 0.6, y: containerHeight * 0.6, number: 5, type: 'city' },
+                { city: 'astrakhan', x: containerWidth * 0.8, y: containerHeight * 0.7, number: 6, type: 'finish' }
             ];
             
-            // Добавляем промежуточные клетки
-            for (let i = 7; i <= 15; i++) {
-                defaultCells.push({
-                    id: i,
-                    number: i,
-                    x: containerWidth * (0.1 + (i-1) * 0.05),
-                    y: containerHeight * (0.5 + Math.sin((i-1) * 0.3) * 0.1),
-                    width: 30,
-                    height: 30,
-                    type: 'normal',
-                    city: '',
-                    description: `Клетка ${i}`
-                });
-            }
+            mapData.cells = cityPositions.map((pos, index) => ({
+                id: index + 1,
+                number: pos.number,
+                x: pos.x,
+                y: pos.y,
+                width: 40,
+                height: 40,
+                type: pos.type,
+                city: pos.city,
+                description: `Клетка города ${gameData.cities[pos.city]?.name || 'Неизвестный'}`
+            }));
             
-            mapData.cells = defaultCells;
             createMapCells();
         }
         
@@ -4075,7 +4079,7 @@
             // Очищаем overlay
             elements.mapOverlay.innerHTML = '';
             
-            // Создаем клетки
+            // Создаем клетки (всегда скрытые)
             mapData.cells.forEach(cell => {
                 createCellElement(cell);
             });
@@ -4088,10 +4092,11 @@
         
         function createCellElement(cell) {
             const cellElement = document.createElement('div');
-            cellElement.className = 'map-cell';
+            cellElement.className = 'map-cell hidden';
             cellElement.dataset.cellId = cell.id;
             cellElement.dataset.cellNumber = cell.number;
             cellElement.dataset.cellType = cell.type;
+            cellElement.dataset.city = cell.city || '';
             
             // Позиционируем клетку
             cellElement.style.left = `${cell.x}px`;
@@ -4099,7 +4104,7 @@
             cellElement.style.width = `${cell.width}px`;
             cellElement.style.height = `${cell.height}px`;
             
-            // Устанавливаем цвет в зависимости от типа
+            // Добавляем классы в зависимости от типа
             if (cell.type === 'start') {
                 cellElement.classList.add('start');
             } else if (cell.type === 'finish') {
@@ -4112,16 +4117,15 @@
             cellElement.addEventListener('click', function(e) {
                 e.stopPropagation();
                 
-                // В игровом режиме показываем информацию о клетке
+                // Показываем информацию о городе
                 if (cell.type === 'city' && cell.city) {
                     showCityModal(cell.city);
-                } else if (cell.type === 'start' || cell.type === 'finish') {
-                    showNotification(`${cell.type === 'start' ? 'Стартовая точка' : 'Финиш'} - ${cell.description}`, 'info');
+                } else if (cell.type === 'start') {
+                    showNotification('Это стартовая точка игры!', 'info');
+                } else if (cell.type === 'finish') {
+                    showNotification('Это конечная точка игры!', 'info');
                 }
             });
-            
-            // Добавляем всплывающую подсказку
-            cellElement.title = cell.description || `Клетка ${cell.number}`;
             
             elements.mapOverlay.appendChild(cellElement);
             return cellElement;
@@ -4131,40 +4135,9 @@
         function updatePlayerMarkers() {
             // Удаляем старые маркеры игроков
             document.querySelectorAll('.player-marker').forEach(marker => {
-                if (!marker.id.includes('marker-')) return;
                 marker.remove();
             });
             
-            // Добавляем маркер текущего игрока
-            if (gameState.currentPlayer && gameState.currentPlayer.position) {
-                const cell = mapData.cells.find(c => c.number === gameState.currentPlayer.position);
-                if (cell) {
-                    const marker = document.createElement('div');
-                    marker.className = 'player-marker current';
-                    marker.id = `marker-${socket.id}`;
-                    marker.style.background = getRandomColor(socket.id);
-                    marker.style.left = `${cell.x + cell.width/2}px`;
-                    marker.style.top = `${cell.y + cell.height/2}px`;
-                    marker.innerHTML = '<i class="fas fa-user" style="font-size: 10px; color: white;"></i>';
-                    
-                    const tooltip = document.createElement('div');
-                    tooltip.className = 'player-tooltip';
-                    tooltip.textContent = `${gameState.currentPlayer.name} (Вы)`;
-                    tooltip.style.cssText = 'position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none;';
-                    marker.appendChild(tooltip);
-                    
-                    marker.addEventListener('mouseenter', () => {
-                        tooltip.style.opacity = '1';
-                    });
-                    marker.addEventListener('mouseleave', () => {
-                        tooltip.style.opacity = '0';
-                    });
-                    
-                    elements.mapOverlay.appendChild(marker);
-                }
-            }
-            
-            // Запрашиваем позиции других игроков
             requestAllPlayersPositions();
         }
         
@@ -4333,7 +4306,6 @@
             
             // Проверяем, достигли ли мы нового города
             const newCityKey = cityKeys[currentIndex + 1];
-            const newCity = gameData.cities[newCityKey];
             
             // Находим клетку с позицией игрока
             const currentCell = mapData.cells.find(cell => cell.number === gameState.currentPlayer.position);
@@ -4704,19 +4676,21 @@
             gameState.taskInProgress = true;
             hasCurrentTask = true;
             
-            // Сбрасываем состояние игровых элементов
+            // Сбрасываем состояние заданий
             gameState.dragItems = [];
             gameState.dropZones = [];
             gameState.sortItems = [];
             gameState.sortBins = [];
             gameState.selectedPuzzlePieces = [];
             gameState.cleanupItems = [];
+            gameState.cleanupCount = 0;
             gameState.matchGameState = {
                 cards: [],
                 flippedCards: [],
                 matchedPairs: 0,
                 canFlip: true
             };
+            gameState.quizSelectedAnswer = null;
             
             // Прокручиваем к началу задания
             setTimeout(() => {
@@ -4745,7 +4719,7 @@
             elements.completeTaskBtn.style.display = 'none';
             elements.checkTaskBtn.style.display = 'block';
             elements.checkTaskBtn.textContent = "✅ Проверить выполнение";
-            elements.checkTaskBtn.disabled = false;
+            elements.checkTaskBtn.disabled = true;
             
             // Обновляем состояние кнопки броска кубика
             updateRollDiceButtonState();
@@ -4754,10 +4728,8 @@
             if (window.innerWidth <= 768) {
                 const dragContainers = elements.taskArea.querySelectorAll('.task-container, .drag-container, .sorting-area, .puzzle-area, .sequence-area, .match-grid');
                 dragContainers.forEach(container => {
-                    if (container.parentNode === elements.taskArea) {
-                        container.parentNode.classList.add('drag-scroll-container');
-                        container.classList.add('drag-scroll-content');
-                    }
+                    container.parentNode.classList.add('drag-scroll-container');
+                    container.classList.add('drag-scroll-content');
                 });
             }
         }
@@ -4787,6 +4759,9 @@
                         // Выделяем выбранный вариант
                         this.classList.add('selected');
                         
+                        // Сохраняем выбранный ответ
+                        gameState.quizSelectedAnswer = option.correct;
+                        
                         // Активируем кнопку проверки
                         elements.checkTaskBtn.disabled = false;
                     }
@@ -4798,39 +4773,39 @@
             elements.taskArea.appendChild(optionsContainer);
             
             elements.checkTaskBtn.onclick = function() {
-                const selectedOption = document.querySelector('.quiz-option.selected');
-                if (!selectedOption) {
+                if (gameState.quizSelectedAnswer === null) {
                     showNotification('Выберите вариант ответа!', 'warning');
                     return;
                 }
                 
-                const isCorrect = selectedOption.dataset.correct === 'true';
-                
-                // Сначала показываем результат
-                if (isCorrect) {
-                    selectedOption.classList.add('correct');
+                if (gameState.quizSelectedAnswer) {
+                    const selectedOption = document.querySelector('.quiz-option.selected');
+                    if (selectedOption) {
+                        selectedOption.classList.add('correct');
+                    }
+                    
                     elements.taskResult.textContent = '✅ Правильно! Задание выполнено.';
                     elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
                 } else {
-                    selectedOption.classList.add('incorrect');
+                    const selectedOption = document.querySelector('.quiz-option.selected');
+                    if (selectedOption) {
+                        selectedOption.classList.add('incorrect');
+                    }
+                    
                     elements.taskResult.textContent = '❌ Неправильно. Попробуйте еще раз.';
                     elements.taskResult.style.color = 'var(--accent)';
                     
-                    // Показываем кнопку повторной попытки
                     elements.retryTaskBtn.style.display = 'block';
-                    elements.checkTaskBtn.disabled = true;
-                    return;
                 }
                 
-                // Только если ответ правильный, завершаем задание
                 elements.checkTaskBtn.disabled = true;
-                
-                // Обновляем прогресс игрока
-                completeTask();
-                
-                setTimeout(() => {
-                    finishTask(true);
-                }, 1500);
             };
         }
         
@@ -4838,6 +4813,12 @@
             const instructionDiv = document.createElement('div');
             instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
             elements.taskArea.appendChild(instructionDiv);
+            
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'task-counter';
+            progressDiv.id = 'dragProgress';
+            progressDiv.textContent = `Посажено: 0/${task.goal}`;
+            elements.taskArea.appendChild(progressDiv);
             
             const dragContainer = document.createElement('div');
             dragContainer.className = 'drag-container';
@@ -4849,35 +4830,27 @@
                 draggable.textContent = item;
                 draggable.dataset.item = item;
                 draggable.dataset.index = index;
-                draggable.draggable = true;
                 
-                // Обработчик для клика (альтернатива drag&drop)
                 draggable.addEventListener('click', function() {
                     if (gameState.taskInProgress && !this.classList.contains('placed')) {
-                        // Ищем первую свободную зону
+                        // Находим свободную зону
                         const dropZone = document.querySelector('.drop-zone:not(.filled)');
                         if (dropZone) {
                             this.classList.add('placed');
                             dropZone.classList.add('filled');
                             dropZone.textContent = item;
-                            dropZone.dataset.filledItem = item;
+                            dropZone.dataset.item = item;
                             
-                            // Проверяем завершение задания
-                            checkDragTaskCompletion(task);
+                            // Обновляем счетчик
+                            const placedCount = document.querySelectorAll('.draggable-item.placed').length;
+                            document.getElementById('dragProgress').textContent = `Посажено: ${placedCount}/${task.goal}`;
+                            
+                            // Проверяем выполнение
+                            if (placedCount >= task.goal) {
+                                elements.checkTaskBtn.disabled = false;
+                            }
                         }
                     }
-                });
-                
-                // Обработчик для drag&drop
-                draggable.addEventListener('dragstart', function(e) {
-                    if (gameState.taskInProgress && !this.classList.contains('placed')) {
-                        e.dataTransfer.setData('text/plain', item);
-                        this.classList.add('dragging');
-                    }
-                });
-                
-                draggable.addEventListener('dragend', function() {
-                    this.classList.remove('dragging');
                 });
                 
                 dragContainer.appendChild(draggable);
@@ -4894,58 +4867,28 @@
             for (let i = 0; i < task.zones; i++) {
                 const dropZone = document.createElement('div');
                 dropZone.className = 'drop-zone';
-                dropZone.textContent = `Посадите дерево ${i + 1}`;
+                dropZone.textContent = `Место ${i + 1}`;
                 dropZone.dataset.index = i;
                 
-                // Обработчик для клика по зоне (удаление элемента)
                 dropZone.addEventListener('click', function() {
                     if (gameState.taskInProgress && this.classList.contains('filled')) {
                         // Удаляем элемент из зоны
-                        const filledItem = this.dataset.filledItem;
+                        const item = this.dataset.item;
                         this.classList.remove('filled');
-                        this.textContent = `Посадите дерево ${i + 1}`;
-                        delete this.dataset.filledItem;
+                        this.textContent = `Место ${i + 1}`;
+                        delete this.dataset.item;
                         
                         // Находим соответствующий draggable и снимаем placed
-                        const placedItem = document.querySelector(`.draggable-item[data-item="${filledItem}"]:not(.placed)`);
+                        const placedItem = document.querySelector(`.draggable-item[data-item="${item}"]`);
                         if (placedItem) {
                             placedItem.classList.remove('placed');
                         }
                         
-                        // Проверяем завершение задания
-                        checkDragTaskCompletion(task);
-                    }
-                });
-                
-                // Обработчики для drag&drop
-                dropZone.addEventListener('dragover', function(e) {
-                    if (gameState.taskInProgress && !this.classList.contains('filled')) {
-                        e.preventDefault();
-                        this.classList.add('hover');
-                    }
-                });
-                
-                dropZone.addEventListener('dragleave', function() {
-                    this.classList.remove('hover');
-                });
-                
-                dropZone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('hover');
-                    
-                    if (gameState.taskInProgress && !this.classList.contains('filled')) {
-                        const item = e.dataTransfer.getData('text/plain');
-                        const draggable = document.querySelector(`.draggable-item[data-item="${item}"]:not(.placed)`);
+                        // Обновляем счетчик
+                        const placedCount = document.querySelectorAll('.draggable-item.placed').length;
+                        document.getElementById('dragProgress').textContent = `Посажено: ${placedCount}/${task.goal}`;
                         
-                        if (draggable) {
-                            draggable.classList.add('placed');
-                            this.classList.add('filled');
-                            this.textContent = item;
-                            this.dataset.filledItem = item;
-                            
-                            // Проверяем завершение задания
-                            checkDragTaskCompletion(task);
-                        }
+                        elements.checkTaskBtn.disabled = placedCount < task.goal;
                     }
                 });
                 
@@ -4956,46 +4899,40 @@
             elements.taskArea.appendChild(dropContainer);
             
             elements.checkTaskBtn.onclick = function() {
-                checkDragTaskCompletion(task);
-            };
-        }
-        
-        function checkDragTaskCompletion(task) {
-            const filledZones = document.querySelectorAll('.drop-zone.filled');
-            
-            // Проверяем количество заполненных зон
-            if (filledZones.length >= task.goal) {
-                let allCorrect = true;
-                let correctCount = 0;
+                const placedCount = document.querySelectorAll('.draggable-item.placed').length;
                 
-                filledZones.forEach(zone => {
-                    const item = zone.textContent;
-                    if (task.correctItems.includes(item)) {
-                        correctCount++;
+                if (placedCount >= task.goal) {
+                    // Проверяем правильность элементов
+                    const filledZones = document.querySelectorAll('.drop-zone.filled');
+                    let allCorrect = true;
+                    
+                    filledZones.forEach(zone => {
+                        const item = zone.dataset.item;
+                        if (!task.correctItems.includes(item)) {
+                            allCorrect = false;
+                        }
+                    });
+                    
+                    if (allCorrect) {
+                        elements.taskResult.textContent = '✅ Отлично! Все деревья правильно посажены.';
+                        elements.taskResult.style.color = 'var(--success)';
+                        
+                        // Обновляем прогресс игрока
+                        completeTask();
+                        
+                        setTimeout(() => {
+                            finishTask(true);
+                        }, 1500);
                     } else {
-                        allCorrect = false;
+                        elements.taskResult.textContent = '❌ Не все деревья посажены правильно.';
+                        elements.taskResult.style.color = 'var(--accent)';
+                        elements.retryTaskBtn.style.display = 'block';
                     }
-                });
-                
-                if (allCorrect && correctCount >= task.goal) {
-                    elements.taskResult.textContent = '✅ Отлично! Все деревья правильно посажены.';
-                    elements.taskResult.style.color = 'var(--success)';
-                    elements.checkTaskBtn.disabled = true;
-                    
-                    // Обновляем прогресс игрока
-                    completeTask();
-                    
-                    setTimeout(() => {
-                        finishTask(true);
-                    }, 1500);
                 } else {
-                    elements.taskResult.textContent = `❌ Посажено ${correctCount} из ${task.goal} правильных деревьев. Нужно посадить только деревья (🌲).`;
+                    elements.taskResult.textContent = `❌ Посадите еще ${task.goal - placedCount} дерева(ев).`;
                     elements.taskResult.style.color = 'var(--accent)';
                 }
-            } else {
-                elements.taskResult.textContent = `❌ Посадите еще ${task.goal - filledZones.length} дерева(ев).`;
-                elements.taskResult.style.color = 'var(--accent)';
-            }
+            };
         }
         
         function createSortClickTask(task) {
@@ -5003,21 +4940,23 @@
             instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
             elements.taskArea.appendChild(instructionDiv);
             
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'task-counter';
+            progressDiv.id = 'sortProgress';
+            progressDiv.textContent = `Отсортировано: 0/${task.items.length}`;
+            elements.taskArea.appendChild(progressDiv);
+            
             const itemsContainer = document.createElement('div');
             itemsContainer.className = 'task-container';
             itemsContainer.style.marginBottom = '20px';
             
-            // Перемешиваем элементы
-            const shuffledItems = shuffleArray([...task.items]);
-            
             // Создаем элементы для сортировки
-            shuffledItems.forEach((item, index) => {
+            task.items.forEach((item, index) => {
                 const sortItem = document.createElement('div');
                 sortItem.className = 'sort-item';
                 sortItem.innerHTML = `<div style="font-size: 1.8rem;">${item.emoji}</div><div>${item.name}</div>`;
                 sortItem.dataset.type = item.type;
                 sortItem.dataset.index = index;
-                sortItem.draggable = true;
                 
                 sortItem.addEventListener('click', function() {
                     if (gameState.taskInProgress && !this.classList.contains('placed')) {
@@ -5033,20 +4972,18 @@
                                 itemClone.style.height = '40px';
                                 itemClone.style.fontSize = '1.2rem';
                                 itemClone.style.margin = '2px';
-                                itemClone.classList.add('placed');
                                 binContent.appendChild(itemClone);
                             }
                             
-                            // Проверяем завершение задания
-                            checkSortTaskCompletion(task);
+                            // Обновляем счетчик
+                            const placedCount = document.querySelectorAll('.sort-item.placed').length;
+                            document.getElementById('sortProgress').textContent = `Отсортировано: ${placedCount}/${task.items.length}`;
+                            
+                            // Проверяем выполнение
+                            if (placedCount >= task.items.length) {
+                                elements.checkTaskBtn.disabled = false;
+                            }
                         }
-                    }
-                });
-                
-                // Обработчики для drag&drop
-                sortItem.addEventListener('dragstart', function(e) {
-                    if (gameState.taskInProgress && !this.classList.contains('placed')) {
-                        e.dataTransfer.setData('text/plain', JSON.stringify(item));
                     }
                 });
                 
@@ -5075,51 +5012,28 @@
                     <div class="sort-bin-content"></div>
                 `;
                 
-                // Обработчики для drag&drop
-                bin.addEventListener('dragover', function(e) {
-                    if (gameState.taskInProgress) {
-                        e.preventDefault();
-                        this.classList.add('hover');
-                    }
-                });
-                
-                bin.addEventListener('dragleave', function() {
-                    this.classList.remove('hover');
-                });
-                
-                bin.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('hover');
-                    
-                    if (gameState.taskInProgress) {
-                        try {
-                            const itemData = JSON.parse(e.dataTransfer.getData('text/plain'));
-                            if (itemData.type === type) {
-                                const sortItem = document.querySelector(`.sort-item[data-type="${type}"]:not(.placed)`);
-                                if (sortItem) {
-                                    sortItem.classList.add('placed');
-                                    this.classList.add('filled');
-                                    
-                                    const binContent = this.querySelector('.sort-bin-content');
-                                    if (binContent) {
-                                        const itemClone = document.createElement('div');
-                                        itemClone.innerHTML = `<div style="font-size: 1.2rem;">${itemData.emoji}</div>`;
-                                        itemClone.style.width = '40px';
-                                        itemClone.style.height = '40px';
-                                        itemClone.style.margin = '2px';
-                                        itemClone.style.display = 'flex';
-                                        itemClone.style.alignItems = 'center';
-                                        itemClone.style.justifyContent = 'center';
-                                        binContent.appendChild(itemClone);
-                                    }
-                                    
-                                    // Проверяем завершение задания
-                                    checkSortTaskCompletion(task);
+                bin.addEventListener('click', function() {
+                    if (gameState.taskInProgress && this.classList.contains('filled')) {
+                        // Удаляем все элементы из этого контейнера
+                        const binContent = this.querySelector('.sort-bin-content');
+                        if (binContent) {
+                            const itemsInBin = binContent.querySelectorAll('.sort-item');
+                            itemsInBin.forEach(item => {
+                                const originalItem = document.querySelector(`.sort-item[data-index="${item.dataset.index}"]`);
+                                if (originalItem) {
+                                    originalItem.classList.remove('placed');
                                 }
-                            }
-                        } catch (err) {
-                            console.error('Ошибка обработки перетаскивания:', err);
+                                item.remove();
+                            });
                         }
+                        
+                        this.classList.remove('filled');
+                        
+                        // Обновляем счетчик
+                        const placedCount = document.querySelectorAll('.sort-item.placed').length;
+                        document.getElementById('sortProgress').textContent = `Отсортировано: ${placedCount}/${task.items.length}`;
+                        
+                        elements.checkTaskBtn.disabled = placedCount < task.items.length;
                     }
                 });
                 
@@ -5130,28 +5044,23 @@
             elements.taskArea.appendChild(binsContainer);
             
             elements.checkTaskBtn.onclick = function() {
-                checkSortTaskCompletion(task);
+                const placedCount = document.querySelectorAll('.sort-item.placed').length;
+                
+                if (placedCount >= task.items.length) {
+                    elements.taskResult.textContent = '✅ Отлично! Все элементы правильно отсортированы.';
+                    elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
+                } else {
+                    elements.taskResult.textContent = `❌ Отсортируйте еще ${task.items.length - placedCount} элемента(ов).`;
+                    elements.taskResult.style.color = 'var(--accent)';
+                }
             };
-        }
-        
-        function checkSortTaskCompletion(task) {
-            const placedItems = document.querySelectorAll('.sort-item.placed');
-            
-            if (placedItems.length >= task.items.length) {
-                elements.taskResult.textContent = '✅ Отлично! Все элементы правильно отсортированы.';
-                elements.taskResult.style.color = 'var(--success)';
-                elements.checkTaskBtn.disabled = true;
-                
-                // Обновляем прогресс игрока
-                completeTask();
-                
-                setTimeout(() => {
-                    finishTask(true);
-                }, 1500);
-            } else {
-                elements.taskResult.textContent = `❌ Отсортируйте еще ${task.items.length - placedItems.length} элемента(ов).`;
-                elements.taskResult.style.color = 'var(--accent)';
-            }
         }
         
         function createCleanupTask(task) {
@@ -5159,23 +5068,17 @@
             instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
             elements.taskArea.appendChild(instructionDiv);
             
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'task-counter';
+            progressDiv.id = 'cleanupProgress';
+            progressDiv.textContent = `Очищено: 0/${task.goal}`;
+            elements.taskArea.appendChild(progressDiv);
+            
             const riverContainer = document.createElement('div');
             riverContainer.className = 'river-container';
             
-            // Счетчик очищенных элементов
-            const counterDiv = document.createElement('div');
-            counterDiv.className = 'cleanup-counter';
-            counterDiv.id = 'cleanupCounter';
-            counterDiv.textContent = `Очищено: 0/${task.goal}`;
-            riverContainer.appendChild(counterDiv);
-            
             // Создаем мусорные элементы
-            let cleanedCount = 0;
-            
-            // Перемешиваем элементы
-            const shuffledItems = shuffleArray([...task.items]);
-            
-            shuffledItems.forEach((item, index) => {
+            task.items.forEach((item, index) => {
                 const cleanupItem = document.createElement('div');
                 cleanupItem.className = 'cleanup-item';
                 cleanupItem.textContent = item;
@@ -5183,29 +5086,20 @@
                 
                 // Случайная позиция в контейнере
                 const left = 10 + Math.random() * 80;
-                const top = 20 + Math.random() * 60;
+                const top = 10 + Math.random() * 70;
                 cleanupItem.style.left = `${left}%`;
                 cleanupItem.style.top = `${top}%`;
                 
                 cleanupItem.addEventListener('click', function() {
                     if (gameState.taskInProgress && !this.classList.contains('cleaned')) {
                         this.classList.add('cleaned');
-                        cleanedCount++;
+                        gameState.cleanupCount++;
                         
-                        document.getElementById('cleanupCounter').textContent = `Очищено: ${cleanedCount}/${task.goal}`;
+                        document.getElementById('cleanupProgress').textContent = `Очищено: ${gameState.cleanupCount}/${task.goal}`;
                         
-                        // Проверяем завершение задания
-                        if (cleanedCount >= task.goal) {
-                            elements.taskResult.textContent = '✅ Отлично! Территория очищена.';
-                            elements.taskResult.style.color = 'var(--success)';
-                            elements.checkTaskBtn.disabled = true;
-                            
-                            // Обновляем прогресс игрока
-                            completeTask();
-                            
-                            setTimeout(() => {
-                                finishTask(true);
-                            }, 1500);
+                        // Проверяем выполнение
+                        if (gameState.cleanupCount >= task.goal) {
+                            elements.checkTaskBtn.disabled = false;
                         }
                     }
                 });
@@ -5217,7 +5111,7 @@
             elements.taskArea.appendChild(riverContainer);
             
             elements.checkTaskBtn.onclick = function() {
-                if (cleanedCount >= task.goal) {
+                if (gameState.cleanupCount >= task.goal) {
                     elements.taskResult.textContent = '✅ Отлично! Территория очищена.';
                     elements.taskResult.style.color = 'var(--success)';
                     
@@ -5228,7 +5122,7 @@
                         finishTask(true);
                     }, 1500);
                 } else {
-                    elements.taskResult.textContent = `❌ Очистите еще ${task.goal - cleanedCount} элемента(ов).`;
+                    elements.taskResult.textContent = `❌ Очистите еще ${task.goal - gameState.cleanupCount} элемента(ов).`;
                     elements.taskResult.style.color = 'var(--accent)';
                 }
             };
@@ -5239,46 +5133,42 @@
             instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
             elements.taskArea.appendChild(instructionDiv);
             
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'task-counter';
+            progressDiv.id = 'puzzleProgress';
+            progressDiv.textContent = `Выбрано: 0/${task.pieces}`;
+            elements.taskArea.appendChild(progressDiv);
+            
             const puzzleContainer = document.createElement('div');
             puzzleContainer.className = 'puzzle-area';
             
             // Определяем эмодзи в зависимости от типа изображения
-            let emojis = ['🌍', '♻️', '🌳', '💧', '🌱', '☀️', '🐦', '🐝'];
+            let emojis = ['🌍', '♻️', '🌳', '💧', '🌱', '☀️', '🐦', '🐝', '🦋'];
             
             if (task.imageType === 'animals') {
-                emojis = ['🐻', '🦊', '🐰', '🦉', '🐸', '🐢', '🦋', '🐝'];
+                emojis = ['🐻', '🦊', '🐰', '🦉', '🐸', '🐢', '🦋', '🐝', '🐞'];
             } else if (task.imageType === 'nature') {
-                emojis = ['🏔️', '🌲', '🌊', '☀️', '🌈', '🌺', '🦋', '🐦'];
+                emojis = ['🏔️', '🌲', '🌊', '☀️', '🌈', '🌺', '🦋', '🐦', '🌿'];
             }
             
             // Берем нужное количество эмодзи
             const pieces = emojis.slice(0, task.pieces);
             
-            // Перемешиваем эмодзи
-            const shuffledPieces = shuffleArray([...pieces]);
-            
-            shuffledPieces.forEach((piece, index) => {
+            pieces.forEach((piece, index) => {
                 const puzzlePiece = document.createElement('div');
                 puzzlePiece.className = 'puzzle-piece';
                 puzzlePiece.textContent = piece;
                 puzzlePiece.dataset.index = index;
-                puzzlePiece.dataset.piece = piece;
                 
                 puzzlePiece.addEventListener('click', function() {
                     if (gameState.taskInProgress) {
                         this.classList.toggle('selected');
                         
-                        if (this.classList.contains('selected')) {
-                            gameState.selectedPuzzlePieces.push(piece);
-                        } else {
-                            const idx = gameState.selectedPuzzlePieces.indexOf(piece);
-                            if (idx > -1) {
-                                gameState.selectedPuzzlePieces.splice(idx, 1);
-                            }
-                        }
+                        const selectedCount = document.querySelectorAll('.puzzle-piece.selected').length;
+                        document.getElementById('puzzleProgress').textContent = `Выбрано: ${selectedCount}/${task.pieces}`;
                         
-                        // Проверяем завершение задания
-                        checkPuzzleTaskCompletion(task, pieces);
+                        // Активируем кнопку проверки
+                        elements.checkTaskBtn.disabled = selectedCount < task.pieces;
                     }
                 });
                 
@@ -5288,32 +5178,35 @@
             elements.taskArea.appendChild(puzzleContainer);
             
             elements.checkTaskBtn.onclick = function() {
-                checkPuzzleTaskCompletion(task, pieces);
+                const selectedCount = document.querySelectorAll('.puzzle-piece.selected').length;
+                
+                if (selectedCount >= task.pieces) {
+                    elements.taskResult.textContent = '✅ Отлично! Пазл собран.';
+                    elements.taskResult.style.color = 'var(--success)';
+                    
+                    // Обновляем прогресс игрока
+                    completeTask();
+                    
+                    setTimeout(() => {
+                        finishTask(true);
+                    }, 1500);
+                } else {
+                    elements.taskResult.textContent = `❌ Выберите еще ${task.pieces - selectedCount} элемента(ов).`;
+                    elements.taskResult.style.color = 'var(--accent)';
+                }
             };
-        }
-        
-        function checkPuzzleTaskCompletion(task, pieces) {
-            if (gameState.selectedPuzzlePieces.length >= pieces.length) {
-                elements.taskResult.textContent = '✅ Отлично! Пазл собран.';
-                elements.taskResult.style.color = 'var(--success)';
-                elements.checkTaskBtn.disabled = true;
-                
-                // Обновляем прогресс игрока
-                completeTask();
-                
-                setTimeout(() => {
-                    finishTask(true);
-                }, 1500);
-            } else {
-                elements.taskResult.textContent = `❌ Выберите еще ${pieces.length - gameState.selectedPuzzlePieces.length} элемента(ов).`;
-                elements.taskResult.style.color = 'var(--accent)';
-            }
         }
         
         function createSequenceClickTask(task) {
             const instructionDiv = document.createElement('div');
             instructionDiv.innerHTML = `<p style="text-align: center; margin-bottom: 15px;">${task.description}</p>`;
             elements.taskArea.appendChild(instructionDiv);
+            
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'task-counter';
+            progressDiv.id = 'sequenceProgress';
+            progressDiv.textContent = `Добавлено: 0/${task.items.length}`;
+            elements.taskArea.appendChild(progressDiv);
             
             const itemsContainer = document.createElement('div');
             itemsContainer.className = 'task-container';
@@ -5335,8 +5228,11 @@
                         this.classList.add('selected');
                         gameState.selectedPuzzlePieces.push(item);
                         
-                        // Проверяем завершение задания
-                        checkSequenceTaskCompletion(task);
+                        const selectedCount = gameState.selectedPuzzlePieces.length;
+                        document.getElementById('sequenceProgress').textContent = `Добавлено: ${selectedCount}/${task.items.length}`;
+                        
+                        // Активируем кнопку проверки
+                        elements.checkTaskBtn.disabled = selectedCount < task.items.length;
                     }
                 });
                 
@@ -5355,100 +5251,42 @@
                 slot.textContent = `Позиция ${index + 1}`;
                 slot.dataset.index = index;
                 
-                // Обработчик для сброса элемента в слот
-                slot.addEventListener('click', function() {
-                    if (gameState.taskInProgress && this.classList.contains('filled')) {
-                        // Удаляем элемент из слота
-                        const filledItem = this.dataset.filledItem;
-                        this.classList.remove('filled');
-                        this.textContent = `Позиция ${index + 1}`;
-                        delete this.dataset.filledItem;
-                        
-                        // Удаляем элемент из выбранных
-                        const idx = gameState.selectedPuzzlePieces.indexOf(filledItem);
-                        if (idx > -1) {
-                            gameState.selectedPuzzlePieces.splice(idx, 1);
-                        }
-                        
-                        // Находим соответствующий элемент и снимаем selected
-                        const seqItem = document.querySelector(`.sequence-piece[data-item="${filledItem}"]`);
-                        if (seqItem) {
-                            seqItem.classList.remove('selected');
-                        }
-                        
-                        // Проверяем завершение задания
-                        checkSequenceTaskCompletion(task);
-                    }
-                });
-                
                 slotsContainer.appendChild(slot);
             });
             
             elements.taskArea.appendChild(slotsContainer);
             
-            // Обработчик для элементов последовательности (альтернативный метод)
-            document.addEventListener('click', function(e) {
-                if (!gameState.taskInProgress) return;
-                
-                const seqItem = e.target.closest('.sequence-piece');
-                if (seqItem && !seqItem.classList.contains('selected')) {
-                    // Находим первый свободный слот
-                    const emptySlot = document.querySelector('.sequence-slot:not(.filled)');
-                    if (emptySlot) {
-                        seqItem.classList.add('selected');
-                        emptySlot.classList.add('filled');
-                        emptySlot.textContent = seqItem.textContent;
-                        emptySlot.dataset.filledItem = seqItem.dataset.item;
-                        
-                        gameState.selectedPuzzlePieces.push(seqItem.dataset.item);
-                        
-                        // Проверяем завершение задания
-                        checkSequenceTaskCompletion(task);
-                    }
-                }
-            });
-            
             elements.checkTaskBtn.onclick = function() {
-                checkSequenceTaskCompletion(task);
-            };
-        }
-        
-        function checkSequenceTaskCompletion(task) {
-            const filledSlots = document.querySelectorAll('.sequence-slot.filled');
-            
-            if (filledSlots.length >= task.items.length) {
-                // Собираем последовательность из слотов
-                const currentSequence = Array.from(filledSlots).map(slot => slot.dataset.filledItem);
-                
-                // Проверяем правильность последовательности
-                let isCorrect = true;
-                for (let i = 0; i < currentSequence.length; i++) {
-                    if (currentSequence[i] !== task.correctOrder[i]) {
-                        isCorrect = false;
-                        break;
+                if (gameState.selectedPuzzlePieces.length >= task.items.length) {
+                    // Проверяем правильность последовательности
+                    let isCorrect = true;
+                    for (let i = 0; i < gameState.selectedPuzzlePieces.length; i++) {
+                        if (gameState.selectedPuzzlePieces[i] !== task.correctOrder[i]) {
+                            isCorrect = false;
+                            break;
+                        }
                     }
-                }
-                
-                if (isCorrect) {
-                    elements.taskResult.textContent = '✅ Отлично! Последовательность правильная.';
-                    elements.taskResult.style.color = 'var(--success)';
-                    elements.checkTaskBtn.disabled = true;
                     
-                    // Обновляем прогресс игрока
-                    completeTask();
-                    
-                    setTimeout(() => {
-                        finishTask(true);
-                    }, 1500);
+                    if (isCorrect) {
+                        elements.taskResult.textContent = '✅ Отлично! Последовательность правильная.';
+                        elements.taskResult.style.color = 'var(--success)';
+                        
+                        // Обновляем прогресс игрока
+                        completeTask();
+                        
+                        setTimeout(() => {
+                            finishTask(true);
+                        }, 1500);
+                    } else {
+                        elements.taskResult.textContent = '❌ Последовательность неправильная. Попробуйте еще раз.';
+                        elements.taskResult.style.color = 'var(--accent)';
+                        elements.retryTaskBtn.style.display = 'block';
+                    }
                 } else {
-                    elements.taskResult.textContent = '❌ Последовательность неправильная. Попробуйте еще раз.';
+                    elements.taskResult.textContent = `❌ Добавьте еще ${task.items.length - gameState.selectedPuzzlePieces.length} элемента(ов).`;
                     elements.taskResult.style.color = 'var(--accent)';
-                    elements.retryTaskBtn.style.display = 'block';
                 }
-            } else {
-                elements.taskResult.textContent = `❌ Добавьте еще ${task.items.length - filledSlots.length} элемента(ов).`;
-                elements.taskResult.style.color = 'var(--accent)';
-            }
+            };
         }
         
         function createMatchGameTask(task) {
@@ -5462,13 +5300,18 @@
             matchInstruction.textContent = "Найдите все пары одинаковых эмодзи!";
             elements.taskArea.appendChild(matchInstruction);
             
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'task-counter';
+            progressDiv.id = 'matchProgress';
+            progressDiv.textContent = `Найдено пар: 0/${task.pairs}`;
+            elements.taskArea.appendChild(progressDiv);
+            
             const matchGrid = document.createElement('div');
             matchGrid.className = 'match-grid';
             
             // Создаем пары символов
-            const symbols = task.symbols.slice(0, task.pairs);
-            const pairedSymbols = [...symbols, ...symbols];
-            const shuffledSymbols = shuffleArray(pairedSymbols);
+            const symbols = task.symbols.slice(0, task.pairs * 2);
+            const shuffledSymbols = shuffleArray([...symbols, ...symbols]);
             
             shuffledSymbols.forEach((symbol, index) => {
                 const card = document.createElement('div');
@@ -5489,66 +5332,55 @@
                 card.appendChild(cardContent);
                 
                 card.addEventListener('click', function() {
-                    if (!gameState.taskInProgress || 
-                        this.classList.contains('flipped') || 
-                        this.classList.contains('matched') ||
-                        !gameState.matchGameState.canFlip ||
-                        gameState.matchGameState.flippedCards.length >= 2) {
-                        return;
-                    }
-                    
-                    // Переворачиваем карточку
-                    this.classList.add('flipped');
-                    this.querySelector('.card-back').style.display = 'none';
-                    this.querySelector('.card-content').style.display = 'block';
-                    gameState.matchGameState.flippedCards.push(this);
-                    
-                    if (gameState.matchGameState.flippedCards.length === 2) {
-                        gameState.matchGameState.canFlip = false;
+                    if (gameState.taskInProgress && 
+                        !this.classList.contains('flipped') && 
+                        !this.classList.contains('matched') &&
+                        gameState.matchGameState.canFlip &&
+                        gameState.matchGameState.flippedCards.length < 2) {
                         
-                        const card1 = gameState.matchGameState.flippedCards[0];
-                        const card2 = gameState.matchGameState.flippedCards[1];
+                        this.classList.add('flipped');
+                        this.querySelector('.card-back').style.display = 'none';
+                        this.querySelector('.card-content').style.display = 'block';
+                        gameState.matchGameState.flippedCards.push(this);
                         
-                        if (card1.dataset.symbol === card2.dataset.symbol) {
-                            // Найдена пара
-                            setTimeout(() => {
-                                card1.classList.remove('flipped');
-                                card1.classList.add('matched');
-                                card2.classList.remove('flipped');
-                                card2.classList.add('matched');
-                                
-                                gameState.matchGameState.matchedPairs++;
-                                gameState.matchGameState.flippedCards = [];
-                                gameState.matchGameState.canFlip = true;
-                                
-                                // Проверяем завершение игры
-                                if (gameState.matchGameState.matchedPairs >= task.pairs) {
-                                    elements.taskResult.textContent = '✅ Отлично! Все пары найдены.';
-                                    elements.taskResult.style.color = 'var(--success)';
-                                    elements.checkTaskBtn.disabled = true;
+                        if (gameState.matchGameState.flippedCards.length === 2) {
+                            gameState.matchGameState.canFlip = false;
+                            
+                            const card1 = gameState.matchGameState.flippedCards[0];
+                            const card2 = gameState.matchGameState.flippedCards[1];
+                            
+                            if (card1.dataset.symbol === card2.dataset.symbol) {
+                                // Найдена пара
+                                setTimeout(() => {
+                                    card1.classList.add('matched');
+                                    card2.classList.add('matched');
+                                    gameState.matchGameState.matchedPairs++;
                                     
-                                    // Обновляем прогресс игрока
-                                    completeTask();
+                                    document.getElementById('matchProgress').textContent = `Найдено пар: ${gameState.matchGameState.matchedPairs}/${task.pairs}`;
                                     
-                                    setTimeout(() => {
-                                        finishTask(true);
-                                    }, 1500);
-                                }
-                            }, 500);
-                        } else {
-                            // Не совпадают - переворачиваем обратно
-                            setTimeout(() => {
-                                card1.classList.remove('flipped');
-                                card1.querySelector('.card-back').style.display = 'block';
-                                card1.querySelector('.card-content').style.display = 'none';
-                                
-                                card2.classList.remove('flipped');
-                                card2.querySelector('.card-back').style.display = 'block';
-                                card2.querySelector('.card-content').style.display = 'none';
-                                
-                                gameState.matchGameState.flippedCards = [];
-                                gameState.matchGameState.canFlip = true;
-                            }, 1000);
+                                    gameState.matchGameState.flippedCards = [];
+                                    gameState.matchGameState.canFlip = true;
+                                    
+                                    // Проверяем завершение игры
+                                    if (gameState.matchGameState.matchedPairs >= task.pairs) {
+                                        elements.checkTaskBtn.disabled = false;
+                                    }
+                                }, 500);
+                            } else {
+                                // Не совпадают
+                                setTimeout(() => {
+                                    card1.classList.remove('flipped');
+                                    card1.querySelector('.card-back').style.display = 'block';
+                                    card1.querySelector('.card-content').style.display = 'none';
+                                    
+                                    card2.classList.remove('flipped');
+                                    card2.querySelector('.card-back').style.display = 'block';
+                                    card2.querySelector('.card-content').style.display = 'none';
+                                    
+                                    gameState.matchGameState.flippedCards = [];
+                                    gameState.matchGameState.canFlip = true;
+                                }, 1000);
+                            }
                         }
                     }
                 });
@@ -5651,6 +5483,7 @@
             
             // Очищаем текущее задание
             gameState.currentTask = null;
+            gameState.quizSelectedAnswer = null;
             
             // Обновляем состояние кнопки броска кубика
             updateRollDiceButtonState();
