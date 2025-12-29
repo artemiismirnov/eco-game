@@ -17,8 +17,6 @@
             --warning: #ff9e1f;
             --card-bg: rgba(255, 255, 255, 0.15);
             --card-border: rgba(255, 255, 255, 0.2);
-            --bg-color: #0f2b35;
-            --text-color: #f7fff7;
         }
         
         * {
@@ -37,34 +35,111 @@
             position: relative;
         }
         
-        /* Новогодние снежинки */
-        .snowflake {
-            position: fixed;
-            top: -10px;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1.2rem;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-            user-select: none;
-            z-index: 9999;
-            pointer-events: none;
-            opacity: 0.7;
+        /* ==================== НОВОГОДНИЙ ДИЗАЙН ==================== */
+        body.new-year-theme {
+            background: linear-gradient(135deg, #0c1d22, #15343a);
         }
         
-        /* Новогодняя шапка */
+        /* Снежинки */
+        .snowflakes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            animation: snowfall linear infinite;
+        }
+        
+        @keyframes snowfall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Новогодняя шляпа */
         .new-year-hat {
             position: absolute;
-            top: -30px;
+            top: -15px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 4rem;
+            font-size: 3.5rem;
             z-index: 10;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-            animation: hat-bounce 3s infinite ease-in-out;
+            filter: drop-shadow(0 5px 10px rgba(255, 215, 0, 0.5));
+            animation: hat-bounce 3s ease-in-out infinite;
         }
         
         @keyframes hat-bounce {
-            0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+            0%, 100% { transform: translateX(-50%) translateY(0) rotate(-5deg); }
             50% { transform: translateX(-50%) translateY(-10px) rotate(5deg); }
+        }
+        
+        /* Темная тема с зелеными элементами */
+        body.dark-green-theme {
+            background: linear-gradient(135deg, #0a191f, #112a30);
+            color: #e8f5e9;
+        }
+        
+        body.dark-green-theme .game-board,
+        body.dark-green-theme .game-info-panel,
+        body.dark-green-theme .room-section,
+        body.dark-green-theme .auth-section,
+        body.dark-green-theme .game-info {
+            background: rgba(26, 83, 92, 0.2);
+            border-color: rgba(78, 205, 196, 0.3);
+        }
+        
+        body.dark-green-theme .game-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            box-shadow: 0 4px 0 rgba(39, 174, 96, 0.8);
+        }
+        
+        body.dark-green-theme .game-btn:hover {
+            background: linear-gradient(135deg, #27ae60, #219653);
+            box-shadow: 0 6px 0 rgba(39, 174, 96, 0.8);
+        }
+        
+        body.dark-green-theme .auth-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        body.dark-green-theme .auth-btn:hover {
+            background: linear-gradient(135deg, #27ae60, #219653);
+        }
+        
+        body.dark-green-theme .secondary {
+            color: #4ecdc4;
+        }
+        
+        body.dark-green-theme .player-item.current {
+            background: rgba(46, 204, 113, 0.3);
+            border-left: 4px solid #2ecc71;
+        }
+        
+        body.dark-green-theme .player-item.turn {
+            background: rgba(243, 156, 18, 0.2);
+            border-left: 4px solid #FFD700;
         }
         
         .container {
@@ -72,6 +147,7 @@
             margin: 0 auto;
             width: 100%;
             position: relative;
+            z-index: 2;
         }
         
         /* ==================== ШАПКА ==================== */
@@ -92,7 +168,12 @@
             -webkit-text-fill-color: transparent;
             font-weight: 800;
             position: relative;
-            z-index: 5;
+        }
+        
+        body.dark-green-theme h1 {
+            background: linear-gradient(to right, #4ecdc4, #2ecc71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         .subtitle {
@@ -102,6 +183,23 @@
         }
         
         /* ==================== СТАТУС ПОДКЛЮЧЕНИЯ ==================== */
+        .connection-status-mini {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 8px 16px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
         .connection-status-compact {
             position: fixed;
             top: 20px;
@@ -339,26 +437,32 @@
             word-break: break-word;
         }
         
-        /* Контейнер для смайликов в чате */
+        /* Стили для смайликов в чате */
+        .chat-emojis {
+            font-size: 1.2rem;
+            display: inline-block;
+            margin-right: 2px;
+        }
+        
+        /* Контейнер для смайликов */
         .emoji-picker-container {
             position: relative;
             display: inline-block;
         }
         
         .emoji-picker-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
             color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
-            margin-left: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
         }
         
         .emoji-picker-btn:hover {
@@ -368,54 +472,49 @@
         
         .emoji-picker {
             position: absolute;
-            bottom: 50px;
+            bottom: 45px;
             right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 12px;
+            padding: 15px;
             width: 250px;
-            background: rgba(0, 0, 0, 0.95);
-            border-radius: 10px;
-            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
             display: none;
             grid-template-columns: repeat(6, 1fr);
-            gap: 5px;
+            gap: 8px;
             z-index: 1000;
-            max-height: 200px;
-            overflow-y: auto;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
         }
         
-        .emoji-picker.active {
+        .emoji-picker.show {
             display: grid;
         }
         
-        .emoji-option {
-            width: 35px;
-            height: 35px;
+        .emoji-item {
             font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             cursor: pointer;
-            border-radius: 5px;
-            transition: all 0.2s;
+            padding: 5px;
+            border-radius: 6px;
+            text-align: center;
+            transition: all 0.2s ease;
+            user-select: none;
         }
         
-        .emoji-option:hover {
+        .emoji-item:hover {
             background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
+            transform: scale(1.2);
         }
         
-        .recent-emojis {
-            grid-column: 1 / span 6;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .recent-emojis h4 {
+        .emoji-recent-title {
+            grid-column: 1 / -1;
             font-size: 0.8rem;
             color: rgba(255, 255, 255, 0.7);
             margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         /* ==================== МАРКЕРЫ ИГРОКОВ ==================== */
@@ -1769,7 +1868,7 @@
         
         .chat-input {
             display: flex;
-            gap: 5px;
+            gap: 10px;
             align-items: center;
         }
         
@@ -1810,6 +1909,10 @@
         
         .notification.error {
             background: var(--accent);
+        }
+        
+        .notification.info {
+            background: var(--secondary);
         }
         
         /* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
@@ -2334,16 +2437,20 @@
                 font-size: 1.4rem;
             }
             
+            /* Адаптация для смайликов */
             .emoji-picker {
                 width: 200px;
                 grid-template-columns: repeat(5, 1fr);
-                bottom: 45px;
-                right: -50px;
+                right: -80px;
+            }
+            
+            .emoji-item {
+                font-size: 1.3rem;
             }
             
             .new-year-hat {
                 font-size: 2.5rem;
-                top: -20px;
+                top: -10px;
             }
         }
         
@@ -2428,16 +2535,26 @@
                 object-fit: contain;
             }
             
+            /* Адаптация для смайликов */
             .emoji-picker {
                 width: 180px;
                 grid-template-columns: repeat(4, 1fr);
-                bottom: 40px;
-                right: -30px;
+                right: -70px;
+            }
+            
+            .emoji-item {
+                font-size: 1.2rem;
+            }
+            
+            .emoji-picker-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
             }
             
             .new-year-hat {
                 font-size: 2rem;
-                top: -15px;
+                top: -8px;
             }
         }
         
@@ -2556,98 +2673,15 @@
             text-align: center;
             margin: 10px 0;
         }
-        
-        /* ==================== ТЕМНАЯ ТЕМА ==================== */
-        body.dark-theme {
-            --primary: #2c3e50;
-            --secondary: #27ae60;
-            --accent: #e74c3c;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --card-bg: rgba(44, 62, 80, 0.9);
-            --card-border: rgba(39, 174, 96, 0.3);
-            --bg-color: #1a252f;
-            --text-color: #ecf0f1;
-        }
-        
-        body.dark-theme {
-            background: linear-gradient(135deg, #1a252f, #2c3e50);
-            color: var(--light);
-        }
-        
-        body.dark-theme .game-board,
-        body.dark-theme .game-info-panel,
-        body.dark-theme .room-section,
-        body.dark-theme .auth-section,
-        body.dark-theme .game-info {
-            background: var(--card-bg);
-            border-color: var(--card-border);
-        }
-        
-        body.dark-theme .game-btn {
-            background: var(--secondary);
-            color: white;
-        }
-        
-        body.dark-theme .game-btn:hover {
-            background: #219653;
-        }
-        
-        body.dark-theme .auth-tab.active {
-            border-bottom-color: var(--secondary);
-            color: var(--secondary);
-        }
-        
-        body.dark-theme input {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        body.dark-theme input:focus {
-            border-color: var(--secondary);
-            box-shadow: 0 0 10px rgba(39, 174, 96, 0.5);
-        }
-        
-        body.dark-theme .chat-message {
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        body.dark-theme .city-card {
-            background: rgba(52, 152, 219, 0.15);
-        }
-        
-        body.dark-theme .player-item {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        body.dark-theme .building-item {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        body.dark-theme .log-entry {
-            border-bottom-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        body.dark-theme .difficulty-btn.easy {
-            background: rgba(39, 174, 96, 0.3);
-        }
-        
-        body.dark-theme .difficulty-btn.medium {
-            background: rgba(243, 156, 18, 0.3);
-        }
-        
-        body.dark-theme .difficulty-btn.hard {
-            background: rgba(231, 76, 60, 0.3);
-        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Новогодняя шляпа -->
+        <div class="new-year-hat" id="newYearHat">🎄</div>
+        
         <!-- Шапка -->
         <header>
-            <div class="new-year-hat" id="newYearHat">🎅</div>
             <h1>Юный эколог</h1>
             <div class="subtitle">Многопользовательская экологическая игра</div>
         </header>
@@ -2813,14 +2847,8 @@
                     <div class="chat-input">
                         <input type="text" id="chatInput" placeholder="Введите сообщение..." maxlength="200">
                         <div class="emoji-picker-container">
-                            <button type="button" class="emoji-picker-btn" id="emojiPickerBtn">😀</button>
-                            <div class="emoji-picker" id="emojiPicker">
-                                <div class="recent-emojis" id="recentEmojis">
-                                    <h4>Недавние:</h4>
-                                    <div id="recentEmojisContainer"></div>
-                                </div>
-                                <!-- Эмодзи будут добавлены через JS -->
-                            </div>
+                            <div class="emoji-picker-btn" id="emojiPickerBtn">😀</div>
+                            <div class="emoji-picker" id="emojiPicker"></div>
                         </div>
                         <button class="game-btn small" id="sendMessageBtn">Отправить</button>
                     </div>
@@ -3114,15 +3142,14 @@
             👥
             <div class="tooltip">Пригласить друзей</div>
         </button>
-        <button class="quick-action-btn" id="quickThemeBtn" title="Новогодний дизайн">
-            🎄
-            <div class="tooltip">Новогодний дизайн</div>
-        </button>
-        <button class="quick-action-btn" id="quickDarkThemeBtn" title="Темная тема">
-            🌙
-            <div class="tooltip">Темная тема</div>
+        <button class="quick-action-btn" id="quickThemeBtn" title="Переключить тему">
+            🎨
+            <div class="tooltip">Переключить тему</div>
         </button>
     </div>
+
+    <!-- Контейнер для снежинок -->
+    <div class="snowflakes" id="snowflakesContainer"></div>
 
     <!-- Подключение Socket.IO, mapData.js и игровая логика -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
@@ -3148,446 +3175,8 @@
         let isConnected = false;
         let currentRoomId = null;
         let hasCurrentTask = false;
-        
-        // ==================== НАСТРОЙКИ ПОЛЬЗОВАТЕЛЯ ====================
-        let userSettings = {
-            newYearDesign: true, // Новогодний дизайн включен по умолчанию
-            darkTheme: false, // Темная тема выключена по умолчанию
-            recentEmojis: [] // Недавно использованные эмодзи
-        };
-        
-        // Загружаем настройки из localStorage
-        function loadUserSettings() {
-            const savedSettings = localStorage.getItem('ecoGameSettings');
-            if (savedSettings) {
-                try {
-                    const parsed = JSON.parse(savedSettings);
-                    userSettings = {...userSettings, ...parsed};
-                } catch(e) {
-                    console.log('Не удалось загрузить настройки, используются значения по умолчанию');
-                }
-            }
-            applyUserSettings();
-        }
-        
-        // Сохраняем настройки в localStorage
-        function saveUserSettings() {
-            localStorage.setItem('ecoGameSettings', JSON.stringify(userSettings));
-        }
-        
-        // Применяем настройки пользователя
-        function applyUserSettings() {
-            // Применяем новогодний дизайн
-            if (userSettings.newYearDesign) {
-                enableNewYearDesign();
-            } else {
-                disableNewYearDesign();
-            }
-            
-            // Применяем темную тему
-            if (userSettings.darkTheme) {
-                document.body.classList.add('dark-theme');
-            } else {
-                document.body.classList.remove('dark-theme');
-            }
-            
-            // Загружаем недавние эмодзи
-            if (userSettings.recentEmojis && userSettings.recentEmojis.length > 0) {
-                updateRecentEmojis();
-            }
-        }
-        
-        // ==================== НОВОГОДНИЙ ДИЗАЙН ====================
-        let snowflakesInterval = null;
-        
-        function enableNewYearDesign() {
-            // Добавляем новогоднюю шапку
-            document.getElementById('newYearHat').style.display = 'block';
-            
-            // Создаем снежинки
-            createSnowflakes();
-            
-            // Запускаем анимацию снежинок
-            if (snowflakesInterval) clearInterval(snowflakesInterval);
-            snowflakesInterval = setInterval(createSnowflake, 500);
-            
-            // Добавляем новогоднее оформление к элементам
-            document.querySelectorAll('.game-btn').forEach(btn => {
-                if (!btn.classList.contains('red')) {
-                    btn.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
-                    btn.style.boxShadow = '0 4px 0 #e74c3c';
-                }
-            });
-            
-            // Добавляем новогодний стиль к заголовку
-            const title = document.querySelector('h1');
-            if (title) {
-                title.style.background = 'linear-gradient(to right, #e74c3c, #f39c12)';
-                title.style.webkitBackgroundClip = 'text';
-                title.style.webkitTextFillColor = 'transparent';
-            }
-            
-            userSettings.newYearDesign = true;
-            saveUserSettings();
-        }
-        
-        function disableNewYearDesign() {
-            // Убираем новогоднюю шапку
-            document.getElementById('newYearHat').style.display = 'none';
-            
-            // Убираем снежинки
-            document.querySelectorAll('.snowflake').forEach(snowflake => {
-                snowflake.remove();
-            });
-            
-            // Останавливаем создание новых снежинок
-            if (snowflakesInterval) {
-                clearInterval(snowflakesInterval);
-                snowflakesInterval = null;
-            }
-            
-            // Восстанавливаем оригинальные стили кнопок
-            document.querySelectorAll('.game-btn').forEach(btn => {
-                if (!btn.classList.contains('red')) {
-                    btn.style.background = '';
-                    btn.style.boxShadow = '';
-                }
-            });
-            
-            // Восстанавливаем оригинальный стиль заголовка
-            const title = document.querySelector('h1');
-            if (title) {
-                title.style.background = 'linear-gradient(to right, #4ecdc4, #ff6b6b)';
-                title.style.webkitBackgroundClip = 'text';
-                title.style.webkitTextFillColor = 'transparent';
-            }
-            
-            userSettings.newYearDesign = false;
-            saveUserSettings();
-        }
-        
-        function createSnowflakes() {
-            // Очищаем существующие снежинки
-            document.querySelectorAll('.snowflake').forEach(s => s.remove());
-            
-            // Создаем начальные снежинки
-            for (let i = 0; i < 15; i++) {
-                setTimeout(() => createSnowflake(), i * 100);
-            }
-        }
-        
-        function createSnowflake() {
-            const snowflake = document.createElement('div');
-            snowflake.className = 'snowflake';
-            snowflake.innerHTML = '❄️';
-            
-            // Случайная позиция
-            const startX = Math.random() * window.innerWidth;
-            const size = Math.random() * 20 + 10;
-            const speed = Math.random() * 2 + 1;
-            const opacity = Math.random() * 0.5 + 0.3;
-            
-            snowflake.style.left = `${startX}px`;
-            snowflake.style.fontSize = `${size}px`;
-            snowflake.style.opacity = opacity;
-            
-            // Случайная анимация
-            const fallDuration = Math.random() * 10 + 10;
-            const swayAmount = Math.random() * 100 + 50;
-            
-            snowflake.style.animation = `
-                fall ${fallDuration}s linear infinite,
-                sway ${Math.random() * 3 + 2}s ease-in-out infinite alternate
-            `;
-            
-            document.body.appendChild(snowflake);
-            
-            // Удаляем снежинку после завершения анимации
-            setTimeout(() => {
-                if (snowflake.parentNode) {
-                    snowflake.remove();
-                }
-            }, fallDuration * 1000);
-        }
-        
-        // Добавляем CSS для анимации снежинок
-        const snowflakeStyles = document.createElement('style');
-        snowflakeStyles.textContent = `
-            @keyframes fall {
-                from {
-                    transform: translateY(-20px) rotate(0deg);
-                }
-                to {
-                    transform: translateY(100vh) rotate(360deg);
-                }
-            }
-            
-            @keyframes sway {
-                from {
-                    transform: translateX(0);
-                }
-                to {
-                    transform: translateX(50px);
-                }
-            }
-        `;
-        document.head.appendChild(snowflakeStyles);
-        
-        // ==================== ТЕМНАЯ ТЕМА ====================
-        function toggleDarkTheme() {
-            if (userSettings.darkTheme) {
-                document.body.classList.remove('dark-theme');
-                userSettings.darkTheme = false;
-            } else {
-                document.body.classList.add('dark-theme');
-                userSettings.darkTheme = true;
-            }
-            saveUserSettings();
-        }
-        
-        // ==================== ЭМОДЗИ В ЧАТЕ ====================
-        const emojiList = [
-            '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
-            '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
-            '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸',
-            '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
-            '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡',
-            '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓',
-            '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄',
-            '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵',
-            '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠',
-            '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽',
-            '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀',
-            '😿', '😾', '🤲', '👐', '🙌', '👏', '🤝', '👍', '👎', '👊',
-            '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘', '👌', '👈', '👉',
-            '👆', '👇', '☝️', '✋', '🤚', '🖐', '🖖', '👋', '🤙', '💪',
-            '🦵', '🦶', '👂', '👃', '🧠', '🦷', '🦴', '👀', '👁', '👅',
-            '👄', '💋', '🩸', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤',
-            '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '💕', '💞', '💓', '💗', '💖',
-            '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉', '☸️', '✡️', '🔯',
-            '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌',
-            '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑',
-            '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️',
-            '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️',
-            '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛',
-            '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵',
-            '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️',
-            '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️',
-            '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿',
-            '🅿️', '🈳', '🈂️', '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼',
-            '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠',
-            '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣',
-            '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣',
-            '⏏️', '▶️', '⏸', '⏯', '⏹', '⏺', '⏭', '⏮', '⏩', '⏪',
-            '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️',
-            '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀',
-            '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️',
-            '♾', '💲', '💱', '™', '©', '®', '〰️', '➰', '➿', '🔚',
-            '🔙', '🔛', '🔝', '🔜', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡',
-            '🟢', '🔵', '🟣', '🟤', '⚫', '⚪', '🟥', '🟧', '🟨', '🟩',
-            '🟦', '🟪', '🟫', '⬛', '⬜', '◼️', '◻️', '◾', '◽', '▪️',
-            '▫️', '🔶', '🔷', '🔸', '🔹', '🔺', '🔻', '💠', '🔘', '🔳',
-            '🔲', '🌍', '🌎', '🌏', '🌐', '🗺️', '🗾', '🧭', '🏔️', '⛰️',
-            '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🏟️', '🏛️', '🏗️',
-            '🧱', '🪨', '🪵', '🛖', '🏘️', '🏚️', '🏠', '🏡', '🏢', '🏣',
-            '🏤', '🏥', '🏦', '🏨', '🏩', '🏪', '🏫', '🏬', '🏭', '🏯',
-            '🏰', '💒', '🗼', '🗽', '⛪', '🕌', '🛕', '🕍', '⛩️', '🕋',
-            '⛲', '⛺', '🌁', '🌃', '🏙️', '🌄', '🌅', '🌆', '🌇', '🌉',
-            '♨️', '🎠', '🎡', '🎢', '💈', '🎪', '🚂', '🚃', '🚄', '🚅',
-            '🚆', '🚇', '🚈', '🚉', '🚊', '🚝', '🚞', '🚋', '🚌', '🚍',
-            '🚎', '🚐', '🚑', '🚒', '🚓', '🚔', '🚕', '🚖', '🚗', '🚘',
-            '🚙', '🚚', '🚛', '🚜', '🏎️', '🏍️', '🛵', '🦽', '🦼', '🛴',
-            '🚲', '🛹', '🛼', '🚏', '🛣️', '🛤️', '🛢️', '⛽', '🚨', '🚥',
-            '🚦', '🛑', '🚧', '⚓', '⛵', '🛶', '🚤', '🛳️', '⛴️', '🛥️',
-            '🚢', '✈️', '🛩️', '🛫', '🛬', '🪂', '💺', '🚁', '🚟', '🚠',
-            '🚡', '🛰️', '🚀', '🛸', '🎆', '🎇', '🧨', '✨', '🎈', '🎉',
-            '🎊', '🎋', '🎍', '🎎', '🎏', '🎐', '🎑', '🧧', '🎀', '🎁',
-            '🎫', '🏆', '🏅', '🥇', '🥈', '🥉', '⚽', '⚾', '🥎', '🏀',
-            '🏐', '🏈', '🏉', '🎾', '🥏', '🎳', '🏏', '🏑', '🏒', '🥍',
-            '🏓', '🏸', '🥊', '🥋', '🥅', '⛳', '⛸️', '🎣', '🤿', '🎽',
-            '🎿', '🛷', '🥌', '🎯', '🪀', '🪁', '🔫', '🎱', '🔮', '🪄',
-            '🎮', '🕹️', '🎰', '🎲', '🧩', '♟️', '🎭', '🖼️', '🎨', '🧵',
-            '🪡', '🧶', '🪢', '👓', '🕶️', '🥽', '🥼', '🦺', '👔', '👕',
-            '👖', '🧣', '🧤', '🧥', '🧦', '👗', '👘', '🥻', '🩱', '🩲',
-            '🩳', '👙', '👚', '👛', '👜', '👝', '🛍️', '🎒', '👞', '👟',
-            '🥾', '🥿', '👠', '👡', '🩰', '👢', '👑', '👒', '🎩', '🎓',
-            '🪖', '⛑️', '💄', '💍', '💎', '🐵', '🐒', '🦍', '🦧', '🐶',
-            '🐕', '🦮', '🐕‍🦺', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛',
-            '🦁', '🐯', '🐅', '🐆', '🐴', '🐎', '🦄', '🦓', '🦌', '🦬',
-            '🐮', '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑',
-            '🐐', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🐭',
-            '🐁', '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫', '🦔', '🦇', '🐻',
-            '🐻‍❄️', '🐨', '🐼', '🦥', '🦦', '🦨', '🦘', '🦡', '🐾', '🦃',
-            '🐔', '🐓', '🐣', '🐤', '🐥', '🐦', '🐧', '🕊️', '🦅', '🦆',
-            '🦢', '🦉', '🦤', '🪶', '🦩', '🦚', '🦜', '🐸', '🐊', '🐢',
-            '🦎', '🐍', '🐲', '🐉', '🦕', '🦖', '🐳', '🐋', '🐬', '🦭',
-            '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🐌', '🦋', '🐛', '🐜',
-            '🐝', '🪲', '🐞', '🦗', '🪳', '🕷️', '🕸️', '🦂', '🦟', '🪰',
-            '🪱', '🦠', '💐', '🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻',
-            '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿',
-            '☘️', '🍀', '🍁', '🍂', '🍃', '🍇', '🍈', '🍉', '🍊', '🍋',
-            '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🫐',
-            '🥝', '🍅', '🫒', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️',
-            '🫑', '🥒', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞',
-            '🥐', '🥖', '🫓', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗',
-            '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🫔',
-            '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🫕', '🥣', '🥗', '🍿',
-            '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝',
-            '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡',
-            '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪',
-            '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼',
-            '🥛', '☕', '🫖', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺',
-            '🍻', '🥂', '🥃', '🥤', '🧋', '🧃', '🧉', '🧊', '🥢', '🍽️',
-            '🍴', '🥄', '🔪', '🏺', '🌑', '🌒', '🌓', '🌔', '🌕', '🌖',
-            '🌗', '🌘', '🌙', '🌚', '🌛', '🌜', '🌡️', '☀️', '🌝', '🌞',
-            '🪐', '⭐', '🌟', '🌠', '🌌', '☁️', '⛅', '⛈️', '🌤️', '🌥️',
-            '🌦️', '🌧️', '🌨️', '🌩️', '🌪️', '🌫️', '🌬️', '🌀', '🌈', '🌂',
-            '☂️', '☔', '⛱️', '⚡', '❄️', '☃️', '⛄', '☄️', '🔥', '💧',
-            '🌊', '🎃', '🎄', '🎆', '🎇', '🧨', '✨', '🎈', '🎉', '🎊',
-            '🎋', '🎍', '🎎', '🎏', '🎐', '🎑', '🧧', '🎀', '🎁', '🎗️',
-            '🎟️', '🎫', '🎖️', '🏆', '🏅', '🥇', '🥈', '🥉', '⚽', '⚾',
-            '🥎', '🏀', '🏐', '🏈', '🏉', '🎾', '🥏', '🎳', '🏏', '🏑',
-            '🏒', '🥍', '🏓', '🏸', '🥊', '🥋', '🥅', '⛳', '⛸️', '🎣',
-            '🤿', '🎽', '🎿', '🛷', '🥌', '🎯', '🪀', '🪁', '🔫', '🎱',
-            '🔮', '🪄', '🎮', '🕹️', '🎰', '🎲', '🧩', '🧸', '🪅', '🪆',
-            '♠️', '♥️', '♦️', '♣️', '🃏', '🀄', '🎴', '🎭', '🖼️', '🎨',
-            '🧵', '🪡', '🧶', '🪢', '👓', '🕶️', '🥽', '🥼', '🦺', '👔',
-            '👕', '👖', '🧣', '🧤', '🧥', '🧦', '👗', '👘', '🥻', '🩱',
-            '🩲', '🩳', '👙', '👚', '👛', '👜', '👝', '🛍️', '🎒', '👞',
-            '👟', '🥾', '🥿', '👠', '👡', '🩰', '👢', '👑', '👒', '🎩',
-            '🎓', '🪖', '⛑️', '💄', '💍', '💎', '🔇', '🔈', '🔉', '🔊',
-            '📢', '📣', '📯', '🔔', '🔕', '🎼', '🎵', '🎶', '🎙️', '🎚️',
-            '🎛️', '🎤', '🎧', '📻', '🎷', '🎸', '🎹', '🎺', '🎻', '🪕',
-            '🥁', '🪘', '📱', '📲', '☎️', '📞', '📟', '📠', '🔋', '🔌',
-            '💻', '🖥️', '🖨️', '⌨️', '🖱️', '🖲️', '💽', '💾', '💿', '📀',
-            '🧮', '🎥', '🎞️', '📽️', '🎬', '📺', '📷', '📸', '📹', '📼',
-            '🔍', '🔎', '🕯️', '💡', '🔦', '🏮', '🪔', '📔', '📕', '📖',
-            '📗', '📘', '📙', '📚', '📓', '📒', '📃', '📜', '📄', '📰',
-            '🗞️', '📑', '🔖', '🏷️', '💰', '🪙', '💴', '💵', '💶', '💷',
-            '💸', '💳', '🧾', '💹', '✉️', '📧', '📨', '📩', '📤', '📥',
-            '📦', '📫', '📪', '📬', '📭', '📮', '🗳️', '✏️', '✒️', '🖋️',
-            '🖊️', '🖌️', '🖍️', '📝', '💼', '📁', '📂', '🗂️', '📅', '📆',
-            '🗒️', '🗓️', '📇', '📈', '📉', '📊', '📋', '📌', '📍', '📎',
-            '🖇️', '📏', '📐', '✂️', '🗃️', '🗄️', '🗑️', '🔒', '🔓', '🔏',
-            '🔐', '🔑', '🗝️', '🔨', '🪓', '⛏️', '⚒️', '🛠️', '🗡️', '⚔️',
-            '🔫', '🪃', '🏹', '🛡️', '🪚', '🔧', '🪛', '🔩', '⚙️', '🗜️',
-            '⚖️', '🦯', '🔗', '⛓️', '🪝', '🧰', '🧲', '🪜', '⚗️', '🧪',
-            '🧫', '🧬', '🔬', '🔭', '📡', '💉', '🩸', '💊', '🩹', '🩺',
-            '🚪', '🛏️', '🛋️', '🪑', '🚽', '🪠', '🚿', '🛁', '🪤', '🪒',
-            '🧴', '🧷', '🧹', '🧺', '🧻', '🪣', '🧼', '🪥', '🧽', '🧯',
-            '🛒', '🚬', '⚰️', '🪦', '⚱️', '🧿', '🪬', '💈', '🪧', '🎈',
-            '🎉', '🎊', '🎎', '🎏', '🎐', '🎀', '🎁', '🧧', '🎫', '🏮',
-            '💷', '💶', '💴', '💵', '🪙', '💰', '💳', '💎', '✉️', '📧',
-            '📨', '📩', '📤', '📥', '📦', '📫', '📪', '📬', '📭', '📮',
-            '🗳️', '✏️', '✒️', '🖋️', '🖊️', '🖌️', '🖍️', '📝', '💼',
-            '📁', '📂', '🗂️', '📅', '📆', '📇', '📈', '📉', '📊', '📋',
-            '📌', '📍', '📎', '🖇️', '📏', '📐', '✂️', '🗃️', '🗄️', '🗑️',
-            '🔒', '🔓', '🔏', '🔐', '🔑', '🗝️', '🔨', '🪓', '⛏️', '⚒️',
-            '🛠️', '🗡️', '⚔️', '🔫', '🪃', '🏹', '🛡️', '🪚', '🔧', '🪛',
-            '🔩', '⚙️', '🗜️', '⚖️', '🦯', '🔗', '⛓️', '🪝', '🧰', '🧲',
-            '🪜', '⚗️', '🧪', '🧫', '🧬', '🔬', '🔭', '📡', '💉', '🩸',
-            '💊', '🩹', '🩺', '🚪', '🛏️', '🛋️', '🪑', '🚽', '🪠', '🚿',
-            '🛁', '🪤', '🪒', '🧴', '🧷', '🧹', '🧺', '🧻', '🪣', '🧼',
-            '🪥', '🧽', '🧯', '🛒', '🚬', '⚰️', '🪦', '⚱️', '🧿', '🪬'
-        ];
-        
-        function initializeEmojiPicker() {
-            const emojiPicker = document.getElementById('emojiPicker');
-            const recentEmojisContainer = document.getElementById('recentEmojisContainer');
-            
-            // Загружаем недавние эмодзи
-            updateRecentEmojis();
-            
-            // Добавляем все эмодзи в пикер
-            emojiList.forEach(emoji => {
-                const emojiOption = document.createElement('div');
-                emojiOption.className = 'emoji-option';
-                emojiOption.textContent = emoji;
-                emojiOption.title = emoji;
-                emojiOption.addEventListener('click', () => {
-                    insertEmojiIntoChat(emoji);
-                    addToRecentEmojis(emoji);
-                    hideEmojiPicker();
-                });
-                emojiPicker.appendChild(emojiOption);
-            });
-            
-            // Обработчик для кнопки открытия пикера
-            document.getElementById('emojiPickerBtn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                emojiPicker.classList.toggle('active');
-            });
-            
-            // Закрытие пикера при клике вне его
-            document.addEventListener('click', (e) => {
-                if (!emojiPicker.contains(e.target) && e.target.id !== 'emojiPickerBtn') {
-                    hideEmojiPicker();
-                }
-            });
-        }
-        
-        function hideEmojiPicker() {
-            document.getElementById('emojiPicker').classList.remove('active');
-        }
-        
-        function insertEmojiIntoChat(emoji) {
-            const chatInput = document.getElementById('chatInput');
-            chatInput.value += emoji;
-            chatInput.focus();
-        }
-        
-        function addToRecentEmojis(emoji) {
-            // Добавляем эмодзи в начало массива
-            userSettings.recentEmojis = userSettings.recentEmojis || [];
-            userSettings.recentEmojis = userSettings.recentEmojis.filter(e => e !== emoji);
-            userSettings.recentEmojis.unshift(emoji);
-            
-            // Ограничиваем до 12 недавних эмодзи
-            if (userSettings.recentEmojis.length > 12) {
-                userSettings.recentEmojis = userSettings.recentEmojis.slice(0, 12);
-            }
-            
-            // Сохраняем и обновляем
-            saveUserSettings();
-            updateRecentEmojis();
-        }
-        
-        function updateRecentEmojis() {
-            const recentEmojisContainer = document.getElementById('recentEmojisContainer');
-            if (!recentEmojisContainer) return;
-            
-            recentEmojisContainer.innerHTML = '';
-            
-            if (!userSettings.recentEmojis || userSettings.recentEmojis.length === 0) {
-                // Показываем популярные эмодзи, если нет недавних
-                const popularEmojis = ['😀', '😂', '❤️', '👍', '🎮', '🎉', '🌍', '♻️', '🌳', '💧'];
-                popularEmojis.forEach(emoji => {
-                    const emojiOption = document.createElement('div');
-                    emojiOption.className = 'emoji-option';
-                    emojiOption.textContent = emoji;
-                    emojiOption.title = emoji;
-                    emojiOption.addEventListener('click', () => {
-                        insertEmojiIntoChat(emoji);
-                        addToRecentEmojis(emoji);
-                        hideEmojiPicker();
-                    });
-                    recentEmojisContainer.appendChild(emojiOption);
-                });
-            } else {
-                userSettings.recentEmojis.forEach(emoji => {
-                    const emojiOption = document.createElement('div');
-                    emojiOption.className = 'emoji-option';
-                    emojiOption.textContent = emoji;
-                    emojiOption.title = emoji;
-                    emojiOption.addEventListener('click', () => {
-                        insertEmojiIntoChat(emoji);
-                        addToRecentEmojis(emoji);
-                        hideEmojiPicker();
-                    });
-                    recentEmojisContainer.appendChild(emojiOption);
-                });
-            }
-        }
+        let isNewYearTheme = true; // По умолчанию включен
+        let isDarkGreenTheme = true; // По умолчанию включен
         
         // ==================== ЭЛЕМЕНТЫ DOM ====================
         const elements = {
@@ -3629,8 +3218,6 @@
             chatMessages: document.getElementById('chatMessages'),
             chatInput: document.getElementById('chatInput'),
             sendMessageBtn: document.getElementById('sendMessageBtn'),
-            emojiPickerBtn: document.getElementById('emojiPickerBtn'),
-            emojiPicker: document.getElementById('emojiPicker'),
             easyBtn: document.getElementById('easyBtn'),
             mediumBtn: document.getElementById('mediumBtn'),
             hardBtn: document.getElementById('hardBtn'),
@@ -3666,7 +3253,10 @@
             inviteRoomNumber: document.getElementById('inviteRoomNumber'),
             copyInviteBtn: document.getElementById('copyInviteBtn'),
             closeInviteBtn: document.getElementById('closeInviteBtn'),
-            newYearHat: document.getElementById('newYearHat')
+            emojiPickerBtn: document.getElementById('emojiPickerBtn'),
+            emojiPicker: document.getElementById('emojiPicker'),
+            newYearHat: document.getElementById('newYearHat'),
+            snowflakesContainer: document.getElementById('snowflakesContainer')
         };
         
         // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -3678,7 +3268,6 @@
         const quickTasksBtn = document.getElementById('quickTasksBtn');
         const quickInviteBtn = document.getElementById('quickInviteBtn');
         const quickThemeBtn = document.getElementById('quickThemeBtn');
-        const quickDarkThemeBtn = document.getElementById('quickDarkThemeBtn');
         
         // ==================== ИГРОВЫЕ ДАННЫЕ ====================
         const gameData = {
@@ -4040,8 +3629,12 @@
                 canFlip: true
             },
             quizSelectedAnswer: null,
-            // Трекер для отслеживания уже показанных городов
-            shownCities: []
+            // Новые поля для обработки уведомлений
+            visitedCities: [],
+            firstCityVisit: true,
+            // Для чата
+            messageSending: false,
+            recentEmojis: []
         };
         
         // ==================== ФУНКЦИИ ПОДКЛЮЧЕНИЯ ====================
@@ -4060,6 +3653,290 @@
                 }
             }
             console.log(`Connection: ${status} - ${text}`);
+        }
+        
+        // ==================== НОВОГОДНИЙ ДИЗАЙН И ТЕМЫ ====================
+        function initNewYearDesign() {
+            // Создаем снежинки
+            createSnowflakes();
+            
+            // Показываем новогоднюю шляпу
+            if (isNewYearTheme) {
+                elements.newYearHat.style.display = 'block';
+                document.body.classList.add('new-year-theme');
+            } else {
+                elements.newYearHat.style.display = 'none';
+                document.body.classList.remove('new-year-theme');
+            }
+            
+            // Применяем темно-зеленую тему
+            if (isDarkGreenTheme) {
+                document.body.classList.add('dark-green-theme');
+            } else {
+                document.body.classList.remove('dark-green-theme');
+            }
+        }
+        
+        function createSnowflakes() {
+            if (!isNewYearTheme) {
+                elements.snowflakesContainer.innerHTML = '';
+                return;
+            }
+            
+            elements.snowflakesContainer.innerHTML = '';
+            
+            const snowflakeCount = 50;
+            const snowflakes = ['❄️', '❅', '❆', '★', '☆', '✴', '✳', '❇'];
+            
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                
+                // Случайный смайлик снежинки
+                const randomFlake = snowflakes[Math.floor(Math.random() * snowflakes.length)];
+                snowflake.textContent = randomFlake;
+                
+                // Случайные параметры
+                const left = Math.random() * 100;
+                const duration = 10 + Math.random() * 20;
+                const delay = Math.random() * 5;
+                const size = 0.5 + Math.random() * 1;
+                const opacity = 0.3 + Math.random() * 0.7;
+                
+                // Применяем стили
+                snowflake.style.left = `${left}vw`;
+                snowflake.style.animationDuration = `${duration}s`;
+                snowflake.style.animationDelay = `${delay}s`;
+                snowflake.style.fontSize = `${size}rem`;
+                snowflake.style.opacity = opacity;
+                
+                elements.snowflakesContainer.appendChild(snowflake);
+            }
+        }
+        
+        function toggleTheme() {
+            isNewYearTheme = !isNewYearTheme;
+            isDarkGreenTheme = isNewYearTheme; // Связываем переключение тем
+            
+            // Сохраняем в локальное хранилище
+            localStorage.setItem('newYearTheme', isNewYearTheme);
+            localStorage.setItem('darkGreenTheme', isDarkGreenTheme);
+            
+            // Применяем изменения
+            initNewYearDesign();
+            
+            // Показываем уведомление
+            const themeName = isNewYearTheme ? 'новогоднюю' : 'стандартную';
+            showNotification(`Тема переключена на ${themeName}`, 'info');
+        }
+        
+        // ==================== СМАЙЛИКИ ДЛЯ ЧАТА ====================
+        const emojiList = [
+            '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+            '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+            '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+            '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+            '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
+            '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
+            '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯',
+            '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐',
+            '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈',
+            '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾',
+            '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿',
+            '😾', '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞',
+            '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍',
+            '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝',
+            '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂',
+            '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋',
+            '🩸', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎',
+            '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟',
+            '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️',
+            '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏',
+            '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴',
+            '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐',
+            '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑',
+            '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢',
+            '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕',
+            '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱',
+            '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐',
+            '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🈳', '🈂️',
+            '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼', '⚧', '🚻', '🚮',
+            '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗',
+            '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣',
+            '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️',
+            '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬',
+            '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️',
+            '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂',
+            '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '♾️', '💲',
+            '💱', '™️', '©️', '®️', '〰️', '➰', '➿', '🔚', '🔙', '🔛',
+            '🔝', '🔜', '✔️', '☑️', '🔘', '⚪', '⚫', '🔴', '🔵', '🔸',
+            '🔹', '🔶', '🔷', '🔺', '▪️', '▫️', '⬛', '⬜', '◼️', '◻️',
+            '◾', '◽', '🌍', '🌎', '🌏', '🌐', '🗺️', '🗾', '🧭', '🏔️',
+            '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🏟️', '🏛️',
+            '🏗️', '🧱', '🏘️', '🏚️', '🏠', '🏡', '🏢', '🏣', '🏤', '🏥',
+            '🏦', '🏨', '🏩', '🏪', '🏫', '🏬', '🏭', '🏯', '🏰', '💒',
+            '🗼', '🗽', '⛪', '🕌', '🛕', '🕍', '⛩️', '🕋', '⛲', '⛺',
+            '🌁', '🌃', '🏙️', '🌄', '🌅', '🌆', '🌇', '🌉', '♨️', '🎠',
+            '🎡', '🎢', '💈', '🎪', '🚂', '🚃', '🚄', '🚅', '🚆', '🚇',
+            '🚈', '🚉', '🚊', '🚝', '🚞', '🚋', '🚌', '🚍', '🚎', '🚐',
+            '🚑', '🚒', '🚓', '🚔', '🚕', '🚖', '🚗', '🚘', '🚙', '🚚',
+            '🚛', '🚜', '🏎️', '🏍️', '🛵', '🚲', '🛴', '🚏', '🛣️', '🛤️',
+            '⛽', '🚨', '🚥', '🚦', '🛑', '🚧', '⚓', '⛵', '🛶', '🚤',
+            '🛳️', '⛴️', '🛥️', '🚢', '✈️', '🛩️', '🛫', '🛬', '🪂', '💺',
+            '🚁', '🚟', '🚠', '🚡', '🛰️', '🚀', '🛸', '🎆', '🎇', '🎑',
+            '💴', '💵', '💶', '💷', '🗿', '🛂', '🛃', '🛄', '🛅', '🌱',
+            '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂',
+            '🍃', '🍄', '🌰', '🦀', '🦞', '🦐', '🦑', '🌍', '🌎', '🌏',
+            '🌐', '🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘', '🌙',
+            '🌚', '🌛', '🌜', '☀️', '🌝', '🌞', '⭐', '🌟', '🌠', '☁️',
+            '⛅', '⛈️', '🌤️', '🌥️', '🌦️', '🌧️', '🌨️', '🌩️', '🌪️', '🌫️',
+            '🌬️', '🌀', '🌈', '🌂', '☂️', '☔', '⛱️', '⚡', '❄️', '☃️',
+            '⛄', '☄️', '🔥', '💧', '🌊', '🎃', '🎄', '🎆', '🎇', '🧨',
+            '✨', '🎈', '🎉', '🎊', '🎋', '🎍', '🎎', '🎏', '🎐', '🎑',
+            '🧧', '🎀', '🎁', '🎗️', '🎟️', '🎫', '🎖️', '🏆', '🏅', '🥇',
+            '🥈', '🥉', '⚽', '⚾', '🥎', '🏀', '🏐', '🏈', '🏉', '🎾',
+            '🥏', '🎳', '🏏', '🏑', '🏒', '🥍', '🏓', '🏸', '🥊', '🥋',
+            '🥅', '⛳', '⛸️', '🎣', '🤿', '🎽', '🎿', '🛷', '🥌', '🎯',
+            '🪀', '🪁', '🎱', '🔮', '🧿', '🎮', '🕹️', '🎰', '🎲', '🧩',
+            '🧸', '♠️', '♥️', '♦️', '♣️', '♟️', '🃏', '🀄', '🎴', '🎭',
+            '🖼️', '🎨', '🧵', '🧶', '👓', '🕶️', '🥽', '🥼', '🦺', '👔',
+            '👕', '👖', '🧣', '🧤', '🧥', '🧦', '👗', '👘', '🥻', '🩱',
+            '🩲', '🩳', '👙', '👚', '👛', '👜', '👝', '🎒', '👞', '👟',
+            '🥾', '🥿', '👠', '👡', '🩰', '👢', '👑', '👒', '🎩', '🎓',
+            '🧢', '⛑️', '📿', '💄', '💍', '💎', '🐵', '🐒', '🦍', '🦧',
+            '🐶', '🐕', '🦮', '🐕‍🦺', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈',
+            '🦁', '🐯', '🐅', '🐆', '🐴', '🐎', '🦄', '🦓', '🦌', '🐮',
+            '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑', '🐐',
+            '🐪', '🐫', '🦙', '🦒', '🐘', '🦏', '🦛', '🐭', '🐁', '🐀',
+            '🐹', '🐰', '🐇', '🐿️', '🦔', '🦇', '🐻', '🐨', '🐼', '🦥',
+            '🦦', '🦨', '🦘', '🦡', '🐾', '🦃', '🐔', '🐓', '🐣', '🐤',
+            '🐥', '🐦', '🐧', '🕊️', '🦅', '🦆', '🦢', '🦉', '🦩', '🦚',
+            '🦜', '🐸', '🐊', '🐢', '🦎', '🐍', '🐲', '🐉', '🦕', '🦖',
+            '🐳', '🐋', '🐬', '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🐌',
+            '🦋', '🐛', '🐜', '🐝', '🐞', '🦗', '🕷️', '🕸️', '🦂', '🦟',
+            '🦠', '💐', '🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼',
+            '🌷', '🌱', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀',
+            '🍁', '🍂', '🍃', '🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍',
+            '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🥝', '🍅', '🥥',
+            '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🥒', '🥬', '🥦', '🧄',
+            '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🥨', '🥯', '🥞',
+            '🧇', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪',
+            '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥣', '🥗',
+            '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜',
+            '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠',
+            '🥡', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁',
+            '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🍵',
+            '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤',
+            '🧃', '🧉', '🧊', '🥢', '🍽️', '🍴', '🥄', '🔪', '🏺'
+        ];
+        
+        function initEmojiPicker() {
+            // Создаем недавние смайлики
+            const recentEmojis = getRecentEmojis();
+            
+            // Очищаем пикер
+            elements.emojiPicker.innerHTML = '';
+            
+            // Добавляем заголовок для недавних
+            if (recentEmojis.length > 0) {
+                const recentTitle = document.createElement('div');
+                recentTitle.className = 'emoji-recent-title';
+                recentTitle.textContent = 'Недавние:';
+                elements.emojiPicker.appendChild(recentTitle);
+                
+                // Добавляем недавние смайлики
+                recentEmojis.forEach(emoji => {
+                    const emojiItem = document.createElement('div');
+                    emojiItem.className = 'emoji-item';
+                    emojiItem.textContent = emoji;
+                    emojiItem.addEventListener('click', () => {
+                        insertEmoji(emoji);
+                        addToRecentEmojis(emoji);
+                    });
+                    elements.emojiPicker.appendChild(emojiItem);
+                });
+                
+                // Добавляем разделитель
+                const separator = document.createElement('div');
+                separator.className = 'emoji-recent-title';
+                separator.textContent = 'Все смайлики:';
+                separator.style.marginTop = '10px';
+                elements.emojiPicker.appendChild(separator);
+            }
+            
+            // Добавляем все смайлики (ограничиваем количество для производительности)
+            const emojisToShow = emojiList.slice(0, 100); // Показываем первые 100 смайликов
+            
+            emojisToShow.forEach(emoji => {
+                const emojiItem = document.createElement('div');
+                emojiItem.className = 'emoji-item';
+                emojiItem.textContent = emoji;
+                emojiItem.addEventListener('click', () => {
+                    insertEmoji(emoji);
+                    addToRecentEmojis(emoji);
+                });
+                elements.emojiPicker.appendChild(emojiItem);
+            });
+            
+            // Обработчик для кнопки открытия пикера
+            elements.emojiPickerBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                elements.emojiPicker.classList.toggle('show');
+            });
+            
+            // Закрытие пикера при клике вне его
+            document.addEventListener('click', function(e) {
+                if (!elements.emojiPicker.contains(e.target) && e.target !== elements.emojiPickerBtn) {
+                    elements.emojiPicker.classList.remove('show');
+                }
+            });
+        }
+        
+        function insertEmoji(emoji) {
+            const chatInput = elements.chatInput;
+            const cursorPos = chatInput.selectionStart;
+            const textBefore = chatInput.value.substring(0, cursorPos);
+            const textAfter = chatInput.value.substring(cursorPos);
+            
+            chatInput.value = textBefore + emoji + textAfter;
+            chatInput.focus();
+            chatInput.selectionStart = chatInput.selectionEnd = cursorPos + emoji.length;
+            
+            // Закрываем пикер
+            elements.emojiPicker.classList.remove('show');
+        }
+        
+        function getRecentEmojis() {
+            const saved = localStorage.getItem('recentEmojis');
+            if (saved) {
+                try {
+                    return JSON.parse(saved).slice(0, 12); // Максимум 12 недавних
+                } catch (e) {
+                    return [];
+                }
+            }
+            return [];
+        }
+        
+        function addToRecentEmojis(emoji) {
+            let recent = getRecentEmojis();
+            
+            // Удаляем эмодзи если он уже есть
+            recent = recent.filter(e => e !== emoji);
+            
+            // Добавляем в начало
+            recent.unshift(emoji);
+            
+            // Сохраняем максимум 12
+            recent = recent.slice(0, 12);
+            
+            // Сохраняем в локальное хранилище
+            localStorage.setItem('recentEmojis', JSON.stringify(recent));
+            
+            // Обновляем пикер
+            setTimeout(() => {
+                initEmojiPicker();
+            }, 100);
         }
         
         // ==================== СЛУШАТЕЛИ СОБЫТИЙ SOCKET.IO ====================
@@ -4108,6 +3985,7 @@
             gameState.turnOrder = playerData.turnOrder || [];
             gameState.isMyTurn = playerData.isMyTurn || false;
             gameState.hasUnfinishedTask = playerData.hasUnfinishedTask || false;
+            gameState.firstCityVisit = true; // Сбрасываем флаг первого посещения города
             
             // Загружаем сохраненный прогресс игрока
             if (playerData.playerProgress) {
@@ -4133,9 +4011,6 @@
                 hasCurrentTask = true;
                 elements.rollDiceBtn.disabled = true;
             }
-            
-            // НЕ показываем модальное окно Твери при входе в комнату
-            // Оно будет показано только при первом попадании в город
         });
         
         socket.on('room-error', (message) => {
@@ -4413,6 +4288,7 @@
                 elements.notification.classList.add('error');
             } else {
                 elements.notification.style.background = 'var(--secondary)';
+                elements.notification.classList.add('info');
             }
             
             elements.notification.classList.add('show');
@@ -4463,16 +4339,24 @@
             updateDifficultyButtons();
             updateLevelProgress();
             
+            // Инициализируем новогодний дизайн
+            initNewYearDesign();
+            
+            // Инициализируем смайлики для чата
+            initEmojiPicker();
+            
             initializeQuickActions();
-            initializeEmojiPicker();
             
             addLogEntry(`🎮 Добро пожаловать в игре, ${playerData.name}!`);
             
             // Обновляем состояние кнопки броска кубика
             updateRollDiceButtonState();
             
-            // НЕ показываем модальное окно Твери при входе в комнату
-            // Оно будет показано только при первом попадании в город
+            // НЕ показываем информацию о городе сразу - только при первом посещении
+            // Вместо этого показываем общее приветствие
+            setTimeout(() => {
+                showNotification(`Добро пожаловать в игру, ${playerData.name}! Бросьте кубик, чтобы начать.`, 'info');
+            }, 1000);
             
             socket.emit('get_room_state');
             
@@ -4519,7 +4403,10 @@
                     canFlip: true
                 },
                 quizSelectedAnswer: null,
-                shownCities: []
+                visitedCities: [],
+                firstCityVisit: true,
+                messageSending: false,
+                recentEmojis: []
             };
             
             hasCurrentTask = false;
@@ -4570,25 +4457,19 @@
             }
         }
         
-        // Флаг для предотвращения двойной отправки сообщений
-        let isSendingMessage = false;
-        
         function addChatMessage(sender, message) {
-            // Проверяем, не было ли это сообщение уже добавлено
-            const lastMessage = elements.chatMessages.lastElementChild;
-            if (lastMessage) {
-                const lastSender = lastMessage.querySelector('.chat-sender');
-                const lastText = lastMessage.querySelector('.chat-text');
-                if (lastSender && lastText && 
-                    lastSender.textContent.trim() === `${sender}:` && 
-                    lastText.textContent.trim() === message.trim()) {
-                    return; // Сообщение уже есть, не добавляем повторно
-                }
-            }
+            // Заменяем эмодзи на HTML-разметку для лучшего отображения
+            const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/gu;
+            let formattedMessage = message;
+            
+            // Заменяем эмодзи на span с классом
+            formattedMessage = formattedMessage.replace(emojiRegex, (match) => {
+                return `<span class="chat-emojis">${match}</span>`;
+            });
             
             const messageElement = document.createElement('div');
             messageElement.className = 'chat-message';
-            messageElement.innerHTML = `<span class="chat-sender">${sender}:</span> <span class="chat-text">${message}</span>`;
+            messageElement.innerHTML = `<span class="chat-sender">${sender}:</span> <span class="chat-text">${formattedMessage}</span>`;
             elements.chatMessages.appendChild(messageElement);
             elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
         }
@@ -4615,13 +4496,10 @@
         }
         
         function sendChatMessage(message) {
-            if (isConnected && gameState.currentPlayer) {
-                // Проверяем, не отправляется ли уже сообщение
-                if (isSendingMessage) {
-                    return;
-                }
-                
-                isSendingMessage = true;
+            if (gameState.messageSending) return; // Предотвращаем повторную отправку
+            
+            if (isConnected && gameState.currentPlayer && message.trim()) {
+                gameState.messageSending = true;
                 
                 socket.emit('chat_message', {
                     message: message
@@ -4629,7 +4507,7 @@
                 
                 // Сбрасываем флаг через небольшую задержку
                 setTimeout(() => {
-                    isSendingMessage = false;
+                    gameState.messageSending = false;
                 }, 500);
             }
         }
@@ -5298,6 +5176,44 @@
             entry.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
             elements.logEntries.appendChild(entry);
             elements.logEntries.scrollTop = elements.logEntries.scrollHeight;
+        }
+        
+        // ==================== НОВАЯ ФУНКЦИЯ: УВЕДОМЛЕНИЕ О ПЕРЕХОДЕ В ГОРОД ====================
+        function checkNewCityArrival(oldPosition, newPosition) {
+            // Находим клетку, на которую попал игрок
+            const newCell = mapData.cells.find(cell => cell.number === newPosition);
+            if (!newCell || !newCell.city) return;
+            
+            const cityKey = newCell.city;
+            const city = gameData.cities[cityKey];
+            if (!city) return;
+            
+            // Проверяем, был ли игрок в этом городе раньше
+            const isFirstVisit = !gameState.visitedCities.includes(cityKey);
+            
+            if (isFirstVisit) {
+                // Добавляем город в список посещенных
+                gameState.visitedCities.push(cityKey);
+                
+                // Показываем уведомление о прибытии в новый город
+                showNotification(`🏙️ Вы прибыли в новый город: ${city.name}!`, 'info');
+                addLogEntry(`🏙️ Вы прибыли в новый город: ${city.name}`);
+                
+                // Показываем информацию о городе через 1 секунду
+                setTimeout(() => {
+                    showCityModal(cityKey);
+                }, 1500);
+            } else if (gameState.firstCityVisit) {
+                // Если это первый город (Тверь) и мы в него впервые попали
+                gameState.firstCityVisit = false;
+                showNotification(`🏙️ Вы прибыли в стартовый город: ${city.name}!`, 'info');
+                addLogEntry(`🏙️ Вы прибыли в стартовый город: ${city.name}`);
+                
+                // Показываем информацию о городе через 1 секунду
+                setTimeout(() => {
+                    showCityModal(cityKey);
+                }, 1500);
+            }
         }
         
         // ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ====================
@@ -6540,12 +6456,18 @@
                 return;
             }
             
+            // Сохраняем старую позицию для проверки нового города
+            const oldPosition = gameState.currentPlayer.position;
+            
             // Обновляем позицию игрока
             gameState.currentPlayer.position = cityCell.number;
             gameState.currentPlayer.city = cityKey;
             
             updatePlayerUI();
             updatePlayerMarkers();
+            
+            // Проверяем, прибыли ли в новый город
+            checkNewCityArrival(oldPosition, cityCell.number);
             
             // Отправляем обновление на сервер
             sendPlayerPositionToServer(cityCell.number, cityKey);
@@ -6695,22 +6617,7 @@
                 quickActionsBtn.classList.remove('active');
                 quickActionsVisible = false;
                 
-                if (userSettings.newYearDesign) {
-                    disableNewYearDesign();
-                    showNotification('Новогодний дизайн выключен', 'info');
-                } else {
-                    enableNewYearDesign();
-                    showNotification('Новогодний дизайн включен', 'success');
-                }
-            });
-            
-            quickDarkThemeBtn.addEventListener('click', function() {
-                quickActions.classList.remove('show');
-                quickActionsBtn.classList.remove('active');
-                quickActionsVisible = false;
-                
-                toggleDarkTheme();
-                showNotification(`Темная тема ${userSettings.darkTheme ? 'включена' : 'выключена'}`, 'info');
+                toggleTheme();
             });
             
             document.addEventListener('click', function(event) {
@@ -6759,12 +6666,9 @@
                     }
                 }
                 
-                // Обновляем иконки тем
-                quickThemeBtn.innerHTML = userSettings.newYearDesign ? '🎄' : '❄️';
-                quickThemeBtn.title = userSettings.newYearDesign ? 'Выключить новогодний дизайн' : 'Включить новогодний дизайн';
-                
-                quickDarkThemeBtn.innerHTML = userSettings.darkTheme ? '☀️' : '🌙';
-                quickDarkThemeBtn.title = userSettings.darkTheme ? 'Выключить темную тему' : 'Включить темную тему';
+                // Обновляем иконку темы
+                const themeIcon = isNewYearTheme ? '🎄' : '🎨';
+                quickThemeBtn.innerHTML = `${themeIcon}<div class="tooltip">${isNewYearTheme ? 'Выключить новогодний дизайн' : 'Включить новогодний дизайн'}</div>`;
                 
                 if (elements.gameContent.style.display === 'block') {
                     quickActionsBtn.style.display = 'flex';
@@ -6828,6 +6732,9 @@
                 elements.diceValue.querySelector('.dice-value').textContent = diceValue;
                 elements.diceValue.classList.remove('rolling');
                 
+                // Сохраняем старую позицию для проверки нового города
+                const oldPosition = gameState.currentPlayer.position;
+                
                 // Обновляем позицию игрока
                 const newPosition = Math.min(gameState.currentPlayer.position + diceValue, mapData.cells.length);
                 gameState.currentPlayer.position = newPosition;
@@ -6835,31 +6742,16 @@
                 // Находим клетку, на которую попал игрок
                 const currentCell = mapData.cells.find(cell => cell.number === newPosition);
                 if (currentCell) {
-                    const previousCity = gameState.currentPlayer.city;
-                    
                     if (currentCell.type === 'city' && currentCell.city) {
                         gameState.currentPlayer.city = currentCell.city;
-                        
-                        // Проверяем, попал ли игрок в новый город
-                        if (currentCell.city !== previousCity) {
-                            // Показываем уведомление о переходе в новый город
-                            const cityName = gameData.cities[currentCell.city]?.name || 'Неизвестный город';
-                            showNotification(`🏙️ Вы перешли в новый город: ${cityName}!`, 'success');
-                            addLogEntry(`🏙️ Вы перешли в новый город: ${cityName}`);
-                            
-                            // Показываем информацию о городе только если это первый раз
-                            if (!gameState.shownCities.includes(currentCell.city)) {
-                                setTimeout(() => {
-                                    showCityModal(currentCell.city);
-                                    gameState.shownCities.push(currentCell.city);
-                                }, 1000);
-                            }
-                        }
                     }
                 }
                 
                 updatePlayerUI();
                 updatePlayerMarkers();
+                
+                // Проверяем, прибыли ли в новый город
+                checkNewCityArrival(oldPosition, newPosition);
                 
                 // Отправляем на сервер
                 sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
@@ -7012,24 +6904,29 @@
             console.log('🚀 Игра "Юный эколог" инициализирована');
             updateConnectionStatus('connecting', 'Подключение к серверу...');
             
-            // Загружаем настройки пользователя
-            loadUserSettings();
-            
-            // Применяем новогодний дизайн по умолчанию
-            if (userSettings.newYearDesign) {
-                enableNewYearDesign();
+            // Загружаем настройки темы из локального хранилища
+            const savedNewYearTheme = localStorage.getItem('newYearTheme');
+            if (savedNewYearTheme !== null) {
+                isNewYearTheme = savedNewYearTheme === 'true';
             }
+            
+            const savedDarkGreenTheme = localStorage.getItem('darkGreenTheme');
+            if (savedDarkGreenTheme !== null) {
+                isDarkGreenTheme = savedDarkGreenTheme === 'true';
+            }
+            
+            // Инициализируем новогодний дизайн
+            initNewYearDesign();
+            
+            // Инициализируем смайлики
+            initEmojiPicker();
         });
         
         // Экспортируем функции для отладки
         window.debug = {
             mapData,
             gameState,
-            gameData,
-            userSettings,
-            toggleDarkTheme: toggleDarkTheme,
-            enableNewYearDesign: enableNewYearDesign,
-            disableNewYearDesign: disableNewYearDesign
+            gameData
         };
     </script>
 </body>
