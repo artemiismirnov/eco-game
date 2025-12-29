@@ -38,6 +38,10 @@
             position: relative;
         }
         
+        body.christmas-mode {
+            background: linear-gradient(135deg, #0d2329, #153b42);
+        }
+        
         /* Новогодние элементы */
         .snowflakes {
             position: fixed;
@@ -65,8 +69,8 @@
         
         .christmas-tree {
             position: fixed;
-            bottom: 0;
-            right: 20px;
+            bottom: 20px;
+            left: 20px;
             font-size: 4rem;
             z-index: 9998;
             filter: drop-shadow(0 0 10px rgba(46, 204, 113, 0.5));
@@ -95,10 +99,6 @@
         
         .christmas-mode .header-title {
             position: relative;
-        }
-        
-        .christmas-mode {
-            background: linear-gradient(135deg, #0d2329, #153b42);
         }
         
         .christmas-mode .game-board,
@@ -2439,7 +2439,8 @@
             
             .christmas-tree {
                 font-size: 3rem;
-                right: 10px;
+                left: 10px;
+                bottom: 10px;
             }
             
             .emoji-picker {
@@ -2542,7 +2543,8 @@
             
             .christmas-tree {
                 font-size: 2.5rem;
-                right: 5px;
+                left: 5px;
+                bottom: 5px;
             }
             
             .emoji-picker {
@@ -3730,7 +3732,8 @@
             
             // Добавляем обработчики для смайликов
             document.querySelectorAll('.emoji-item').forEach(item => {
-                item.addEventListener('click', function() {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
                     const emoji = this.dataset.emoji;
                     const chatInput = elements.chatInput;
                     const cursorPos = chatInput.selectionStart;
@@ -3759,12 +3762,6 @@
                     elements.emojiPicker.classList.remove('active');
                 }
             });
-        }
-        
-        // Функция для обработки смайликов в сообщениях
-        function parseEmojis(text) {
-            // Простая замена эмодзи на HTML
-            return text.replace(/\n/g, '<br>');
         }
         
         function addChatMessage(sender, message) {
@@ -4223,7 +4220,13 @@
             const savedChristmasMode = localStorage.getItem('christmasMode');
             if (savedChristmasMode === 'disabled') {
                 christmasModeEnabled = false;
-                toggleChristmasMode(); // Это выключит режим
+                // Выключаем новогодний режим
+                document.body.classList.remove('christmas-mode');
+                elements.snowflakes.innerHTML = '';
+                elements.christmasTree.style.display = 'none';
+                elements.santaHat.style.display = 'none';
+                quickChristmasBtn.querySelector('.tooltip').textContent = 'Новогодний дизайн: ВЫКЛ';
+                quickChristmasBtn.innerHTML = '🎄<div class="tooltip">Новогодний дизайн: ВЫКЛ</div>';
             } else {
                 // По умолчанию включен
                 createSnowflakes();
@@ -5001,242 +5004,8 @@
         }
         
         // ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ====================
-        // ==================== ИГРОВЫЕ ДАННЫЕ ====================
-        const gameDataTasks = {
-            tasks: {
-                easy: [
-                    {
-                        description: "Посадите 3 дерева в парке 🌲",
-                        type: "drag_click",
-                        goal: 3,
-                        items: ["🌲", "🌳", "🌲", "🌲", "🌳"],
-                        zones: 3,
-                        correctItems: ["🌲", "🌲", "🌲"]
-                    },
-                    {
-                        description: "Сортируйте мусор по контейнерам 🗑️",
-                        type: "sort_click",
-                        items: [
-                            {name: "Бумага", type: "paper", emoji: "📄"},
-                            {name: "Пластик", type: "plastic", emoji: "🥤"},
-                            {name: "Стекло", type: "glass", emoji: "🍶"},
-                            {name: "Батарейки", type: "battery", emoji: "🔋"}
-                        ]
-                    },
-                    {
-                        description: "Ответьте на вопрос об экологии ❓",
-                        type: "quiz",
-                        question: "Какой из этих материалов разлагается дольше всего?",
-                        options: [
-                            {text: "Бумага", correct: false},
-                            {text: "Пластиковая бутылка", correct: true},
-                            {text: "Банан", correct: false},
-                            {text: "Хлопковая футболка", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Соберите мусор в парке 🧹",
-                        type: "clean",
-                        goal: 4,
-                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
-                    },
-                    {
-                        description: "Что такое переработка отходов? ♻️",
-                        type: "quiz",
-                        question: "Что такое переработка отходов?",
-                        options: [
-                            {text: "Повторное использование материалов", correct: true},
-                            {text: "Сжигание мусора", correct: false},
-                            {text: "Закапывание отходов", correct: false},
-                            {text: "Вывоз мусора на свалку", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Разделите отходы по категориям 📦",
-                        type: "sort_click",
-                        items: [
-                            {name: "Органика", type: "organic", emoji: "🍎"},
-                            {name: "Металл", type: "metal", emoji: "🥫"},
-                            {name: "Текстиль", type: "textile", emoji: "👕"},
-                            {name: "Опасные", type: "hazardous", emoji: "☢️"}
-                        ]
-                    },
-                    {
-                        description: "Как экономить воду? 💧",
-                        type: "quiz",
-                        question: "Какой способ помогает экономить воду?",
-                        options: [
-                            {text: "Принимать душ вместо ванны", correct: true},
-                            {text: "Оставлять воду течь при чистке зубов", correct: false},
-                            {text: "Поливать растения днем", correct: false},
-                            {text: "Мыть машину ежедневно", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Соберите простой экологический пазл 🌍",
-                        type: "puzzle_image",
-                        pieces: 4,
-                        imageType: "ecology"
-                    },
-                    {
-                        description: "Найдите парные экологические символы 🎯",
-                        type: "match_game",
-                        pairs: 4,
-                        symbols: ["🌍", "♻️", "🌳", "💧", "🐦", "🐝", "🦋", "🐠"]
-                    }
-                ],
-                medium: [
-                    {
-                        description: "Очистите реку от 5 единиц мусора 🌊",
-                        type: "clean",
-                        goal: 5,
-                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
-                    },
-                    {
-                        description: "Что такое устойчивое развитие? 🌱",
-                        type: "quiz",
-                        question: "Что такое устойчивое развитие?",
-                        options: [
-                            {text: "Развитие, удовлетворяющее потребности настоящего без ущерба для будущего", correct: true},
-                            {text: "Быстрое экономическое развитие", correct: false},
-                            {text: "Развитие только сельского хозяйства", correct: false},
-                            {text: "Развитие промышленности без ограничений", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Соберите пазл из экологических символов 🧩",
-                        type: "puzzle_image",
-                        pieces: 6,
-                        imageType: "animals"
-                    },
-                    {
-                        description: "Посадите лес из 6 деревьев 🌲",
-                        type: "drag_click",
-                        goal: 6,
-                        items: ["🌲", "🌲", "🌳", "🌲", "🌲", "🌲", "🌲", "🌳"],
-                        zones: 6,
-                        correctItems: ["🌲", "🌲", "🌲", "🌲", "🌲", "🌲"]
-                    },
-                    {
-                        description: "Сортируйте опасные отходы ⚠️",
-                        type: "sort_click",
-                        items: [
-                            {name: "Батарейки", type: "battery", emoji: "🔋"},
-                            {name: "Лампочки", type: "lamp", emoji: "💡"},
-                            {name: "Лекарства", type: "medicine", emoji: "💊"},
-                            {name: "Химикаты", type: "chemical", emoji: "🧪"}
-                        ]
-                    },
-                    {
-                        description: "Создайте пищевую цепь 🐟",
-                        type: "sequence_click",
-                        items: ["🌿", "🐛", "🐦", "🦊"],
-                        correctOrder: ["🌿", "🐛", "🐦", "🦊"]
-                    },
-                    {
-                        description: "Что такое биоразнообразие? 🦋",
-                        type: "quiz",
-                        question: "Что означает биоразнообразие?",
-                        options: [
-                            {text: "Разнообразие живых организмов в экосистеме", correct: true},
-                            {text: "Количество заводов в регионе", correct: false},
-                            {text: "Разнообразие автомобилей", correct: false},
-                            {text: "Количество жителей в городе", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Создайте экологическую последовательность 🌿",
-                        type: "sequence_click",
-                        items: ["🌱", "🌳", "🍎", "♻️"],
-                        correctOrder: ["🌱", "🌳", "🍎", "♻️"]
-                    },
-                    {
-                        description: "Найдите парные экологические символы 🎯",
-                        type: "match_game",
-                        pairs: 6,
-                        symbols: ["🌍", "♻️", "🌳", "💧", "🐦", "🐝", "🦋", "🐠", "🐻", "🦊", "🐸", "🦉"]
-                    }
-                ],
-                hard: [
-                    {
-                        description: "Что такое углеродный след? 👣",
-                        type: "quiz",
-                        question: "Что такое углеродный след?",
-                        options: [
-                            {text: "Количество парниковых газов, производимых деятельностью человека", correct: true},
-                            {text: "След от угля на земле", correct: false},
-                            {text: "Количество деревьев для поглощения CO2", correct: false},
-                            {text: "Уровень загрязнения воздуха в городе", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Решите экологическую головоломку 🧠",
-                        type: "sequence_click",
-                        items: ["🌱", "🌳", "🏭", "💨", "🌍", "🔥"],
-                        correctOrder: ["🌱", "🌳", "🏭", "💨", "🔥", "🌍"]
-                    },
-                    {
-                        description: "Соберите сложный экологический пазл 🧩",
-                        type: "puzzle_image",
-                        pieces: 9,
-                        imageType: "nature"
-                    },
-                    {
-                        description: "Что такое возобновляемая энергия? ⚡",
-                        type: "quiz",
-                        question: "Что такое возобновляемая энергия?",
-                        options: [
-                            {text: "Энергия из неиссякаемых источников (солнце, ветер, вода)", correct: true},
-                            {text: "Энергия из угля и нефти", correct: false},
-                            {text: "Атомная энергия", correct: false},
-                            {text: "Энергия из газа", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Очистите океан от мусора 🌊",
-                        type: "clean",
-                        goal: 8,
-                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🐠", "🐟", "🐡"]
-                    },
-                    {
-                        description: "Создайте экосистему из 8 элементов 🏞️",
-                        type: "drag_click",
-                        goal: 8,
-                        items: ["🌱", "🌳", "💧", "☀️", "🦋", "🐝", "🐞", "🦔", "🌼", "🍄"],
-                        zones: 8,
-                        correctItems: ["🌱", "🌳", "💧", "☀️", "🦋", "🐝", "🐞", "🦔"]
-                    },
-                    {
-                        description: "Расставьте стадии переработки ♻️",
-                        type: "sequence_click",
-                        items: ["🗑️", "🚚", "🏭", "🔄", "📦"],
-                        correctOrder: ["🗑️", "🚚", "🏭", "🔄", "📦"]
-                    },
-                    {
-                        description: "Что такое деградация почв? 🌵",
-                        type: "quiz",
-                        question: "Что вызывает деградацию почв?",
-                        options: [
-                            {text: "Вырубка лесов и эрозия", correct: true},
-                            {text: "Посадка деревьев", correct: false},
-                            {text: "Использование удобрений", correct: false},
-                            {text: "Строительство парков", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Найдите все пары животных 🎯",
-                        type: "match_game",
-                        pairs: 8,
-                        symbols: ["🐻", "🦊", "🐰", "🦉", "🐸", "🐢", "🦋", "🐝", "🐞", "🦔", "🐿️", "🦡", "🦅", "🦆", "🦩", "🦜"]
-                    }
-                ]
-            }
-        };
-
-        // ==================== ФУНКЦИИ ЗАДАНИЙ ====================
-
         function getRandomTask(difficulty) {
-            const availableTasks = gameDataTasks.tasks[difficulty];
+            const availableTasks = gameData.tasks[difficulty];
             if (!availableTasks || availableTasks.length === 0) {
                 // Если нет заданий, создаем простое задание по умолчанию
                 return {
@@ -5341,7 +5110,7 @@
                 createDefaultTask(task);
             }
             
-            // ИСПРАВЛЕНО: Кнопка "Начать выполнение задания" меняется на "Проверить выполнение"
+            // Кнопка "Начать выполнение задания" меняется на "Проверить выполнение"
             elements.completeTaskBtn.style.display = 'none';
             elements.checkTaskBtn.style.display = 'block';
             elements.checkTaskBtn.textContent = "✅ Проверить выполнение";
@@ -5414,7 +5183,6 @@
                     }
                 });
                 
-                // ИСПРАВЛЕНО: Не показываем правильный ответ при ошибке
                 if (isCorrect) {
                     elements.taskResult.textContent = '✅ Правильно! Задание выполнено.';
                     elements.taskResult.style.color = '#2ecc71';
@@ -6685,6 +6453,25 @@
             gameState,
             gameData
         };
+        
+        // Сохранение состояния игрока
+        function savePlayerState() {
+            if (!gameState.currentPlayerId) return;
+            
+            const playerState = {
+                playerId: gameState.currentPlayerId,
+                name: gameState.currentPlayer.name,
+                coins: gameState.currentPlayer.coins,
+                level: gameState.currentPlayer.level,
+                cleaningPoints: gameState.currentPlayer.cleaningPoints,
+                completedTasks: gameState.currentPlayer.completedTasks || 0,
+                position: gameState.currentPlayer.position,
+                city: gameState.currentPlayer.city,
+                buildings: gameState.currentPlayer.buildings || []
+            };
+            
+            localStorage.setItem(`player_${gameState.currentPlayerId}`, JSON.stringify(playerState));
+        }
     </script>
 </body>
 </html>
