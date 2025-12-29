@@ -17,6 +17,9 @@
             --warning: #ff9e1f;
             --card-bg: rgba(255, 255, 255, 0.15);
             --card-border: rgba(255, 255, 255, 0.2);
+            --christmas-red: #e74c3c;
+            --christmas-green: #27ae60;
+            --christmas-gold: #f1c40f;
         }
         
         * {
@@ -32,12 +35,113 @@
             min-height: 100vh;
             padding: 20px;
             overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Новогодние элементы */
+        .snowflakes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        .snowflake {
+            position: absolute;
+            top: -20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            animation: fall linear infinite;
+        }
+        
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+        
+        .christmas-tree {
+            position: fixed;
+            bottom: 0;
+            right: 20px;
+            font-size: 4rem;
+            z-index: 9998;
+            filter: drop-shadow(0 0 10px rgba(46, 204, 113, 0.5));
+            transition: transform 0.3s ease;
+        }
+        
+        .christmas-tree:hover {
+            transform: scale(1.1);
+        }
+        
+        .santa-hat {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%) rotate(15deg);
+            font-size: 3.5rem;
+            z-index: 10;
+            animation: hatWobble 3s ease-in-out infinite;
+            filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.3));
+        }
+        
+        @keyframes hatWobble {
+            0%, 100% { transform: translateX(-50%) rotate(15deg); }
+            50% { transform: translateX(-50%) rotate(25deg); }
+        }
+        
+        .christmas-mode .header-title {
+            position: relative;
+        }
+        
+        .christmas-mode {
+            background: linear-gradient(135deg, #0d2329, #153b42);
+        }
+        
+        .christmas-mode .game-board,
+        .christmas-mode .game-info-panel,
+        .christmas-mode .room-section,
+        .christmas-mode .auth-section,
+        .christmas-mode .game-info {
+            background: rgba(0, 20, 30, 0.85);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(46, 204, 113, 0.2);
+        }
+        
+        .christmas-mode .game-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            box-shadow: 0 4px 0 rgba(39, 174, 96, 0.8);
+        }
+        
+        .christmas-mode .game-btn:hover {
+            background: linear-gradient(135deg, #219955, #27ae60);
+            box-shadow: 0 6px 0 rgba(39, 174, 96, 0.8);
+        }
+        
+        .christmas-mode .game-btn.red {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            box-shadow: 0 4px 0 rgba(192, 57, 43, 0.8);
+        }
+        
+        .christmas-mode h1 {
+            background: linear-gradient(to right, #2ecc71, #f1c40f, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .christmas-mode .subtitle {
+            color: #f1c40f;
         }
         
         .container {
             max-width: 1400px;
             margin: 0 auto;
             width: 100%;
+            position: relative;
+            z-index: 1;
         }
         
         /* ==================== ШАПКА ==================== */
@@ -46,6 +150,11 @@
             padding: 20px 0;
             margin-bottom: 30px;
             position: relative;
+        }
+        
+        .header-title {
+            position: relative;
+            display: inline-block;
         }
         
         h1 {
@@ -57,90 +166,12 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
-            position: relative;
-            display: inline-block;
-        }
-        
-        .new-year-hat {
-            position: absolute;
-            top: -15px;
-            right: -40px;
-            font-size: 2.5rem;
-            transform: rotate(15deg);
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
-            z-index: 5;
         }
         
         .subtitle {
             font-size: 1.2rem;
             color: var(--secondary);
             margin-bottom: 20px;
-        }
-        
-        /* ==================== НОВОГОДНИЙ ДИЗАЙН ==================== */
-        .snowflake {
-            position: fixed;
-            top: -10px;
-            color: white;
-            font-size: 1rem;
-            opacity: 0.8;
-            user-select: none;
-            pointer-events: none;
-            z-index: 9999;
-            animation: snow-fall linear forwards;
-        }
-        
-        @keyframes snow-fall {
-            to {
-                transform: translateY(100vh);
-                opacity: 0;
-            }
-        }
-        
-        .christmas-tree {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 15rem;
-            color: rgba(46, 204, 113, 0.1);
-            z-index: -1;
-            pointer-events: none;
-            opacity: 0.7;
-            text-shadow: 0 0 30px rgba(46, 204, 113, 0.3);
-        }
-        
-        .new-year-toggle {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            border: none;
-            font-size: 1.8rem;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .new-year-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-        }
-        
-        .new-year-toggle:active {
-            transform: scale(0.95);
-        }
-        
-        .new-year-toggle.off {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
         }
         
         /* ==================== СТАТУС ПОДКЛЮЧЕНИЯ ==================== */
@@ -396,6 +427,88 @@
             color: rgba(255, 255, 255, 0.95);
             line-height: 1.4;
             word-break: break-word;
+        }
+        
+        /* Стили для смайликов в чате */
+        .chat-emoji {
+            font-size: 1.4rem;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+        
+        .emoji-picker-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .emoji-picker-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .emoji-picker {
+            position: absolute;
+            bottom: 60px;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 12px;
+            padding: 15px;
+            width: 300px;
+            max-height: 350px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .emoji-picker.active {
+            display: block;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        .emoji-category {
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        
+        .emoji-category-title {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+        }
+        
+        .emoji-item {
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .emoji-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.2);
         }
         
         /* ==================== МАРКЕРЫ ИГРОКОВ ==================== */
@@ -1751,6 +1864,7 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            position: relative;
         }
         
         .chat-input input {
@@ -1761,84 +1875,6 @@
         .chat-input .game-btn {
             width: auto;
             padding: 10px 20px;
-        }
-        
-        /* Стили для кнопки смайликов */
-        .emoji-picker-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        
-        .emoji-picker-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
-        
-        .emoji-picker {
-            position: absolute;
-            bottom: 60px;
-            right: 0;
-            background: rgba(0, 0, 0, 0.9);
-            border-radius: 12px;
-            padding: 15px;
-            width: 300px;
-            max-height: 300px;
-            overflow-y: auto;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            display: none;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-        }
-        
-        .emoji-picker.show {
-            display: block;
-            animation: fadeInUp 0.3s ease-out;
-        }
-        
-        .emoji-category {
-            margin-bottom: 10px;
-        }
-        
-        .emoji-category h4 {
-            color: var(--secondary);
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .emoji-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 8px;
-        }
-        
-        .emoji-item {
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: all 0.2s;
-        }
-        
-        .emoji-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(1.1);
         }
         
         /* ==================== УВЕДОМЛЕНИЯ ==================== */
@@ -1868,6 +1904,10 @@
         
         .notification.error {
             background: var(--accent);
+        }
+        
+        .notification.info {
+            background: var(--secondary);
         }
         
         /* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
@@ -2250,12 +2290,6 @@
                 font-size: 2.2rem;
             }
             
-            .new-year-hat {
-                font-size: 2rem;
-                right: -30px;
-                top: -10px;
-            }
-            
             .game-board h2 {
                 text-align: center;
             }
@@ -2328,14 +2362,6 @@
                 right: 20px;
             }
             
-            .new-year-toggle {
-                width: 50px;
-                height: 50px;
-                font-size: 1.5rem;
-                bottom: 20px;
-                left: 20px;
-            }
-            
             .quick-actions {
                 bottom: 90px;
                 right: 20px;
@@ -2406,25 +2432,25 @@
                 font-size: 1.4rem;
             }
             
-            .emoji-picker {
-                width: 250px;
-                max-height: 250px;
-                bottom: 50px;
-                right: 0;
-            }
-            
-            .emoji-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-            
-            .emoji-item {
-                width: 30px;
-                height: 30px;
-                font-size: 1.2rem;
+            .santa-hat {
+                font-size: 2.5rem;
+                top: -30px;
             }
             
             .christmas-tree {
-                font-size: 10rem;
+                font-size: 3rem;
+                right: 10px;
+            }
+            
+            .emoji-picker {
+                width: 280px;
+                max-height: 300px;
+                bottom: 55px;
+                right: -10px;
+            }
+            
+            .emoji-grid {
+                grid-template-columns: repeat(6, 1fr);
             }
         }
         
@@ -2435,12 +2461,6 @@
             
             h1 {
                 font-size: 1.8rem;
-            }
-            
-            .new-year-hat {
-                font-size: 1.5rem;
-                right: -20px;
-                top: -8px;
             }
             
             .subtitle {
@@ -2515,26 +2535,25 @@
                 object-fit: contain;
             }
             
-            .emoji-picker {
-                width: 200px;
-                max-height: 200px;
-                bottom: 45px;
-                right: 0;
-            }
-            
-            .emoji-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 5px;
-            }
-            
-            .emoji-item {
-                width: 25px;
-                height: 25px;
-                font-size: 1rem;
+            .santa-hat {
+                font-size: 2rem;
+                top: -25px;
             }
             
             .christmas-tree {
-                font-size: 8rem;
+                font-size: 2.5rem;
+                right: 5px;
+            }
+            
+            .emoji-picker {
+                width: 250px;
+                max-height: 250px;
+                bottom: 50px;
+                right: -20px;
+            }
+            
+            .emoji-grid {
+                grid-template-columns: repeat(5, 1fr);
             }
         }
         
@@ -2656,14 +2675,21 @@
     </style>
 </head>
 <body>
+    <!-- Новогодние снежинки -->
+    <div class="snowflakes" id="snowflakes"></div>
+    
+    <!-- Новогодняя ёлка -->
+    <div class="christmas-tree" id="christmasTree">🎄</div>
+    
     <div class="container">
         <!-- Шапка -->
         <header>
-            <h1>
-                Юный эколог
-                <span class="new-year-hat" id="newYearHat">🎅</span>
-            </h1>
-            <div class="subtitle">Многопользовательская экологическая игра</div>
+            <div class="header-title">
+                <!-- Новогодняя шляпа -->
+                <div class="santa-hat" id="santaHat">🎅</div>
+                <h1>Юный эколог</h1>
+                <div class="subtitle">Многопользовательская экологическая игра</div>
+            </div>
         </header>
         
         <!-- Плейсхолдер ресурсов (монеты и уровень) -->
@@ -2815,7 +2841,7 @@
                     </div>
                 </div>
                 
-                <!-- Чат -->
+                <!-- Чат с кнопкой выбора смайликов -->
                 <div class="chat-section">
                     <h4>Чат комнаты</h4>
                     <div class="chat-messages" id="chatMessages">
@@ -2828,38 +2854,7 @@
                         <input type="text" id="chatInput" placeholder="Введите сообщение..." maxlength="200">
                         <button class="emoji-picker-btn" id="emojiPickerBtn">😀</button>
                         <button class="game-btn small" id="sendMessageBtn">Отправить</button>
-                    </div>
-                    <div class="emoji-picker" id="emojiPicker">
-                        <div class="emoji-category">
-                            <h4>Часто используемые</h4>
-                            <div class="emoji-grid" id="frequentEmojis">
-                                <!-- Часто используемые смайлы будут добавлены через JS -->
-                            </div>
-                        </div>
-                        <div class="emoji-category">
-                            <h4>Смайлы и эмоции</h4>
-                            <div class="emoji-grid" id="smileysEmojis">
-                                <!-- Смайлы будут добавлены через JS -->
-                            </div>
-                        </div>
-                        <div class="emoji-category">
-                            <h4>Природа и животные</h4>
-                            <div class="emoji-grid" id="natureEmojis">
-                                <!-- Эмодзи природы будут добавлены через JS -->
-                            </div>
-                        </div>
-                        <div class="emoji-category">
-                            <h4>Еда и напитки</h4>
-                            <div class="emoji-grid" id="foodEmojis">
-                                <!-- Эмодзи еды будут добавлены через JS -->
-                            </div>
-                        </div>
-                        <div class="emoji-category">
-                            <h4>Активность и спорт</h4>
-                            <div class="emoji-grid" id="activityEmojis">
-                                <!-- Эмодзи активности будут добавлены через JS -->
-                            </div>
-                        </div>
+                        <div class="emoji-picker" id="emojiPicker"></div>
                     </div>
                 </div>
             </div>
@@ -3023,9 +3018,6 @@
         </div>
     </div>
 
-    <!-- Новогодняя ёлка на заднем фоне -->
-    <div class="christmas-tree" id="christmasTree">🎄</div>
-
     <!-- Уведомления -->
     <div class="notification" id="notification">
         Уведомление
@@ -3154,16 +3146,11 @@
             👥
             <div class="tooltip">Пригласить друзей</div>
         </button>
-        <button class="quick-action-btn" id="quickNewYearBtn" title="Новогодний дизайн">
+        <button class="quick-action-btn" id="quickChristmasBtn" title="Новогодний дизайн">
             🎄
-            <div class="tooltip">Новогодний дизайн</div>
+            <div class="tooltip">Новогодний дизайн: ВКЛ</div>
         </button>
     </div>
-
-    <!-- Кнопка включения/выключения новогоднего дизайна -->
-    <button class="new-year-toggle" id="newYearToggle">
-        🎄
-    </button>
 
     <!-- Подключение Socket.IO, mapData.js и игровая логика -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
@@ -3189,6 +3176,7 @@
         let isConnected = false;
         let currentRoomId = null;
         let hasCurrentTask = false;
+        let christmasModeEnabled = true; // По умолчанию включен
         
         // ==================== ЭЛЕМЕНТЫ DOM ====================
         const elements = {
@@ -3232,11 +3220,6 @@
             sendMessageBtn: document.getElementById('sendMessageBtn'),
             emojiPickerBtn: document.getElementById('emojiPickerBtn'),
             emojiPicker: document.getElementById('emojiPicker'),
-            frequentEmojis: document.getElementById('frequentEmojis'),
-            smileysEmojis: document.getElementById('smileysEmojis'),
-            natureEmojis: document.getElementById('natureEmojis'),
-            foodEmojis: document.getElementById('foodEmojis'),
-            activityEmojis: document.getElementById('activityEmojis'),
             easyBtn: document.getElementById('easyBtn'),
             mediumBtn: document.getElementById('mediumBtn'),
             hardBtn: document.getElementById('hardBtn'),
@@ -3272,9 +3255,9 @@
             inviteRoomNumber: document.getElementById('inviteRoomNumber'),
             copyInviteBtn: document.getElementById('copyInviteBtn'),
             closeInviteBtn: document.getElementById('closeInviteBtn'),
-            newYearHat: document.getElementById('newYearHat'),
+            snowflakes: document.getElementById('snowflakes'),
             christmasTree: document.getElementById('christmasTree'),
-            newYearToggle: document.getElementById('newYearToggle')
+            santaHat: document.getElementById('santaHat')
         };
         
         // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -3285,11 +3268,7 @@
         const quickChatBtn = document.getElementById('quickChatBtn');
         const quickTasksBtn = document.getElementById('quickTasksBtn');
         const quickInviteBtn = document.getElementById('quickInviteBtn');
-        const quickNewYearBtn = document.getElementById('quickNewYearBtn');
-        
-        // ==================== НОВОГОДНИЙ ДИЗАЙН ====================
-        let newYearDesignEnabled = true;
-        let snowflakesInterval = null;
+        const quickChristmasBtn = document.getElementById('quickChristmasBtn');
         
         // ==================== ИГРОВЫЕ ДАННЫЕ ====================
         const gameData = {
@@ -3650,16 +3629,8 @@
                 matchedPairs: 0,
                 canFlip: true
             },
-            quizSelectedAnswer: null
-        };
-        
-        // ==================== СМАЙЛИКИ ДЛЯ ЧАТА ====================
-        const emojiData = {
-            frequent: ['😀', '😂', '🥰', '😎', '👍', '❤️', '🎮', '🎉', '🌟', '🔥'],
-            smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠'],
-            nature: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷️', '🕸️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐕‍🦺', '🐈', '🐈‍⬛', '🦤', '🦢', '🦩', '🦚', '🦜', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔'],
-            food: ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🫓', '🥪', '🥙', '🧆', '🌮', '🌯', '🫔', '🥗', '🥘', '🫕', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜', '🍯', '🥛', '🍼', '🫖', '☕', '🍵', '🧃', '🥤', '🧋', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃', '🍸', '🍹', '🧉', '🍾', '🧊', '🥄', '🍴', '🍽️', '🥣', '🥡', '🥢'],
-            activity: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '⛹️', '🤺', '🤾', '🏌️', '🏇', '🧘', '🏄', '🏊', '🤽', '🚣', '🧗', '🚵', '🚴', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪', '🤹', '🎭', '🩰', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🪗', '🎸', '🪕', '🎻', '🎲', '♟️', '🃏', '🀄', '🎴', '🎭', '🖼️', '🎨', '🧵', '🪡', '🧶', '🪢', '👓', '🕶️', '🥽', '🥼', '🦺', '👔', '👕', '👖', '🧣', '🧤', '🧥', '🧦', '👗', '👘', '🥻', '🩱', '🩲', '🩳', '👙', '👚', '👛', '👜', '👝', '🎒', '🩴', '👞', '👟', '🥾', '🥿', '👠', '👡', '🩰', '👢', '👑', '👒', '🎩', '🎓', '🧢', '🪖', '💄', '💍', '💼']
+            quizSelectedAnswer: null,
+            lastCityVisited: null // Добавляем отслеживание последнего посещенного города
         };
         
         // ==================== ФУНКЦИИ ПОДКЛЮЧЕНИЯ ====================
@@ -3680,192 +3651,164 @@
             console.log(`Connection: ${status} - ${text}`);
         }
         
-        // ==================== ФУНКЦИИ НОВОГОДНЕГО ДИЗАЙНА ====================
-        function initNewYearDesign() {
-            if (newYearDesignEnabled) {
-                // Показываем новогодние элементы
-                elements.newYearHat.style.display = 'block';
+        // ==================== НОВОГОДНИЙ ДИЗАЙН ====================
+        function createSnowflakes() {
+            if (!christmasModeEnabled) return;
+            
+            elements.snowflakes.innerHTML = '';
+            
+            for (let i = 0; i < 50; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = '❄';
+                snowflake.style.left = `${Math.random() * 100}%`;
+                snowflake.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                snowflake.style.animationDelay = `${Math.random() * 5}s`;
+                snowflake.style.opacity = `${Math.random() * 0.5 + 0.3}`;
+                snowflake.style.fontSize = `${Math.random() * 10 + 10}px`;
+                elements.snowflakes.appendChild(snowflake);
+            }
+        }
+        
+        function toggleChristmasMode() {
+            christmasModeEnabled = !christmasModeEnabled;
+            
+            if (christmasModeEnabled) {
+                document.body.classList.add('christmas-mode');
+                createSnowflakes();
                 elements.christmasTree.style.display = 'block';
-                elements.newYearToggle.classList.remove('off');
-                elements.newYearToggle.innerHTML = '🎄';
+                elements.santaHat.style.display = 'block';
+                quickChristmasBtn.querySelector('.tooltip').textContent = 'Новогодний дизайн: ВКЛ';
+                quickChristmasBtn.innerHTML = '🎄<div class="tooltip">Новогодний дизайн: ВКЛ</div>';
                 
-                // Запускаем снежинки
-                startSnowflakes();
+                // Сохраняем в localStorage
+                localStorage.setItem('christmasMode', 'enabled');
                 
-                console.log('🎄 Новогодний дизайн включен');
+                showNotification('🎅 Новогодний дизайн включен!', 'success');
             } else {
-                // Скрываем новогодние элементы
-                elements.newYearHat.style.display = 'none';
+                document.body.classList.remove('christmas-mode');
+                elements.snowflakes.innerHTML = '';
                 elements.christmasTree.style.display = 'none';
-                elements.newYearToggle.classList.add('off');
-                elements.newYearToggle.innerHTML = '❄️';
+                elements.santaHat.style.display = 'none';
+                quickChristmasBtn.querySelector('.tooltip').textContent = 'Новогодний дизайн: ВЫКЛ';
+                quickChristmasBtn.innerHTML = '🎄<div class="tooltip">Новогодний дизайн: ВЫКЛ</div>';
                 
-                // Останавливаем снежинки
-                stopSnowflakes();
+                // Сохраняем в localStorage
+                localStorage.setItem('christmasMode', 'disabled');
                 
-                console.log('🎄 Новогодний дизайн выключен');
+                showNotification('🎄 Новогодний дизайн выключен', 'info');
             }
         }
         
-        function startSnowflakes() {
-            // Очищаем предыдущие снежинки
-            document.querySelectorAll('.snowflake').forEach(snow => snow.remove());
-            
-            // Останавливаем предыдущий интервал
-            if (snowflakesInterval) {
-                clearInterval(snowflakesInterval);
-            }
-            
-            // Создаем снежинки
-            snowflakesInterval = setInterval(() => {
-                createSnowflake();
-            }, 100);
-        }
-        
-        function stopSnowflakes() {
-            if (snowflakesInterval) {
-                clearInterval(snowflakesInterval);
-                snowflakesInterval = null;
-            }
-            
-            // Удаляем все снежинки
-            document.querySelectorAll('.snowflake').forEach(snow => {
-                snow.remove();
-            });
-        }
-        
-        function createSnowflake() {
-            const snowflake = document.createElement('div');
-            snowflake.className = 'snowflake';
-            snowflake.innerHTML = '❄️';
-            
-            // Случайная позиция по горизонтали
-            const left = Math.random() * 100;
-            snowflake.style.left = `${left}vw`;
-            
-            // Случайный размер
-            const size = Math.random() * 20 + 10;
-            snowflake.style.fontSize = `${size}px`;
-            
-            // Случайная прозрачность
-            const opacity = Math.random() * 0.5 + 0.3;
-            snowflake.style.opacity = opacity;
-            
-            // Случайная скорость
-            const duration = Math.random() * 5 + 5;
-            snowflake.style.animationDuration = `${duration}s`;
-            
-            // Случайная задержка
-            const delay = Math.random() * 5;
-            snowflake.style.animationDelay = `${delay}s`;
-            
-            document.body.appendChild(snowflake);
-            
-            // Удаляем снежинку после анимации
-            setTimeout(() => {
-                if (snowflake.parentNode) {
-                    snowflake.remove();
-                }
-            }, (duration + delay) * 1000);
-        }
-        
-        function toggleNewYearDesign() {
-            newYearDesignEnabled = !newYearDesignEnabled;
-            initNewYearDesign();
-            
-            // Сохраняем настройку в localStorage
-            localStorage.setItem('newYearDesignEnabled', newYearDesignEnabled);
-            
-            showNotification(newYearDesignEnabled ? '🎄 Новогодний дизайн включен!' : '❄️ Новогодний дизайн выключен', 'info');
-        }
-        
-        // ==================== ФУНКЦИИ ДЛЯ СМАЙЛИКОВ ====================
+        // ==================== СМАЙЛИКИ ДЛЯ ЧАТА ====================
         function initEmojiPicker() {
-            // Заполняем частые смайлы
-            elements.frequentEmojis.innerHTML = '';
-            emojiData.frequent.forEach(emoji => {
-                const emojiElement = createEmojiElement(emoji);
-                elements.frequentEmojis.appendChild(emojiElement);
-            });
+            const emojiCategories = {
+                "Часто используемые": ["😀", "😂", "🥰", "😎", "🤔", "👍", "👎", "🎉", "🙏", "❤️", "🔥", "💯"],
+                "Природа": ["🌍", "🌳", "🌲", "🌱", "🌿", "🍃", "🍂", "🌸", "🌼", "🌻", "🌺", "🌹", "💐", "🍀", "🌴", "🌵", "🌊", "☀️", "🌈", "❄️", "☃️", "⛄", "🌀", "🌪️", "🔥"],
+                "Животные": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞", "🐜", "🦟", "🦗", "🕷️", "🦂", "🐢", "🐍", "🦎", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🐐", "🦌", "🐕", "🐩", "🐈", "🐓", "🦃", "🦚", "🦜", "🦢", "🦩", "🐇", "🦝", "🦨", "🦡", "🦦", "🦥", "🐁", "🐀", "🐿️", "🦔"],
+                "Еда": ["🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🧈", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🦴", "🌭", "🍔", "🍟", "🍕", "🫓", "🥪", "🥙", "🧆", "🌮", "🌯", "🫔", "🥗", "🥘", "🫕", "🥫", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🦪", "🍤", "🍙", "🍚", "🍘", "🍥", "🥠", "🥮", "🍢", "🍡", "🍧", "🍨", "🍦", "🥧", "🧁", "🍰", "🎂", "🍮", "🍭", "🍬", "🍫", "🍿", "🍩", "🍪", "🌰", "🥜", "🍯"],
+                "Экология": ["🌱", "♻️", "💧", "🌞", "🌳", "🌲", "🌍", "🌏", "🌎", "🪴", "🍃", "🌿", "☘️", "🍀", "🏞️", "🏔️", "⛰️", "🌋", "🗻", "🏕️", "🏖️", "🏜️", "🏝️", "🛤️", "🛣️", "🗺️", "🧭", "🏭", "💨", "💧", "🔥", "🪵", "🪨", "⛏️", "⚒️", "🛠️", "🗜️", "⚙️", "🔩", "⛓️", "🧰", "🔋", "🔌", "💡", "🔦", "🕯️", "🪔", "🧯", "🛢️", "💸", "💵", "💴", "💶", "💷", "🪙", "💰", "💳", "🧾", "✉️", "📧", "📨", "📩", "📤", "📥", "📦", "📫", "📪", "📬", "📭", "📮", "🗳️", "🏷️", "📌", "📍", "📎", "🖇️", "📏", "📐", "✂️", "🗃️", "🗄️", "🗑️", "🔒", "🔓", "🔏", "🔐", "🔑", "🗝️", "🔨", "🪓", "⛏️", "⚔️", "🗡️", "🛡️", "🔧", "🔩", "⚙️", "🗜️", "⚖️", "🦯", "🔗", "⛓️", "🧰", "🧲", "🪜", "🛠️", "🗡️", "⚔️", "🔫", "🏹", "🛡️", "🔧", "🔩", "⚙️", "🗜️", "⚖️", "🦯", "🔗", "⛓️"],
+                "Игры": ["🎮", "🕹️", "👾", "🎲", "♟️", "🎯", "🀄", "🎪", "🎭", "🎨", "🧵", "🪡", "🧶", "🪢", "👓", "🕶️", "🥽", "🥼", "🦺", "👔", "👕", "👖", "🧣", "🧤", "🧥", "🧦", "👗", "👘", "🥻", "🩱", "🩲", "🩳", "👙", "👚", "👛", "👜", "👝", "🎒", "🩴", "👞", "👟", "🥾", "🥿", "👠", "👡", "🩰", "👢", "👑", "👒", "🎩", "🎓", "🧢", "⛑️", "💄", "💍", "💼"]
+            };
             
-            // Заполняем смайлы и эмоции
-            elements.smileysEmojis.innerHTML = '';
-            emojiData.smileys.forEach(emoji => {
-                const emojiElement = createEmojiElement(emoji);
-                elements.smileysEmojis.appendChild(emojiElement);
-            });
+            let emojiPickerHTML = '';
             
-            // Заполняем природу и животных
-            elements.natureEmojis.innerHTML = '';
-            emojiData.nature.forEach(emoji => {
-                const emojiElement = createEmojiElement(emoji);
-                elements.natureEmojis.appendChild(emojiElement);
-            });
+            for (const category in emojiCategories) {
+                emojiPickerHTML += `
+                    <div class="emoji-category">
+                        <div class="emoji-category-title">${category}</div>
+                        <div class="emoji-grid">
+                            ${emojiCategories[category].map(emoji => 
+                                `<div class="emoji-item" data-emoji="${emoji}">${emoji}</div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            }
             
-            // Заполняем еду и напитки
-            elements.foodEmojis.innerHTML = '';
-            emojiData.food.forEach(emoji => {
-                const emojiElement = createEmojiElement(emoji);
-                elements.foodEmojis.appendChild(emojiElement);
-            });
+            elements.emojiPicker.innerHTML = emojiPickerHTML;
             
-            // Заполняем активность и спорт
-            elements.activityEmojis.innerHTML = '';
-            emojiData.activity.forEach(emoji => {
-                const emojiElement = createEmojiElement(emoji);
-                elements.activityEmojis.appendChild(emojiElement);
+            // Добавляем обработчики для смайликов
+            document.querySelectorAll('.emoji-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const emoji = this.dataset.emoji;
+                    const chatInput = elements.chatInput;
+                    const cursorPos = chatInput.selectionStart;
+                    const textBefore = chatInput.value.substring(0, cursorPos);
+                    const textAfter = chatInput.value.substring(cursorPos);
+                    
+                    chatInput.value = textBefore + emoji + textAfter;
+                    chatInput.focus();
+                    chatInput.selectionStart = cursorPos + emoji.length;
+                    chatInput.selectionEnd = cursorPos + emoji.length;
+                    
+                    // Закрываем выбор смайликов
+                    elements.emojiPicker.classList.remove('active');
+                });
             });
             
             // Обработчик для кнопки выбора смайликов
             elements.emojiPickerBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                elements.emojiPicker.classList.toggle('show');
+                elements.emojiPicker.classList.toggle('active');
             });
             
             // Закрытие выбора смайликов при клике вне его
             document.addEventListener('click', function(e) {
                 if (!elements.emojiPicker.contains(e.target) && !elements.emojiPickerBtn.contains(e.target)) {
-                    elements.emojiPicker.classList.remove('show');
+                    elements.emojiPicker.classList.remove('active');
                 }
-            });
-            
-            // Предотвращаем закрытие при клике внутри выбора смайликов
-            elements.emojiPicker.addEventListener('click', function(e) {
-                e.stopPropagation();
             });
         }
         
-        function createEmojiElement(emoji) {
-            const emojiElement = document.createElement('div');
-            emojiElement.className = 'emoji-item';
-            emojiElement.textContent = emoji;
-            emojiElement.title = emoji;
+        // Функция для обработки смайликов в сообщениях
+        function parseEmojis(text) {
+            // Простая замена эмодзи на HTML
+            return text.replace(/\n/g, '<br>');
+        }
+        
+        function addChatMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'chat-message';
             
-            emojiElement.addEventListener('click', function() {
-                // Добавляем смайл в поле ввода
-                elements.chatInput.value += emoji;
-                elements.chatInput.focus();
+            // Обрабатываем смайлики в сообщении
+            const messageWithEmojis = message.replace(/([\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}])/gu, 
+                match => `<span class="chat-emoji">${match}</span>`);
+            
+            messageElement.innerHTML = `<span class="chat-sender">${sender}:</span> <span class="chat-text">${messageWithEmojis}</span>`;
+            elements.chatMessages.appendChild(messageElement);
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        }
+        
+        // ==================== ФУНКЦИЯ ОПОВЕЩЕНИЯ О НОВОМ ГОРОДЕ ====================
+        function checkNewCityArrival(newPosition) {
+            if (!gameState.currentPlayer || !mapData.cells) return;
+            
+            // Находим клетку, на которую попал игрок
+            const currentCell = mapData.cells.find(cell => cell.number === newPosition);
+            if (!currentCell) return;
+            
+            // Проверяем, попал ли игрок в город
+            if (currentCell.type === 'city' && currentCell.city) {
+                const cityKey = currentCell.city;
+                const city = gameData.cities[cityKey];
                 
-                // Закрываем выбор смайликов
-                elements.emojiPicker.classList.remove('show');
-                
-                // Добавляем в частые смайлы, если его там нет
-                if (!emojiData.frequent.includes(emoji)) {
-                    emojiData.frequent.unshift(emoji);
-                    if (emojiData.frequent.length > 10) {
-                        emojiData.frequent.pop();
-                    }
+                // Проверяем, новый ли это город для игрока
+                if (gameState.lastCityVisited !== cityKey) {
+                    gameState.lastCityVisited = cityKey;
                     
-                    // Обновляем отображение частых смайлов
-                    elements.frequentEmojis.innerHTML = '';
-                    emojiData.frequent.forEach(emoji => {
-                        const emojiElement = createEmojiElement(emoji);
-                        elements.frequentEmojis.appendChild(emojiElement);
-                    });
+                    // Показываем уведомление о новом городе
+                    showNotification(`🏙️ Вы прибыли в новый город: ${city.name}!`, 'success');
+                    
+                    // Показываем информацию о городе через 1 секунду
+                    setTimeout(() => {
+                        showCityModal(cityKey);
+                    }, 1000);
+                    
+                    // Добавляем запись в журнал
+                    addLogEntry(`🏙️ Вы прибыли в новый город: ${city.name}!`);
                 }
-            });
-            
-            return emojiElement;
+            }
         }
         
         // ==================== СЛУШАТЕЛИ СОБЫТИЙ SOCKET.IO ====================
@@ -3914,6 +3857,7 @@
             gameState.turnOrder = playerData.turnOrder || [];
             gameState.isMyTurn = playerData.isMyTurn || false;
             gameState.hasUnfinishedTask = playerData.hasUnfinishedTask || false;
+            gameState.lastCityVisited = playerData.city || 'tver'; // Устанавливаем последний посещенный город
             
             // Загружаем сохраненный прогресс игрока
             if (playerData.playerProgress) {
@@ -4216,6 +4160,7 @@
                 elements.notification.classList.add('error');
             } else {
                 elements.notification.style.background = 'var(--secondary)';
+                elements.notification.classList.add('info');
             }
             
             elements.notification.classList.add('show');
@@ -4267,19 +4212,22 @@
             updateLevelProgress();
             
             initializeQuickActions();
+            initEmojiPicker();
             
             addLogEntry(`🎮 Добро пожаловать в игре, ${playerData.name}!`);
             
             // Обновляем состояние кнопки броска кубика
             updateRollDiceButtonState();
             
-            // НЕ показываем модальное окно города сразу при входе в комнату
-            // Вместо этого показываем уведомление о стартовом городе
-            if (gameState.currentPlayer.city === 'tver') {
-                setTimeout(() => {
-                    showNotification(`🚀 Вы начинаете игру в городе Тверь! Это ваш стартовый город.`, 'info');
-                    addLogEntry(`📍 Вы начинаете игру в городе Тверь. Это ваш стартовый город.`);
-                }, 1000);
+            // Инициализируем новогодний режим
+            const savedChristmasMode = localStorage.getItem('christmasMode');
+            if (savedChristmasMode === 'disabled') {
+                christmasModeEnabled = false;
+                toggleChristmasMode(); // Это выключит режим
+            } else {
+                // По умолчанию включен
+                createSnowflakes();
+                document.body.classList.add('christmas-mode');
             }
             
             socket.emit('get_room_state');
@@ -4326,7 +4274,8 @@
                     matchedPairs: 0,
                     canFlip: true
                 },
-                quizSelectedAnswer: null
+                quizSelectedAnswer: null,
+                lastCityVisited: null
             };
             
             hasCurrentTask = false;
@@ -4375,35 +4324,6 @@
                     createCitiesGrid();
                 }
             }
-        }
-        
-        function addChatMessage(sender, message) {
-            const messageElement = document.createElement('div');
-            messageElement.className = 'chat-message';
-            messageElement.innerHTML = `<span class="chat-sender">${sender}:</span> <span class="chat-text">${message}</span>`;
-            elements.chatMessages.appendChild(messageElement);
-            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-        }
-        
-        function savePlayerState() {
-            if (!isConnected || !gameState.currentPlayer) return;
-            
-            socket.emit('player-update', {
-                id: gameState.currentPlayerId,
-                name: gameState.currentPlayer.name,
-                position: gameState.currentPlayer.position,
-                city: gameState.currentPlayer.city,
-                coins: gameState.currentPlayer.coins,
-                cleaningPoints: gameState.currentPlayer.cleaningPoints,
-                buildings: gameState.currentPlayer.buildings,
-                level: gameState.currentPlayer.level,
-                completedTasks: gameState.currentPlayer.completedTasks,
-                color: gameState.currentPlayer.color || getRandomColor(gameState.currentPlayerId),
-                connected: true,
-                progress: gameState.playerProgress[gameState.currentPlayerId],
-                currentTask: gameState.currentTask,
-                hasUnfinishedTask: hasCurrentTask || gameState.taskInProgress
-            });
         }
         
         function sendChatMessage(message) {
@@ -4473,7 +4393,7 @@
                         
                         showNotification('Карта городов России успешно загружена!', 'success');
                     } else {
-                        throw new Error('Некорректный формат файла карты');
+                        throw new Error('Некорректный формат файла карта');
                     }
                 })
                 .catch(error => {
@@ -6470,12 +6390,12 @@
                 showInviteModal();
             });
             
-            quickNewYearBtn.addEventListener('click', function() {
+            quickChristmasBtn.addEventListener('click', function() {
                 quickActions.classList.remove('show');
                 quickActionsBtn.classList.remove('active');
                 quickActionsVisible = false;
                 
-                toggleNewYearDesign();
+                toggleChristmasMode();
             });
             
             document.addEventListener('click', function(event) {
@@ -6592,29 +6512,12 @@
                 
                 // Находим клетку, на которую попал игрок
                 const currentCell = mapData.cells.find(cell => cell.number === newPosition);
-                let cityChanged = false;
-                let newCityKey = null;
-                
                 if (currentCell) {
                     if (currentCell.type === 'city' && currentCell.city) {
-                        const oldCityKey = gameState.currentPlayer.city;
-                        newCityKey = currentCell.city;
+                        gameState.currentPlayer.city = currentCell.city;
                         
-                        // Проверяем, изменился ли город
-                        if (oldCityKey !== newCityKey) {
-                            cityChanged = true;
-                            gameState.currentPlayer.city = newCityKey;
-                            
-                            // Показываем уведомление о переходе в новый город
-                            const newCityName = gameData.cities[newCityKey]?.name || 'Новый город';
-                            showNotification(`🏙️ Вы перешли в новый город: ${newCityName}!`, 'success');
-                            addLogEntry(`🏙️ Вы перешли в новый город: ${newCityName}`);
-                            
-                            // Показываем модальное окно с информацией о новом городе
-                            setTimeout(() => {
-                                showCityModal(newCityKey);
-                            }, 1000);
-                        }
+                        // Проверяем, попал ли игрок в новый город
+                        checkNewCityArrival(newPosition);
                     }
                 }
                 
@@ -6728,10 +6631,6 @@
             showNotification('Вы перешли в новый город!', 'success');
         });
         
-        elements.newYearToggle.addEventListener('click', () => {
-            toggleNewYearDesign();
-        });
-        
         // Обработчик для сворачивания/разворачивания информации об игре
         elements.gameInfo.querySelector('h3').addEventListener('click', function() {
             elements.gameInfo.classList.toggle('expanded');
@@ -6776,12 +6675,7 @@
             console.log('🚀 Игра "Юный эколог" инициализирована');
             updateConnectionStatus('connecting', 'Подключение к серверу...');
             
-            // Инициализируем новогодний дизайн
-            const savedSetting = localStorage.getItem('newYearDesignEnabled');
-            newYearDesignEnabled = savedSetting !== null ? savedSetting === 'true' : true;
-            initNewYearDesign();
-            
-            // Инициализируем выбор смайликов
+            // Инициализируем смайлики
             initEmojiPicker();
         });
         
