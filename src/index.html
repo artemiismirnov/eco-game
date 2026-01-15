@@ -17,11 +17,11 @@
             --warning: #ff9e1f;
             --card-bg: rgba(255, 255, 255, 0.15);
             --card-border: rgba(255, 255, 255, 0.2);
-            --xmas-primary: #0f2b35;
-            --xmas-secondary: #c62828;
-            --xmas-accent: #2e7d32;
-            --xmas-light: #fff;
-            --xmas-dark: #1a1a2e;
+            --dark-primary: #0f2b35;
+            --dark-secondary: #8e44ad;
+            --dark-accent: #3498db;
+            --dark-light: #fff;
+            --dark-dark: #1a1a2e;
         }
         
         * {
@@ -44,10 +44,8 @@
         /* Темная тема */
         body.dark-theme {
             background: linear-gradient(135deg, #1a1a2e, #0f2b35);
-            color: var(--xmas-light);
+            color: var(--dark-light);
         }
-        
-        /* Снежинки удалены */
         
         .container {
             max-width: 1400px;
@@ -79,14 +77,9 @@
         }
         
         body.dark-theme h1 {
-            background: linear-gradient(to right, #ff6b6b, #4ecdc4, #2ecc71);
+            background: linear-gradient(to right, #8e44ad, #3498db, #2ecc71);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-        }
-        
-        /* Убрана новогодняя шапка */
-        .xmas-hat {
-            display: none;
         }
         
         .subtitle {
@@ -96,7 +89,7 @@
         }
         
         body.dark-theme .subtitle {
-            color: #4ecdc4;
+            color: #3498db;
         }
         
         /* ==================== СТАТУС ПОДКЛЮЧЕНИЯ ==================== */
@@ -352,62 +345,6 @@
             color: rgba(255, 255, 255, 0.95);
             line-height: 1.4;
             word-break: break-word;
-        }
-        
-        /* ==================== НОВЫЙ СЕКЦИЯ: ПОСЛЕДНИЕ СМАЙЛИКИ ==================== */
-        .recent-emojis-section {
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 15px;
-        }
-        
-        .recent-emojis-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-            min-height: 45px;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-        }
-        
-        .recent-emoji-item {
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 5px;
-            transition: all 0.2s;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .recent-emoji-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.2);
-        }
-        
-        .recent-emojis-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        
-        .clear-emojis-btn {
-            background: rgba(231, 76, 60, 0.2);
-            color: #ff6b6b;
-            border: 1px solid rgba(231, 76, 60, 0.5);
-            padding: 4px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s;
-        }
-        
-        .clear-emojis-btn:hover {
-            background: rgba(231, 76, 60, 0.4);
-            transform: translateY(-2px);
         }
         
         /* ==================== МАРКЕРЫ ИГРОКОВ ==================== */
@@ -1203,8 +1140,8 @@
         }
         
         body.dark-theme .auth-tab.active {
-            border-bottom: 3px solid #ff6b6b;
-            color: #ff6b6b;
+            border-bottom: 3px solid #8e44ad;
+            color: #8e44ad;
         }
         
         .auth-form {
@@ -1246,8 +1183,8 @@
         }
         
         body.dark-theme input:focus {
-            border-color: #ff6b6b;
-            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+            border-color: #8e44ad;
+            box-shadow: 0 0 10px rgba(142, 68, 173, 0.5);
         }
         
         .auth-btn {
@@ -1277,13 +1214,13 @@
         }
         
         body.dark-theme .auth-btn {
-            background: linear-gradient(135deg, #ff6b6b, #c62828);
-            box-shadow: 0 4px 0 rgba(198, 40, 40, 0.8);
+            background: linear-gradient(135deg, #8e44ad, #3498db);
+            box-shadow: 0 4px 0 rgba(52, 152, 219, 0.8);
         }
         
         body.dark-theme .auth-btn:hover {
-            background: linear-gradient(135deg, #ff5252, #b71c1c);
-            box-shadow: 0 6px 0 rgba(183, 28, 28, 0.8);
+            background: linear-gradient(135deg, #7d3c98, #2980b9);
+            box-shadow: 0 6px 0 rgba(41, 128, 185, 0.8);
         }
         
         /* ==================== ОСНОВНОЙ ИГРОВОЙ ИНТЕРФЕЙС ==================== */
@@ -1378,7 +1315,7 @@
         }
         
         body.dark-theme .stat-value {
-            color: #ff6b6b;
+            color: #8e44ad;
         }
         
         .level-info {
@@ -1477,14 +1414,14 @@
         }
         
         body.dark-theme .game-btn {
-            background: linear-gradient(135deg, #ff6b6b, #c62828);
+            background: linear-gradient(135deg, #8e44ad, #3498db);
             color: white;
-            box-shadow: 0 4px 0 rgba(198, 40, 40, 0.8);
+            box-shadow: 0 4px 0 rgba(52, 152, 219, 0.8);
         }
         
         body.dark-theme .game-btn:hover {
-            background: linear-gradient(135deg, #ff5252, #b71c1c);
-            box-shadow: 0 6px 0 rgba(183, 28, 28, 0.8);
+            background: linear-gradient(135deg, #7d3c98, #2980b9);
+            box-shadow: 0 6px 0 rgba(41, 128, 185, 0.8);
         }
         
         body.dark-theme .game-btn:disabled {
@@ -1870,7 +1807,7 @@
         }
         
         body.dark-theme .emoji-picker-btn {
-            background: linear-gradient(135deg, #ff6b6b, #c62828);
+            background: linear-gradient(135deg, #8e44ad, #3498db);
             color: white;
         }
         
@@ -1930,6 +1867,47 @@
             padding: 10px 20px;
         }
         
+        /* ==================== НЕДАВНИЕ СМАЙЛИКИ ==================== */
+        .recent-emojis-section {
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .recent-emojis-title {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .recent-emojis-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 40px;
+            padding: 5px;
+        }
+        
+        .recent-emoji-item {
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .recent-emoji-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.2);
+        }
+        
+        body.dark-theme .recent-emojis-section {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
         /* ==================== УВЕДОМЛЕНИЯ ==================== */
         .notification {
             position: fixed;
@@ -1964,7 +1942,7 @@
         }
         
         body.dark-theme .notification.info {
-            background: linear-gradient(135deg, #ff6b6b, #c62828);
+            background: linear-gradient(135deg, #8e44ad, #3498db);
         }
         
         /* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
@@ -2029,7 +2007,7 @@
         body.dark-theme .city-modal-title,
         body.dark-theme .choice-modal-title,
         body.dark-theme .invite-modal-title {
-            color: #ff6b6b;
+            color: #8e44ad;
         }
         
         .city-modal-subtitle {
@@ -2053,7 +2031,7 @@
         }
         
         body.dark-theme .city-modal-section h4 {
-            color: #ff6b6b;
+            color: #8e44ad;
         }
         
         .city-modal-section p {
@@ -2197,7 +2175,7 @@
         }
         
         body.dark-theme .floating-action-btn {
-            background: linear-gradient(135deg, #ff6b6b, #c62828);
+            background: linear-gradient(135deg, #8e44ad, #3498db);
         }
         
         .quick-actions {
@@ -2307,7 +2285,7 @@
         }
         
         body.dark-theme .resource-value {
-            color: #ff6b6b;
+            color: #8e44ad;
         }
         
         /* ==================== ПОДВАЛ ==================== */
@@ -2367,11 +2345,11 @@
         }
         
         body.dark-theme .copy-invite-btn {
-            background: linear-gradient(135deg, #ff6b6b, #c62828);
+            background: linear-gradient(135deg, #8e44ad, #3498db);
         }
         
         body.dark-theme .copy-invite-btn:hover {
-            background: linear-gradient(135deg, #ff5252, #b71c1c);
+            background: linear-gradient(135deg, #7d3c98, #2980b9);
         }
         
         /* ==================== АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ ==================== */
@@ -2905,14 +2883,11 @@
                         </div>
                     </div>
                     
-                    <!-- НОВЫЙ РАЗДЕЛ: Последние использованные смайлики -->
+                    <!-- Недавние смайлики -->
                     <div class="recent-emojis-section" id="recentEmojisSection" style="display: none;">
-                        <div class="recent-emojis-title">
-                            <h4>Недавние смайлики:</h4>
-                            <button class="clear-emojis-btn" id="clearEmojisBtn">Очистить</button>
-                        </div>
+                        <div class="recent-emojis-title">Недавние смайлики:</div>
                         <div class="recent-emojis-container" id="recentEmojisContainer">
-                            <!-- Смайлики будут добавляться здесь динамически -->
+                            <!-- Недавние смайлики будут добавлены через JS -->
                         </div>
                     </div>
                     
@@ -2942,8 +2917,6 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Легенда карты убрана по требованию -->
                     
                     <!-- Сетка городов -->
                     <div class="cities-section">
@@ -3324,8 +3297,7 @@
             copyInviteBtn: document.getElementById('copyInviteBtn'),
             closeInviteBtn: document.getElementById('closeInviteBtn'),
             recentEmojisSection: document.getElementById('recentEmojisSection'),
-            recentEmojisContainer: document.getElementById('recentEmojisContainer'),
-            clearEmojisBtn: document.getElementById('clearEmojisBtn')
+            recentEmojisContainer: document.getElementById('recentEmojisContainer')
         };
         
         // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -3338,48 +3310,31 @@
         const quickInviteBtn = document.getElementById('quickInviteBtn');
         const quickThemeBtn = document.getElementById('quickThemeBtn');
         
-        // ==================== НОВАЯ ФУНКЦИОНАЛЬНОСТЬ: НЕДАВНИЕ СМАЙЛИКИ ====================
-        let recentEmojis = [];
-        const MAX_RECENT_EMOJIS = 12;
+        // ==================== НЕДАВНИЕ СМАЙЛИКИ ====================
+        let recentEmojis = JSON.parse(localStorage.getItem('recentEmojis') || '[]');
         
-        function addToRecentEmojis(emoji) {
-            // Удаляем смайлик если он уже есть в списке
-            recentEmojis = recentEmojis.filter(e => e !== emoji);
-            
-            // Добавляем смайлик в начало списка
-            recentEmojis.unshift(emoji);
-            
-            // Ограничиваем список максимальным количеством
-            if (recentEmojis.length > MAX_RECENT_EMOJIS) {
-                recentEmojis = recentEmojis.slice(0, MAX_RECENT_EMOJIS);
-            }
-            
-            // Сохраняем в localStorage
-            localStorage.setItem('recentEmojis', JSON.stringify(recentEmojis));
-            
-            // Обновляем отображение
-            updateRecentEmojisDisplay();
-        }
-        
-        function loadRecentEmojis() {
-            const saved = localStorage.getItem('recentEmojis');
-            if (saved) {
-                try {
-                    recentEmojis = JSON.parse(saved);
-                } catch (e) {
-                    recentEmojis = [];
+        function addRecentEmoji(emoji) {
+            if (!recentEmojis.includes(emoji)) {
+                recentEmojis.unshift(emoji);
+                if (recentEmojis.length > 10) {
+                    recentEmojis = recentEmojis.slice(0, 10);
                 }
+                localStorage.setItem('recentEmojis', JSON.stringify(recentEmojis));
+                updateRecentEmojisDisplay();
             }
-            updateRecentEmojisDisplay();
         }
         
         function updateRecentEmojisDisplay() {
+            if (!elements.recentEmojisContainer) return;
+            
             elements.recentEmojisContainer.innerHTML = '';
             
             if (recentEmojis.length === 0) {
-                elements.recentEmojisContainer.innerHTML = '<div style="color: rgba(255,255,255,0.5); font-size: 0.9rem; text-align: center; width: 100%; padding: 10px;">Вы еще не использовали смайлики</div>';
+                elements.recentEmojisSection.style.display = 'none';
                 return;
             }
+            
+            elements.recentEmojisSection.style.display = 'block';
             
             recentEmojis.forEach(emoji => {
                 const emojiItem = document.createElement('div');
@@ -3390,27 +3345,11 @@
                 emojiItem.addEventListener('click', () => {
                     elements.chatInput.value += emoji;
                     elements.chatInput.focus();
-                    addToRecentEmojis(emoji);
+                    addRecentEmoji(emoji);
                 });
                 
                 elements.recentEmojisContainer.appendChild(emojiItem);
             });
-            
-            // Показываем секцию если есть смайлики
-            if (recentEmojis.length > 0) {
-                elements.recentEmojisSection.style.display = 'block';
-            } else {
-                elements.recentEmojisSection.style.display = 'none';
-            }
-        }
-        
-        function clearRecentEmojis() {
-            if (confirm('Очистить историю использованных смайликов?')) {
-                recentEmojis = [];
-                localStorage.removeItem('recentEmojis');
-                updateRecentEmojisDisplay();
-                showNotification('История смайликов очищена', 'info');
-            }
         }
         
         // ==================== ТЕМНАЯ ТЕМА ====================
@@ -3472,7 +3411,7 @@
                     emojiItem.addEventListener('click', () => {
                         elements.chatInput.value += emoji;
                         elements.chatInput.focus();
-                        addToRecentEmojis(emoji);
+                        addRecentEmoji(emoji);
                     });
                     
                     emojiList.appendChild(emojiItem);
@@ -4016,8 +3955,18 @@
             addLogEntry(`👋 Игрок "${data.playerName}" покинул игру.`);
         });
         
+        // ФИКС: Теперь сообщения в чате не будут задваиваться
         socket.on('new_chat_message', (data) => {
             if (data.playerName && data.message) {
+                // Не добавляем сообщение если оно уже отображается
+                const lastMessage = elements.chatMessages.lastChild;
+                if (lastMessage && 
+                    lastMessage.querySelector('.chat-sender') && 
+                    lastMessage.querySelector('.chat-sender').textContent === data.playerName + ':' &&
+                    lastMessage.querySelector('.chat-text').textContent === data.message) {
+                    // Сообщение уже есть, пропускаем
+                    return;
+                }
                 addChatMessage(data.playerName, data.message);
             }
         });
@@ -4285,7 +4234,16 @@
             
             initializeQuickActions();
             initEmojiPicker();
-            loadRecentEmojis();
+            updateRecentEmojisDisplay();
+            
+            // Проверяем сохраненную тему
+            const savedTheme = localStorage.getItem('darkTheme');
+            if (savedTheme === 'enabled') {
+                toggleDarkTheme(); // Включаем если сохранена
+            } else {
+                // По умолчанию выключена
+                quickThemeBtn.innerHTML = '🌞<div class="tooltip">Включить темную тему</div>';
+            }
             
             addLogEntry(`🎮 Добро пожаловать в игре, ${playerData.name}!`);
             
@@ -4394,35 +4352,21 @@
             }
         }
         
-        // ИСПРАВЛЕНИЕ: Убрано задвоение сообщений
-        let lastMessageTime = 0;
-        let messageCooldown = 100; // 100ms cooldown
-        
         function addChatMessage(sender, message) {
-            const now = Date.now();
-            if (now - lastMessageTime < messageCooldown) {
-                console.log('Предотвращено задвоение сообщения');
-                return;
-            }
-            
-            lastMessageTime = now;
-            
             const messageElement = document.createElement('div');
             messageElement.className = 'chat-message';
             messageElement.innerHTML = `<span class="chat-sender">${sender}:</span> <span class="chat-text">${message}</span>`;
             elements.chatMessages.appendChild(messageElement);
             elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
             
-            // Извлекаем смайлики из сообщения
-            extractEmojisFromMessage(message).forEach(emoji => {
-                addToRecentEmojis(emoji);
-            });
-        }
-        
-        function extractEmojisFromMessage(message) {
-            // Простая регулярка для поиска эмодзи
-            const emojiRegex = /[\p{Emoji}\u200d]+/gu;
-            return message.match(emojiRegex) || [];
+            // Ищем эмодзи в сообщении и добавляем в недавние
+            const emojiRegex = /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu;
+            const emojis = message.match(emojiRegex);
+            if (emojis) {
+                emojis.forEach(emoji => {
+                    addRecentEmoji(emoji);
+                });
+            }
         }
         
         function savePlayerState() {
@@ -4446,30 +4390,14 @@
             });
         }
         
-        // ИСПРАВЛЕНИЕ: Улучшенная отправка сообщений
-        let isSendingMessage = false;
-        
         function sendChatMessage(message) {
-            if (isSendingMessage) return;
-            if (!isConnected || !gameState.currentPlayer) return;
-            if (!message.trim()) return;
-            
-            isSendingMessage = true;
-            
-            // ИСПРАВЛЕНИЕ: Не добавляем сообщение локально, только отправляем на сервер
-            // Сервер вернет его через событие new_chat_message
-            
-            socket.emit('chat_message', {
-                message: message
-            }, (response) => {
-                isSendingMessage = false;
-                if (response && response.error) {
-                    showNotification('Ошибка отправки сообщения', 'error');
-                }
-            });
-            
-            // Очищаем поле ввода
-            elements.chatInput.value = '';
+            if (isConnected && gameState.currentPlayer) {
+                // ФИКС: Убираем задвоение сообщений
+                // Сообщение добавляется только через сокет, локально не добавляем
+                socket.emit('chat_message', {
+                    message: message
+                });
+            }
         }
         
         // ==================== ФУНКЦИИ ДЛЯ КАРТЫ ====================
@@ -5211,7 +5139,7 @@
                         items: ["🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
                     },
                     {
-                        description: "Что такое переработка отходов? ♻️",
+                        description: "Что такое переработка отходы? ♻️",
                         type: "quiz",
                         question: "Что такое переработка отходов?",
                         options: [
@@ -5511,7 +5439,7 @@
                 createDefaultTask(task);
             }
             
-            // Кнопка "Начать выполнение задания" меняется на "Проверить выполнение"
+            // ИСПРАВЛЕНО: Кнопка "Начать выполнение задания" меняется на "Проверить выполнение"
             elements.completeTaskBtn.style.display = 'none';
             elements.checkTaskBtn.style.display = 'block';
             elements.checkTaskBtn.textContent = "✅ Проверить выполнение";
@@ -5584,7 +5512,7 @@
                     }
                 });
                 
-                // Не показываем правильный ответ при ошибке
+                // ИСПРАВЛЕНО: Не показываем правильный ответ при ошибке
                 if (isCorrect) {
                     elements.taskResult.textContent = '✅ Правильно! Задание выполнено.';
                     elements.taskResult.style.color = '#2ecc71';
@@ -6752,26 +6680,21 @@
             }
         });
         
-        // ИСПРАВЛЕНИЕ: Улучшенная отправка сообщений
+        // ФИКС: Исправлено задвоение сообщений в чате
         elements.sendMessageBtn.addEventListener('click', () => {
             const message = elements.chatInput.value.trim();
             if (message) {
                 sendChatMessage(message);
+                // Сообщение будет добавлено только через сокет, чтобы избежать задвоения
+                elements.chatInput.value = '';
             }
         });
         
         elements.chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault();
-                const message = elements.chatInput.value.trim();
-                if (message) {
-                    sendChatMessage(message);
-                }
+                elements.sendMessageBtn.click();
             }
         });
-        
-        // Обработчики для новой функциональности недавних смайликов
-        elements.clearEmojisBtn.addEventListener('click', clearRecentEmojis);
         
         elements.inviteBtn.addEventListener('click', () => {
             showInviteModal();
@@ -6824,11 +6747,8 @@
             elements.gameInfo.classList.toggle('expanded');
         });
         
-        // ==================== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ====================
+        // Инициализация темы при загрузке
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎮 Игра "Юный эколог" загружена');
-            
-            // Загружаем сохраненную тему
             const savedTheme = localStorage.getItem('darkTheme');
             if (savedTheme === 'enabled') {
                 darkThemeEnabled = true;
@@ -6836,16 +6756,11 @@
                 quickThemeBtn.innerHTML = '🌙<div class="tooltip">Выключить темную тему</div>';
             } else {
                 darkThemeEnabled = false;
+                document.body.classList.remove('dark-theme');
                 quickThemeBtn.innerHTML = '🌞<div class="tooltip">Включить темную тему</div>';
             }
             
-            // Загружаем сохраненные смайлики
-            loadRecentEmojis();
-            
-            // Инициализируем информацию об игре
-            elements.gameInfo.classList.remove('expanded');
-            
-            showNotification('Добро пожаловать в игру "Юный эколог"!', 'info');
+            updateRecentEmojisDisplay();
         });
     </script>
 </body>
