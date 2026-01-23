@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Юный эколог - Многопользовательская экологическая игра</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -234,7 +234,6 @@
             height: auto;
             object-fit: contain;
             background-color: #e8f5e9;
-            display: block;
         }
         
         .map-overlay {
@@ -2427,28 +2426,27 @@
             }
             
             .player-marker {
-                width: 28px;
-                height: 28px;
+                width: 24px;
+                height: 24px;
                 font-size: 8px;
-                border-width: 2px;
             }
             
             .draggable-item, .clickable-item, .sort-item {
-                width: 55px;
-                height: 55px;
-                font-size: 1.6rem;
-                margin: 6px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.4rem;
+                margin: 5px;
             }
             
             .drop-zone, .sort-bin {
-                width: 70px;
-                height: 70px;
-                font-size: 0.8rem;
-                margin: 6px;
+                width: 60px;
+                height: 90px;
+                font-size: 0.7rem;
+                margin: 5px;
             }
             
             .sort-bin {
-                height: 110px;
+                height: 100px;
             }
             
             .game-btn {
@@ -2468,8 +2466,8 @@
             }
             
             .emoji-picker {
-                width: 280px;
-                max-height: 280px;
+                width: 250px;
+                max-height: 250px;
                 right: 5px;
                 bottom: 60px;
             }
@@ -2517,8 +2515,6 @@
             
             .map-image-container {
                 height: 400px;
-                min-height: 400px;
-                padding: 5px;
             }
             
             #mapImage {
@@ -2531,7 +2527,6 @@
             .task-area {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
-                padding: 15px 10px;
             }
             
             .drag-container, .sorting-area, .puzzle-area, .sequence-area {
@@ -2542,7 +2537,6 @@
             
             .cities-grid {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 8px;
             }
             
             .match-grid {
@@ -2551,43 +2545,15 @@
             }
             
             .match-card {
-                width: 70px;
-                height: 70px;
+                width: 60px;
+                height: 60px;
                 font-size: 1.4rem;
-            }
-            
-            /* Улучшенные стили для мобильных */
-            .player-item {
-                padding: 10px;
-                font-size: 0.9rem;
-            }
-            
-            .city-card {
-                padding: 8px;
-            }
-            
-            .city-name {
-                font-size: 0.85rem;
-            }
-            
-            .building-item {
-                padding: 10px;
-                font-size: 0.9rem;
-            }
-            
-            .log-entry {
-                font-size: 0.8rem;
-                padding: 6px;
             }
         }
         
         @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
             .container {
-                padding: 5px;
+                padding: 10px;
             }
             
             h1 {
@@ -2611,12 +2577,10 @@
             
             .difficulty-selector {
                 flex-direction: column;
-                gap: 8px;
             }
             
             .cities-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 6px;
             }
             
             .connection-status-compact {
@@ -2648,10 +2612,8 @@
             }
             
             .emoji-picker {
-                width: 250px;
-                max-height: 250px;
-                right: 0;
-                bottom: 55px;
+                width: 220px;
+                max-height: 200px;
             }
             
             .match-grid {
@@ -2660,102 +2622,19 @@
             }
             
             .match-card {
-                width: 65px;
-                height: 65px;
+                width: 55px;
+                height: 55px;
                 font-size: 1.2rem;
             }
             
             .map-image-container {
-                height: 320px;
-                min-height: 320px;
+                height: 300px;
             }
             
             #mapImage {
                 width: 100%;
                 height: 100%;
                 object-fit: contain;
-            }
-            
-            .player-marker {
-                width: 26px;
-                height: 26px;
-                font-size: 7px;
-                border-width: 2px;
-            }
-            
-            .draggable-item, .clickable-item, .sort-item {
-                width: 50px;
-                height: 50px;
-                font-size: 1.4rem;
-                margin: 5px;
-            }
-            
-            .drop-zone, .sort-bin {
-                width: 65px;
-                height: 65px;
-                font-size: 0.7rem;
-                margin: 5px;
-            }
-            
-            .sort-bin {
-                height: 100px;
-            }
-            
-            .puzzle-piece, .sequence-piece {
-                width: 60px;
-                height: 60px;
-                font-size: 1.6rem;
-                margin: 5px;
-            }
-            
-            .puzzle-target-slot, .sequence-slot {
-                width: 70px;
-                height: 70px;
-                margin: 5px;
-            }
-            
-            .cleanup-item {
-                width: 45px;
-                height: 45px;
-                font-size: 1.6rem;
-            }
-            
-            .game-info {
-                padding: 15px;
-                margin: 15px auto;
-            }
-            
-            .game-board, .game-info-panel, .room-section {
-                padding: 15px;
-            }
-            
-            .player-info {
-                padding: 15px;
-            }
-            
-            .task-card {
-                padding: 15px;
-            }
-            
-            /* Мобильное меню */
-            .quick-actions {
-                bottom: 80px;
-                right: 15px;
-                gap: 8px;
-            }
-            
-            .quick-action-btn {
-                width: 45px;
-                height: 45px;
-                font-size: 1.1rem;
-            }
-            
-            .floating-action-btn {
-                width: 55px;
-                height: 55px;
-                font-size: 1.3rem;
-                bottom: 15px;
-                right: 15px;
             }
         }
         
@@ -2874,27 +2753,9 @@
             text-align: center;
             margin: 10px 0;
         }
-        
-        /* Класс для мобильных устройств */
-        .mobile-device {
-            /* Специфичные стили для мобильных устройств */
-        }
-        
-        /* Класс для десктопных устройств */
-        .desktop-device {
-            /* Специфичные стили для десктопов */
-        }
-        
-        /* Стили для инструмента детекции устройства */
-        .device-detector {
-            display: none;
-        }
     </style>
 </head>
 <body>
-    <!-- Детектор устройства -->
-    <div class="device-detector" id="deviceDetector"></div>
-    
     <div class="container">
         <!-- Шапка -->
         <header>
@@ -3376,53 +3237,8 @@
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script src="mapData.js"></script>
     <script>
-        // ==================== ДЕТЕКЦИЯ УСТРОЙСТВА ====================
-        let isMobileDevice = false;
-        let isTabletDevice = false;
-        let isDesktopDevice = true;
-        
-        function detectDevice() {
-            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-            const width = window.innerWidth;
-            
-            // Определяем мобильное устройство
-            const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-            isMobileDevice = mobileRegex.test(userAgent);
-            
-            // Определяем планшет
-            isTabletDevice = /iPad|Android(?!.*Mobile)|Tablet|Silk/i.test(userAgent) || 
-                            (width >= 768 && width <= 1024 && /Touch|Tablet/i.test(userAgent));
-            
-            // Определяем десктоп
-            isDesktopDevice = !isMobileDevice && !isTabletDevice;
-            
-            // Добавляем классы к body для стилизации
-            if (isMobileDevice) {
-                document.body.classList.add('mobile-device');
-                document.body.classList.remove('desktop-device');
-            } else if (isTabletDevice) {
-                document.body.classList.add('tablet-device');
-                document.body.classList.remove('desktop-device');
-            } else {
-                document.body.classList.add('desktop-device');
-                document.body.classList.remove('mobile-device', 'tablet-device');
-            }
-            
-            console.log(`📱 Устройство: Mobile=${isMobileDevice}, Tablet=${isTabletDevice}, Desktop=${isDesktopDevice}, Width=${width}px`);
-            
-            return {
-                isMobile: isMobileDevice,
-                isTablet: isTabletDevice,
-                isDesktop: isDesktopDevice,
-                width: width
-            };
-        }
-        
         // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         console.log('🎮 Игра "Юный эколог" загружается...');
-        
-        // Детекция устройства
-        const deviceInfo = detectDevice();
         
         // Автоматическое определение URL сервера
         const serverUrl = window.location.origin;
@@ -3521,8 +3337,7 @@
             copyInviteBtn: document.getElementById('copyInviteBtn'),
             closeInviteBtn: document.getElementById('closeInviteBtn'),
             recentEmojisSection: document.getElementById('recentEmojisSection'),
-            recentEmojisContainer: document.getElementById('recentEmojisContainer'),
-            deviceDetector: document.getElementById('deviceDetector')
+            recentEmojisContainer: document.getElementById('recentEmojisContainer')
         };
         
         // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -4039,14 +3854,7 @@
         // ==================== ДАННЫЕ КАРТЫ ====================
         let mapData = {
             cells: [],
-            imageLoaded: false,
-            imageWidth: 0,
-            imageHeight: 0,
-            containerWidth: 0,
-            containerHeight: 0,
-            scaleFactor: 1,
-            offsetX: 0,
-            offsetY: 0
+            imageLoaded: false
         };
         
         // ==================== СОСТОЯНИЕ ИГРЫ ====================
@@ -4362,10 +4170,8 @@
             // Находим клетку с указанной позицией
             const cell = mapData.cells.find(c => c.number === position);
             if (cell) {
-                // Используем корректное позиционирование в зависимости от устройства
-                const markerPos = calculateMarkerPosition(cell);
-                marker.style.left = `${markerPos.x}px`;
-                marker.style.top = `${markerPos.y}px`;
+                marker.style.left = `${cell.x + cell.width/2}px`;
+                marker.style.top = `${cell.y + cell.height/2}px`;
                 
                 const tooltip = marker.querySelector('.player-tooltip');
                 if (tooltip) {
@@ -4374,30 +4180,6 @@
             }
             
             updatePlayerInList(playerId, position, playerName);
-        }
-        
-        function calculateMarkerPosition(cell) {
-            // Функция для расчета позиции маркера с учетом масштабирования
-            if (!mapData.imageLoaded || mapData.scaleFactor === 0) {
-                return {
-                    x: cell.x + cell.width/2,
-                    y: cell.y + cell.height/2
-                };
-            }
-            
-            // Для мобильных устройств используем адаптивное позиционирование
-            if (isMobileDevice) {
-                return {
-                    x: (cell.x * mapData.scaleFactor) + mapData.offsetX + (cell.width * mapData.scaleFactor)/2,
-                    y: (cell.y * mapData.scaleFactor) + mapData.offsetY + (cell.height * mapData.scaleFactor)/2
-                };
-            }
-            
-            // Для десктопов используем стандартное позиционирование
-            return {
-                x: cell.x + cell.width/2,
-                y: cell.y + cell.height/2
-            };
         }
         
         function getRandomColor(playerId) {
@@ -4722,20 +4504,12 @@
                 elements.mapImage.onload = function() {
                     console.log('✅ Изображение карты загружено');
                     mapData.imageLoaded = true;
-                    mapData.imageWidth = this.naturalWidth;
-                    mapData.imageHeight = this.naturalHeight;
-                    
-                    // Рассчитываем размеры контейнера
-                    calculateMapDimensions();
                     
                     // Загружаем сохраненную карту из файла
                     loadSavedMap();
                     
                     // Обновляем маркеры игроков
                     updatePlayerMarkers();
-                    
-                    // Добавляем обработчик изменения размера окна
-                    window.addEventListener('resize', handleResize);
                 };
                 
                 elements.mapImage.onerror = function() {
@@ -4753,38 +4527,6 @@
                 // Загружаем сохраненную карту из файла
                 loadSavedMap();
             }
-        }
-        
-        function calculateMapDimensions() {
-            const container = elements.mapContainer;
-            const img = elements.mapImage;
-            
-            mapData.containerWidth = container.clientWidth;
-            mapData.containerHeight = container.clientHeight;
-            
-            if (!mapData.imageLoaded || mapData.imageWidth === 0 || mapData.imageHeight === 0) {
-                return;
-            }
-            
-            // Рассчитываем масштабирование для вписывания изображения в контейнер
-            const widthRatio = mapData.containerWidth / mapData.imageWidth;
-            const heightRatio = mapData.containerHeight / mapData.imageHeight;
-            mapData.scaleFactor = Math.min(widthRatio, heightRatio);
-            
-            // Рассчитываем отступы для центрирования
-            mapData.offsetX = (mapData.containerWidth - (mapData.imageWidth * mapData.scaleFactor)) / 2;
-            mapData.offsetY = (mapData.containerHeight - (mapData.imageHeight * mapData.scaleFactor)) / 2;
-            
-            console.log(`📐 Размеры карты: контейнер=${mapData.containerWidth}x${mapData.containerHeight}, изображение=${mapData.imageWidth}x${mapData.imageHeight}, масштаб=${mapData.scaleFactor}, отступы=${mapData.offsetX},${mapData.offsetY}`);
-        }
-        
-        function handleResize() {
-            // Пересчитываем размеры карты при изменении размера окна
-            calculateMapDimensions();
-            
-            // Перерисовываем клетки и маркеры
-            createMapCells();
-            updatePlayerMarkers();
         }
         
         function loadSavedMap() {
@@ -4877,20 +4619,11 @@
             cellElement.dataset.cellType = cell.type;
             cellElement.dataset.city = cell.city || '';
             
-            // Для мобильных устройств корректируем позиционирование
-            if (isMobileDevice && mapData.scaleFactor > 0) {
-                // Применяем масштабирование для мобильных устройств
-                cellElement.style.left = `${(cell.x * mapData.scaleFactor) + mapData.offsetX}px`;
-                cellElement.style.top = `${(cell.y * mapData.scaleFactor) + mapData.offsetY}px`;
-                cellElement.style.width = `${cell.width * mapData.scaleFactor}px`;
-                cellElement.style.height = `${cell.height * mapData.scaleFactor}px`;
-            } else {
-                // Для десктопов используем стандартное позиционирование
-                cellElement.style.left = `${cell.x}px`;
-                cellElement.style.top = `${cell.y}px`;
-                cellElement.style.width = `${cell.width}px`;
-                cellElement.style.height = `${cell.height}px`;
-            }
+            // Позиционируем клетку
+            cellElement.style.left = `${cell.x}px`;
+            cellElement.style.top = `${cell.y}px`;
+            cellElement.style.width = `${cell.width}px`;
+            cellElement.style.height = `${cell.height}px`;
             
             // Добавляем классы в зависимости от типа
             if (cell.type === 'start') {
@@ -5811,7 +5544,7 @@
             updateRollDiceButtonState();
             
             // Добавляем контейнер для прокрутки на мобильных устройствах
-            if (isMobileDevice) {
+            if (window.innerWidth <= 768) {
                 const dragContainers = elements.taskArea.querySelectorAll('.task-container, .drag-container, .sorting-area, .puzzle-area, .sequence-area, .match-grid');
                 dragContainers.forEach(container => {
                     container.parentNode.classList.add('drag-scroll-container');
@@ -6970,70 +6703,56 @@
             elements.diceValue.classList.add('rolling');
             elements.rollDiceBtn.disabled = true;
             
-            // Генерируем случайное значение кубика (1-6)
             setTimeout(() => {
-                const diceResult = Math.floor(Math.random() * 6) + 1;
+                const diceValue = Math.floor(Math.random() * 6) + 1;
+                elements.diceValue.querySelector('.dice-value').textContent = diceValue;
                 elements.diceValue.classList.remove('rolling');
-                elements.diceValue.querySelector('.dice-value').textContent = diceResult;
                 
-                // Сохраняем старое положение
+                // Сохраняем старую позицию
                 const oldPosition = gameState.currentPlayer.position;
                 
                 // Обновляем позицию игрока
-                gameState.currentPlayer.position = diceResult;
+                const newPosition = Math.min(gameState.currentPlayer.position + diceValue, mapData.cells.length);
+                gameState.currentPlayer.position = newPosition;
                 
-                // Находим новую клетку
-                const newCell = mapData.cells.find(cell => cell.number === diceResult);
-                if (newCell && newCell.city) {
-                    gameState.currentPlayer.city = newCell.city;
+                // Находим клетку, на которую попал игрок
+                const currentCell = mapData.cells.find(cell => cell.number === newPosition);
+                if (currentCell) {
+                    if (currentCell.type === 'city' && currentCell.city) {
+                        gameState.currentPlayer.city = currentCell.city;
+                    }
                 }
                 
                 updatePlayerUI();
                 updatePlayerMarkers();
                 
-                // Отправляем обновление на сервер
-                sendPlayerPositionToServer(diceResult, gameState.currentPlayer.city);
-                
                 // Проверяем переход в новый город
-                checkForCityTransition(oldPosition, diceResult);
+                checkForCityTransition(oldPosition, newPosition);
+                
+                // Отправляем на сервер
+                sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
+                savePlayerState();
+                
+                addLogEntry(`🎲 Вы бросили кубик и получили ${diceValue}. Новая позиция: ${newPosition}`);
                 
                 // Получаем задание
-                getTaskForCurrentCity();
+                gameState.currentTask = getRandomTask(gameState.currentDifficulty);
+                elements.currentTask.style.display = 'block';
+                elements.taskDescription.textContent = gameState.currentTask.description;
+                elements.noTaskMessage.style.display = 'none';
+                elements.completeTaskBtn.disabled = false;
+                hasCurrentTask = true;
                 
-                addLogEntry(`🎲 Вы бросили кубик и получили ${diceResult}. Перемещаетесь на клетку ${diceResult}.`);
+                // Обновляем состояние кнопки броска кубика
+                updateRollDiceButtonState();
                 
-                // Отправляем информацию о броске кубика на сервер
-                socket.emit('dice_roll', {
-                    diceValue: diceResult,
-                    newPosition: diceResult,
-                    task: gameState.currentTask
-                });
+                // Передаем ход следующему игроку
+                socket.emit('end_turn');
+                gameState.isMyTurn = false;
+                updateTurnIndicator();
                 
-                // Обновляем очередь ходов
-                if (gameState.isMyTurn) {
-                    socket.emit('end_turn');
-                    gameState.isMyTurn = false;
-                    updateTurnIndicator();
-                }
-                
-                savePlayerState();
             }, 1200);
         });
-        
-        function getTaskForCurrentCity() {
-            if (!gameState.currentPlayer.city) return;
-            
-            const task = getRandomTask(gameState.currentDifficulty);
-            gameState.currentTask = task;
-            
-            elements.currentTask.style.display = 'block';
-            elements.taskDescription.textContent = task.description;
-            elements.noTaskMessage.style.display = 'none';
-            elements.completeTaskBtn.disabled = false;
-            hasCurrentTask = true;
-            
-            elements.rollDiceBtn.disabled = true;
-        }
         
         elements.completeTaskBtn.addEventListener('click', () => {
             if (!gameState.currentTask) return;
@@ -7042,97 +6761,45 @@
             createInteractiveTask(gameState.currentTask);
         });
         
-        elements.cityModalCloseBtn.addEventListener('click', closeCityModal);
-        elements.stayBtn.addEventListener('click', () => {
-            closeChoiceModal();
-        });
-        elements.moveForwardBtn.addEventListener('click', () => {
-            closeChoiceModal();
+        elements.checkTaskBtn.addEventListener('click', () => {
+            if (elements.checkTaskBtn.onclick) {
+                elements.checkTaskBtn.onclick();
+            }
         });
         
-        elements.buildBtn.addEventListener('click', () => {
-            elements.buildingsSection.scrollIntoView({ behavior: 'smooth' });
+        elements.retryTaskBtn.addEventListener('click', () => {
+            if (gameState.currentTask) {
+                elements.taskResult.textContent = '';
+                elements.retryTaskBtn.style.display = 'none';
+                createInteractiveTask(gameState.currentTask);
+            }
         });
         
-        elements.moveBtn.addEventListener('click', () => {
-            if (!gameState.currentPlayerId || !gameState.playerProgress[gameState.currentPlayerId]) {
-                return;
-            }
-            
-            const cityKeys = Object.keys(gameData.cities);
-            const currentCityKey = gameState.currentPlayer.city;
-            const currentIndex = cityKeys.indexOf(currentCityKey);
-            
-            if (currentIndex === -1 || currentIndex >= cityKeys.length - 1) {
-                showNotification('Вы уже в последнем городе!', 'warning');
-                return;
-            }
-            
-            const nextCityKey = cityKeys[currentIndex + 1];
-            const currentProgress = gameState.playerProgress[gameState.currentPlayerId][currentCityKey] || 0;
-            
-            if (currentProgress < 100) {
-                showNotification('Завершите очищение текущего города на 100%!', 'warning');
-                return;
-            }
-            
-            // Находим клетку следующего города
-            const nextCityCell = mapData.cells.find(cell => cell.city === nextCityKey);
-            if (!nextCityCell) {
-                showNotification('Следующий город не найден на карте!', 'error');
-                return;
-            }
-            
-            // Перемещаем игрока
-            const oldPosition = gameState.currentPlayer.position;
-            gameState.currentPlayer.position = nextCityCell.number;
-            gameState.currentPlayer.city = nextCityKey;
-            
-            updatePlayerUI();
-            updatePlayerMarkers();
-            
-            // Проверяем переход в новый город
-            checkForCityTransition(oldPosition, nextCityCell.number);
-            
-            // Отправляем обновление на сервер
-            sendPlayerPositionToServer(nextCityCell.number, nextCityKey);
-            savePlayerState();
-            
-            showNotification(`🚗 Вы перешли в ${gameData.cities[nextCityKey].name}!`, 'success');
-            addLogEntry(`🚗 Вы перешли в следующий город: ${gameData.cities[nextCityKey].name}`);
-            
-            // Сбрасываем задание
-            elements.currentTask.style.display = 'none';
-            elements.noTaskMessage.style.display = 'block';
-            elements.completeTaskBtn.disabled = true;
-            hasCurrentTask = false;
-            gameState.currentTask = null;
-            
-            // Обновляем UI
-            createCitiesGrid();
-            createCurrentCityProgress();
-        });
-        
-        // Чат
+        // ИСПРАВЛЕНО: Обработчик отправки сообщения в чат
         elements.sendMessageBtn.addEventListener('click', () => {
             const message = elements.chatInput.value.trim();
-            if (message && isConnected && gameState.currentPlayer) {
+            if (message) {
                 sendChatMessage(message);
             }
         });
         
         elements.chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const message = elements.chatInput.value.trim();
-                if (message && isConnected && gameState.currentPlayer) {
-                    sendChatMessage(message);
-                }
+                elements.sendMessageBtn.click();
             }
         });
         
-        elements.inviteBtn.addEventListener('click', showInviteModal);
-        elements.closeInviteBtn.addEventListener('click', closeInviteModal);
-        elements.copyInviteBtn.addEventListener('click', copyInvitation);
+        elements.inviteBtn.addEventListener('click', () => {
+            showInviteModal();
+        });
+        
+        elements.copyInviteBtn.addEventListener('click', () => {
+            copyInvitation();
+        });
+        
+        elements.closeInviteBtn.addEventListener('click', () => {
+            closeInviteModal();
+        });
         
         elements.leaveRoomBtn.addEventListener('click', () => {
             if (confirm('Вы уверены, что хотите покинуть комнату?')) {
@@ -7146,60 +6813,58 @@
             }
         });
         
-        // Выбор сложности
+        elements.cityModalCloseBtn.addEventListener('click', () => {
+            closeCityModal();
+        });
+        
+        elements.stayBtn.addEventListener('click', () => {
+            closeChoiceModal();
+            showNotification('Вы остались в текущем городе', 'info');
+        });
+        
+        elements.moveForwardBtn.addEventListener('click', () => {
+            closeChoiceModal();
+            if (gameState.nextCity) {
+                moveToExistingCity(gameState.nextCity);
+            }
+        });
+        
+        elements.gameInfo.addEventListener('click', () => {
+            elements.gameInfo.classList.toggle('expanded');
+        });
+        
+        // Обработчики выбора сложности
         elements.difficultyBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 if (this.classList.contains('locked')) {
-                    showNotification('Эта сложность пока недоступна! Повысьте уровень.', 'warning');
+                    showNotification('Этот уровень сложности заблокирован. Повысьте уровень игрока!', 'warning');
                     return;
                 }
                 
                 elements.difficultyBtns.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 
-                gameState.currentDifficulty = this.id.replace('Btn', '');
-                console.log(`Выбрана сложность: ${gameState.currentDifficulty}`);
+                const difficulty = this.id.replace('Btn', '');
+                gameState.currentDifficulty = difficulty;
+                
+                showNotification(`Сложность изменена на: ${this.textContent.trim()}`, 'info');
             });
-        });
-        
-        // Информация об игре
-        elements.gameInfo.querySelector('h3').addEventListener('click', function() {
-            elements.gameInfo.classList.toggle('expanded');
         });
         
         // Инициализация при загрузке страницы
-        window.addEventListener('load', () => {
-            console.log('🚀 Страница загружена');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Игра "Юный эколог" запущена!');
             
-            // Проверяем, было ли предыдущее подключение
-            const savedRoomId = localStorage.getItem('lastRoomId');
-            const savedPlayerName = localStorage.getItem('lastPlayerName');
+            // Проверяем соединение
+            setTimeout(() => {
+                if (!isConnected) {
+                    updateConnectionStatus('error', '❌ Не подключено к серверу');
+                    showNotification('Не удалось подключиться к серверу. Проверьте интернет-соединение.', 'error');
+                }
+            }, 5000);
             
-            if (savedRoomId && savedPlayerName) {
-                document.getElementById('loginUsername').value = savedPlayerName;
-                document.getElementById('loginRoom').value = savedRoomId;
-            }
-            
-            // Обновляем статус подключения
-            updateConnectionStatus('connecting', 'Подключение...');
-            
-            // Запускаем детекцию устройства
-            detectDevice();
-            
-            // Добавляем обработчик изменения ориентации для мобильных устройств
-            window.addEventListener('orientationchange', () => {
-                setTimeout(() => {
-                    detectDevice();
-                    calculateMapDimensions();
-                    createMapCells();
-                    updatePlayerMarkers();
-                }, 300);
-            });
-            
-            // Добавляем обработчик изменения размера окна
-            window.addEventListener('resize', () => {
-                detectDevice();
-            });
+            // Инициализация недавних смайликов
+            updateRecentEmojisDisplay();
         });
     </script>
 </body>
