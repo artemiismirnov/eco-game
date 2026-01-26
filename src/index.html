@@ -5,7 +5,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Юный эколог - Многопользовательская экологическая игра</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* СТИЛИ ТОЛЬКО ДЛЯ ОСНОВНОЙ СТРУКТУРЫ */
+        /* Полные стили перенесены в game.js для удобства */
+        
+        /* ОСНОВНЫЕ СТИЛИ */
+        :root {
+            --primary: #1a535c;
+            --secondary: #4ecdc4;
+            --accent: #ff6b6b;
+            --light: #f7fff7;
+            --dark: #1a535c;
+            --success: #2ecc71;
+            --warning: #ff9e1f;
+            --card-bg: rgba(255, 255, 255, 0.15);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --dark-primary: #0f2b35;
+            --dark-secondary: #8e44ad;
+            --dark-accent: #3498db;
+            --dark-light: #fff;
+            --dark-dark: #1a1a2e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #0f2b35);
+            color: var(--dark-light);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+            transition: background 0.5s ease;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* ШАПКА */
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: var(--dark-light);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #8e44ad, #3498db, #2ecc71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+        
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -86,7 +175,7 @@
                     <li><strong>Сортировка мусора:</strong> Распределите отходы по правильным контейнерам</li>
                     <li><strong>Посадка деревьев:</strong> Перетащите деревья в нужные места</li>
                     <li><strong>Очистка территории:</strong> Кликните на мусор, чтобы убрать его</li>
-                    <li><strong>Пазлы:</strong> Соберите экологическую картинка</li>
+                    <li><strong>Пазлы:</strong> Соберите экологическую картинку</li>
                     <li><strong>Создание последовательности:</strong> Расставьте элементы в правильном порядке</li>
                     <li><strong>Найди пару:</strong> Найдите одинаковые экологические символы</li>
                 </ul>
@@ -435,7 +524,7 @@
                     <div class="invite-room-number" id="inviteRoomNumber">0</div>
                     <div class="invite-line" style="margin-top: 15px;">
                         <span class="invite-bold">🌐 Игра доступна по адресу:</span><br>
-                        https://eco-game-dfb0.onrender.com
+                        <span id="inviteGameUrl">https://eco-game-dfb0.onrender.com</span>
                     </div>
                     <div class="invite-line" style="margin-top: 10px;">
                         <span class="invite-bold">👥 Ждем вас!</span>
@@ -485,8 +574,9 @@
         </button>
     </div>
 
-    <!-- Подключение Socket.IO и игровая логика -->
+    <!-- Подключение внешних скриптов -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="mapData.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
