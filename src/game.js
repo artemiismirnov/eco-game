@@ -1,5 +1,4 @@
-// ==================== ОСНОВНОЙ ФАЙЛ ИГРОВОЙ ЛОГИКИ ====================
-
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
 console.log('🎮 Игра "Юный эколог" загружается...');
 
 // Автоматическое определение URL сервера
@@ -19,7 +18,6 @@ const socket = io(serverUrl, {
 let isConnected = false;
 let currentRoomId = null;
 let hasCurrentTask = false;
-let lightThemeEnabled = false; // По умолчанию выключена (темная тема включена)
 
 // ==================== ЭЛЕМЕНТЫ DOM ====================
 const elements = {
@@ -29,16 +27,13 @@ const elements = {
     registerTab: document.getElementById('registerTab'),
     loginForm: document.getElementById('loginForm'),
     registerForm: document.getElementById('registerForm'),
-    mapContainer: document.getElementById('mapContainer'),
-    mapImage: document.getElementById('mapImage'),
-    mapOverlay: document.getElementById('mapOverlay'),
+    mapGrid: document.getElementById('mapGrid'),
     citiesGrid: document.getElementById('citiesGrid'),
     rollDiceBtn: document.getElementById('rollDiceBtn'),
     buildBtn: document.getElementById('buildBtn'),
     moveBtn: document.getElementById('moveBtn'),
     completeTaskBtn: document.getElementById('completeTaskBtn'),
     checkTaskBtn: document.getElementById('checkTaskBtn'),
-    retryTaskBtn: document.getElementById('retryTaskBtn'),
     diceValue: document.getElementById('diceValue'),
     taskDescription: document.getElementById('taskDescription'),
     currentTask: document.getElementById('currentTask'),
@@ -52,17 +47,13 @@ const elements = {
     coinsCount: document.getElementById('coinsCount'),
     cleaningPoints: document.getElementById('cleaningPoints'),
     playerLevel: document.getElementById('playerLevel'),
-    levelProgressFill: document.getElementById('levelProgressFill'),
     roomNumber: document.getElementById('roomNumber'),
     onlinePlayers: document.getElementById('onlinePlayers'),
     playersContainer: document.getElementById('playersContainer'),
     inviteBtn: document.getElementById('inviteBtn'),
-    leaveRoomBtn: document.getElementById('leaveRoomBtn'),
     chatMessages: document.getElementById('chatMessages'),
     chatInput: document.getElementById('chatInput'),
     sendMessageBtn: document.getElementById('sendMessageBtn'),
-    emojiPickerBtn: document.getElementById('emojiPickerBtn'),
-    emojiPicker: document.getElementById('emojiPicker'),
     easyBtn: document.getElementById('easyBtn'),
     mediumBtn: document.getElementById('mediumBtn'),
     hardBtn: document.getElementById('hardBtn'),
@@ -78,9 +69,6 @@ const elements = {
     cityModalProblem: document.getElementById('cityModalProblem'),
     cityModalTask: document.getElementById('cityModalTask'),
     cityModalCloseBtn: document.getElementById('cityModalCloseBtn'),
-    cityModalMoveBtn: document.getElementById('cityModalMoveBtn'),
-    cityModalProgressFill: document.getElementById('cityModalProgressFill'),
-    cityModalProgressText: document.getElementById('cityModalProgressText'),
     gameInfo: document.getElementById('gameInfo'),
     cityProgressContainer: document.getElementById('cityProgressContainer'),
     choiceModal: document.getElementById('choiceModal'),
@@ -91,16 +79,7 @@ const elements = {
     connectionStatusCompact: document.getElementById('connectionStatusCompact'),
     resourcesPlaceholder: document.getElementById('resourcesPlaceholder'),
     topCoinsCount: document.getElementById('topCoinsCount'),
-    topPlayerLevel: document.getElementById('topPlayerLevel'),
-    turnIndicator: document.getElementById('turnIndicator'),
-    turnMessage: document.getElementById('turnMessage'),
-    inviteModal: document.getElementById('inviteModal'),
-    inviteRoomNumber: document.getElementById('inviteRoomNumber'),
-    copyInviteBtn: document.getElementById('copyInviteBtn'),
-    closeInviteBtn: document.getElementById('closeInviteBtn'),
-    recentEmojisSection: document.getElementById('recentEmojisSection'),
-    recentEmojisContainer: document.getElementById('recentEmojisContainer'),
-    inviteGameUrl: document.getElementById('inviteGameUrl')
+    topPlayerLevel: document.getElementById('topPlayerLevel')
 };
 
 // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -111,209 +90,14 @@ const quickBuildBtn = document.getElementById('quickBuildBtn');
 const quickChatBtn = document.getElementById('quickChatBtn');
 const quickTasksBtn = document.getElementById('quickTasksBtn');
 const quickInviteBtn = document.getElementById('quickInviteBtn');
-const quickThemeBtn = document.getElementById('quickThemeBtn');
-
-// ==================== НЕДАВНИЕ СМАЙЛИКИ ====================
-let recentEmojis = JSON.parse(localStorage.getItem('recentEmojis') || '[]');
-
-function addRecentEmoji(emoji) {
-    if (!recentEmojis.includes(emoji)) {
-        recentEmojis.unshift(emoji);
-        if (recentEmojis.length > 10) {
-            recentEmojis = recentEmojis.slice(0, 10);
-        }
-        localStorage.setItem('recentEmojis', JSON.stringify(recentEmojis));
-        updateRecentEmojisDisplay();
-    }
-}
-
-function updateRecentEmojisDisplay() {
-    if (!elements.recentEmojisContainer) return;
-    
-    elements.recentEmojisContainer.innerHTML = '';
-    
-    if (recentEmojis.length === 0) {
-        elements.recentEmojisSection.style.display = 'none';
-        return;
-    }
-    
-    elements.recentEmojisSection.style.display = 'block';
-    
-    recentEmojis.forEach(emoji => {
-        const emojiItem = document.createElement('div');
-        emojiItem.className = 'recent-emoji-item';
-        emojiItem.textContent = emoji;
-        emojiItem.title = emoji;
-        
-        emojiItem.addEventListener('click', () => {
-            elements.chatInput.value += emoji;
-            elements.chatInput.focus();
-            addRecentEmoji(emoji);
-        });
-        
-        elements.recentEmojisContainer.appendChild(emojiItem);
-    });
-}
-
-// ==================== СТИЛИ ДЛЯ ИГРЫ ====================
-// Добавляем стили динамически
-const gameStyles = `
-/* Полные стили из оригинального файла */
-/* Из-за ограничения размера, полные стили не включены здесь */
-/* В реальном проекте стили должны быть в отдельном CSS файле */
-`;
-
-// Создаем элемент стилей
-const styleElement = document.createElement('style');
-styleElement.textContent = gameStyles;
-document.head.appendChild(styleElement);
-
-// ==================== СВЕТЛАЯ ТЕМА ====================
-function toggleLightTheme() {
-    lightThemeEnabled = !lightThemeEnabled;
-    
-    if (lightThemeEnabled) {
-        document.body.classList.add('light-theme');
-        quickThemeBtn.innerHTML = '🌙<div class="tooltip">Включить темную тему</div>';
-        showNotification('🌞 Светлая тема включена!', 'info');
-        
-        // Сохраняем в localStorage
-        localStorage.setItem('lightTheme', 'enabled');
-    } else {
-        document.body.classList.remove('light-theme');
-        quickThemeBtn.innerHTML = '🌞<div class="tooltip">Включить светлую тему</div>';
-        showNotification('🌙 Темная тема включена', 'info');
-        
-        // Сохраняем в localStorage
-        localStorage.setItem('lightTheme', 'disabled');
-    }
-}
-
-// ==================== ВЫБОР СМАЙЛИКОВ ====================
-function initEmojiPicker() {
-    const emojiCategories = {
-        "Эмоции": ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕"],
-        "Природа": ["🌍", "🌎", "🌏", "🌱", "🌲", "🌳", "🌴", "🌵", "🌾", "🌿", "☘️", "🍀", "🍁", "🍂", "🍃", "🌸", "🌹", "🌺", "🌻", "🌼", "💐", "🌷", "☀️", "🌤️", "⛅", "🌥️", "☁️", "🌦️", "🌧️", "⛈️", "🌩️", "🌨️", "❄️", "☃️", "⛄", "🌬️", "💨", "🌪️", "🌫️", "🌊", "💧", "☔", "🔥", "⭐", "🌟", "🌠", "🌈"],
-        "Животные": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐵", "🙈", "🙉", "🙊", "🐒", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞", "🐜", "🦟", "🦗", "🕷️", "🕸️", "🦂", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡", "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🐈", "🐓", "🦃", "🦚", "🦜", "🦢", "🦩", "🐇", "🦝", "🦨", "🦡", "🦦", "🦥", "🐁", "🐀", "🐿️", "🦔"],
-        "Еда": ["🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🧈", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🦴", "🌭", "🍔", "🍟", "🍕", "🫓", "🥪", "🥙", "🧆", "🌮", "🌯", "🫔", "🥗", "🥘", "🫕", "🥫", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🦪", "🍤", "🍙", "🍚", "🍘", "🍥", "🥠", "🥮", "🍢", "🍡", "🍧", "🍨", "🍦", "🥧", "🧁", "🍰", "🎂", "🍮", "🍭", "🍬", "🍫", "🍿", "🍩", "🍪", "🌰", "🥜", "🍯", "🥛", "🍼", "🫖", "☕", "🍵", "🧃", "🥤", "🍶", "🍺", "🍻", "🥂", "🍷", "🥃", "🍸", "🍹", "🧉", "🍾", "🧊"],
-        "Спорт": ["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "🪃", "🥅", "⛳", "🪁", "🏹", "🎣", "🤿", "🥊", "🥋", "🎽", "🛹", "🛼", "🛷", "⛸️", "🥌", "🎿", "⛷️", "🏂", "🪂", "🏋️", "🤼", "🤸", "🤺", "⛹️", "🤾", "🏌️", "🏇", "🧘"],
-        "Транспорт": ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚", "🚛", "🚜", "🦯", "🦽", "🦼", "🛴", "🚲", "🛵", "🏍️", "🛺", "🚨", "🚔", "🚍", "🚘", "🚖", "🚡", "🚠", "🚟", "🚃", "🚋", "🚞", "🚝", "🚄", "🚅", "🚈", "🚂", "🚆", "🚇", "🚊", "🚉", "✈️", "🛫", "🛬", "🛩️", "💺", "🛰️", "🚀", "🛸", "🚁", "🛶", "⛵", "🚤", "🛥️", "🛳️", "⛴️", "🚢"],
-        "Экология": ["🌱", "🌿", "🌳", "🌲", "🌍", "🌎", "🌏", "♻️", "💧", "☀️", "💨", "🔥", "🌀", "🌊", "🦋", "🐝", "🐞", "🌺", "🍃", "🪴", "🏞️", "🗑️", "🚯", "🚮", "🚰", "🚱", "🧴", "🧽", "🛁", "🚿", "🛀", "🧼", "🫧"]
-    };
-    
-    let emojiPickerVisible = false;
-    
-    // Очищаем пикер
-    elements.emojiPicker.innerHTML = '';
-    
-    // Добавляем секцию недавних смайликов в пикер
-    const recentSection = document.createElement('div');
-    recentSection.className = 'recent-emojis-section';
-    recentSection.id = 'emojiPickerRecentSection';
-    
-    const recentTitle = document.createElement('div');
-    recentTitle.className = 'recent-emojis-title';
-    recentTitle.textContent = 'Недавние смайлики:';
-    recentSection.appendChild(recentTitle);
-    
-    const recentContainer = document.createElement('div');
-    recentContainer.className = 'recent-emojis-container';
-    recentContainer.id = 'emojiPickerRecentContainer';
-    recentSection.appendChild(recentContainer);
-    
-    elements.emojiPicker.appendChild(recentSection);
-    
-    // Обновляем отображение недавних смайликов в пикере
-    function updateEmojiPickerRecent() {
-        recentContainer.innerHTML = '';
-        
-        if (recentEmojis.length === 0) {
-            recentSection.style.display = 'none';
-            return;
-        }
-        
-        recentSection.style.display = 'block';
-        
-        recentEmojis.forEach(emoji => {
-            const emojiItem = document.createElement('div');
-            emojiItem.className = 'emoji-item';
-            emojiItem.textContent = emoji;
-            emojiItem.title = emoji;
-            
-            emojiItem.addEventListener('click', () => {
-                elements.chatInput.value += emoji;
-                elements.chatInput.focus();
-                addRecentEmoji(emoji);
-            });
-            
-            recentContainer.appendChild(emojiItem);
-        });
-    }
-    
-    // Добавляем категории смайликов
-    for (const category in emojiCategories) {
-        const categoryDiv = document.createElement('div');
-        categoryDiv.className = 'emoji-category';
-        
-        const title = document.createElement('div');
-        title.className = 'emoji-category-title';
-        title.textContent = category;
-        categoryDiv.appendChild(title);
-        
-        const emojiList = document.createElement('div');
-        emojiList.className = 'emoji-list';
-        
-        emojiCategories[category].forEach(emoji => {
-            const emojiItem = document.createElement('div');
-            emojiItem.className = 'emoji-item';
-            emojiItem.textContent = emoji;
-            emojiItem.title = emoji;
-            
-            emojiItem.addEventListener('click', () => {
-                elements.chatInput.value += emoji;
-                elements.chatInput.focus();
-                addRecentEmoji(emoji);
-                updateEmojiPickerRecent();
-            });
-            
-            emojiList.appendChild(emojiItem);
-        });
-        
-        categoryDiv.appendChild(emojiList);
-        elements.emojiPicker.appendChild(categoryDiv);
-    }
-    
-    // Инициализируем отображение недавних смайликов в пикере
-    updateEmojiPickerRecent();
-    
-    // Обработчик кнопки смайликов
-    elements.emojiPickerBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        emojiPickerVisible = !emojiPickerVisible;
-        
-        if (emojiPickerVisible) {
-            elements.emojiPicker.classList.add('show');
-            updateEmojiPickerRecent(); // Обновляем при открытии
-        } else {
-            elements.emojiPicker.classList.remove('show');
-        }
-    });
-    
-    // Закрытие пикера при клике вне его
-    document.addEventListener('click', (e) => {
-        if (!elements.emojiPicker.contains(e.target) && !elements.emojiPickerBtn.contains(e.target)) {
-            elements.emojiPicker.classList.remove('show');
-            emojiPickerVisible = false;
-        }
-    });
-}
 
 // ==================== ИГРОВЫЕ ДАННЫЕ ====================
 const gameData = {
     cities: {
         tver: { 
             name: "Тверь", 
-            position: 1,
+            cells: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],  // Изменено с 1-13 на 2-13
+            position: 0,
             description: "Стартовый город",
             history: "Тверь — один из древнейших городов России, основанный в 1135 году. Расположена на берегах рек Волга, Тверца и Тьмака.",
             problem: "Основные экологические проблемы Твери — загрязнение воздуха промышленными предприятиями и транспортными выбросами.",
@@ -321,7 +105,8 @@ const gameData = {
         },
         kineshma: { 
             name: "Кинешма", 
-            position: 2,
+            cells: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], 
+            position: 1,
             description: "Город на Волге",
             history: "Кинешма — старинный город на Волге, известный с 1504 года. Важный промышленный и культурный центр Ивановской области.",
             problem: "Главная экологическая проблема Кинешмы — загрязнение Волги промышленными стоками и бытовыми отходами.",
@@ -329,7 +114,8 @@ const gameData = {
         },
         naberezhnye_chelny: { 
             name: "Набережные Челны", 
-            position: 3,
+            cells: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43], 
+            position: 2,
             description: "Город автомобилестроителей",
             history: "Набережные Челны — молодой город, основанный в 1930 году. Крупный центр автомобильной промышленности России.",
             problem: "Основные экологические проблемы — загрязнение воздуха автомобильными выбросами и промышленными предприятиями.",
@@ -337,7 +123,8 @@ const gameData = {
         },
         kazan: { 
             name: "Казань", 
-            position: 4,
+            cells: [47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58], 
+            position: 3,
             description: "Столица Татарстана",
             history: "Казань — тысячелетний город, столица Республики Татарстан. Крупный культурный, экономический и научный центр России.",
             problem: "Основные экологические проблемы Казани — высокий уровень загрязнения воздуха, транспортные пробки, утилизация отходов.",
@@ -345,7 +132,8 @@ const gameData = {
         },
         volgograd: { 
             name: "Волгоград", 
-            position: 5,
+            cells: [66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77], 
+            position: 4,
             description: "Город-герой",
             history: "Волгоград — город-герой с богатой историей, известный Сталинградской битвой. Крупный промышленный центр на Волге.",
             problem: "Волгоград страдает от сильного промышленного загрязнения, особенно в районах металлургических и химических заводов.",
@@ -353,7 +141,8 @@ const gameData = {
         },
         astrakhan: { 
             name: "Астрахань", 
-            position: 6,
+            cells: [81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92],  // Изменено с 81-93 на 81-92
+            position: 5,
             description: "Конечная точка маршрута",
             history: "Астрахань — древний город в дельте Волги, основанный в 1558 году. Важный рыболовный и транспортный узел.",
             problem: "Ключевые экологические проблемы Астрахани — снижение биоразнообразия, загрязнение вод дельты Волги, опустынивание.",
@@ -363,16 +152,15 @@ const gameData = {
     tasks: {
         easy: [
             {
-                description: "Посадите 3 дерева в парке 🌲",
-                type: "drag_click",
+                description: "Посадите 3 дерева в парке 🌳",
+                type: "drag",
                 goal: 3,
-                items: ["🌲", "🌳", "🌲", "🌲", "🌳"],
-                zones: 3,
-                correctItems: ["🌲", "🌲", "🌲"]
+                items: ["🌳", "🌳", "🌳", "🌳", "🌳"],
+                zones: 3
             },
             {
                 description: "Сортируйте мусор по контейнерам 🗑️",
-                type: "sort_click",
+                type: "sort",
                 items: [
                     {name: "Бумага", type: "paper", emoji: "📄"},
                     {name: "Пластик", type: "plastic", emoji: "🥤"},
@@ -385,11 +173,18 @@ const gameData = {
                 type: "quiz",
                 question: "Какой из этих материалов разлагается дольше всего?",
                 options: [
-                    {text: "Бумага", correct: false},
-                    {text: "Пластиковая бутылка", correct: true},
-                    {text: "Банан", correct: false},
-                    {text: "Хлопковая футболка", correct: false}
+                    {text: "Бумага (2-5 недель)", correct: false},
+                    {text: "Пластиковая бутылка (450+ лет)", correct: true},
+                    {text: "Банан (3-4 недели)", correct: false},
+                    {text: "Хлопковая футболка (5-6 месяцев)", correct: false}
                 ]
+            },
+            {
+                description: "Найдите 3 отличия на картинках 🔍",
+                type: "spot_difference",
+                differences: 3,
+                image1: "🌳🏠🚗🌲🌼",
+                image2: "🌳🏠🚙🌲🌼"
             },
             {
                 description: "Соберите мусор в парке 🧹",
@@ -398,7 +193,7 @@ const gameData = {
                 items: ["🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
             },
             {
-                description: "Что такое переработка отходы? ♻️",
+                description: "Что такое переработка отходов? ♻️",
                 type: "quiz",
                 question: "Что такое переработка отходов?",
                 options: [
@@ -410,7 +205,7 @@ const gameData = {
             },
             {
                 description: "Разделите отходы по категориям 📦",
-                type: "sort_click",
+                type: "sort",
                 items: [
                     {name: "Органика", type: "organic", emoji: "🍎"},
                     {name: "Металл", type: "metal", emoji: "🥫"},
@@ -428,18 +223,6 @@ const gameData = {
                     {text: "Поливать растения днем", correct: false},
                     {text: "Мыть машину ежедневно", correct: false}
                 ]
-            },
-            {
-                description: "Соберите простой экологический пазл 🌍",
-                type: "puzzle_image",
-                pieces: 4,
-                imageType: "ecology"
-            },
-            {
-                description: "Найдите парные экологические символы 🎯",
-                type: "match_game",
-                pairs: 4,
-                symbols: ["🌍", "♻️", "🌳", "💧", "🐦", "🐝", "🦋", "🐠"]
             }
         ],
         medium: [
@@ -462,21 +245,20 @@ const gameData = {
             },
             {
                 description: "Соберите пазл из экологических символов 🧩",
-                type: "puzzle_image",
+                type: "puzzle",
                 pieces: 6,
-                imageType: "animals"
+                image: "🌍♻️🌳💧🌞🌱"
             },
             {
                 description: "Посадите лес из 6 деревьев 🌲",
-                type: "drag_click",
+                type: "drag",
                 goal: 6,
-                items: ["🌲", "🌲", "🌳", "🌲", "🌲", "🌲", "🌲", "🌳"],
-                zones: 6,
-                correctItems: ["🌲", "🌲", "🌲", "🌲", "🌲", "🌲"]
+                items: ["🌲", "🌲", "🌲", "🌲", "🌲", "🌲", "🌳", "🌳"],
+                zones: 6
             },
             {
                 description: "Сортируйте опасные отходы ⚠️",
-                type: "sort_click",
+                type: "sort",
                 items: [
                     {name: "Батарейки", type: "battery", emoji: "🔋"},
                     {name: "Лампочки", type: "lamp", emoji: "💡"},
@@ -485,8 +267,15 @@ const gameData = {
                 ]
             },
             {
+                description: "Найдите 4 отличия на картинках природы 🏞️",
+                type: "spot_difference",
+                differences: 4,
+                image1: "🌳🌲🏞️🌼🦌",
+                image2: "🌳🌲🏞️🌸🦌"
+            },
+            {
                 description: "Создайте пищевую цепь 🐟",
-                type: "sequence_click",
+                type: "sequence",
                 items: ["🌿", "🐛", "🐦", "🦊"],
                 correctOrder: ["🌿", "🐛", "🐦", "🦊"]
             },
@@ -500,18 +289,6 @@ const gameData = {
                     {text: "Разнообразие автомобилей", correct: false},
                     {text: "Количество жителей в городе", correct: false}
                 ]
-            },
-            {
-                description: "Создайте экологическую последовательность 🌿",
-                type: "sequence_click",
-                items: ["🌱", "🌳", "🍎", "♻️"],
-                correctOrder: ["🌱", "🌳", "🍎", "♻️"]
-            },
-            {
-                description: "Найдите парные экологические символы 🎯",
-                type: "match_game",
-                pairs: 6,
-                symbols: ["🌍", "♻️", "🌳", "💧", "🐦", "🐝", "🦋", "🐠", "🐻", "🦊", "🐸", "🦉"]
             }
         ],
         hard: [
@@ -528,15 +305,15 @@ const gameData = {
             },
             {
                 description: "Решите экологическую головоломку 🧠",
-                type: "sequence_click",
-                items: ["🌱", "🌳", "🏭", "💨", "🌍", "🔥"],
+                type: "puzzle_sequence",
+                sequence: ["🌱", "🌳", "🏭", "💨", "🌍", "🔥"],
                 correctOrder: ["🌱", "🌳", "🏭", "💨", "🔥", "🌍"]
             },
             {
                 description: "Соберите сложный экологический пазл 🧩",
-                type: "puzzle_image",
+                type: "puzzle",
                 pieces: 9,
-                imageType: "nature"
+                image: "🌍♻️🌳💧🌞🌱🌀🌊🦋"
             },
             {
                 description: "Что такое возобновляемая энергия? ⚡",
@@ -557,15 +334,14 @@ const gameData = {
             },
             {
                 description: "Создайте экосистему из 8 элементов 🏞️",
-                type: "drag_click",
+                type: "drag",
                 goal: 8,
                 items: ["🌱", "🌳", "💧", "☀️", "🦋", "🐝", "🐞", "🦔", "🌼", "🍄"],
-                zones: 8,
-                correctItems: ["🌱", "🌳", "💧", "☀️", "🦋", "🐝", "🐞", "🦔"]
+                zones: 8
             },
             {
                 description: "Расставьте стадии переработки ♻️",
-                type: "sequence_click",
+                type: "sequence",
                 items: ["🗑️", "🚚", "🏭", "🔄", "📦"],
                 correctOrder: ["🗑️", "🚚", "🏭", "🔄", "📦"]
             },
@@ -579,12 +355,6 @@ const gameData = {
                     {text: "Использование удобрений", correct: false},
                     {text: "Строительство парков", correct: false}
                 ]
-            },
-            {
-                description: "Найдите все пары животных 🎯",
-                type: "match_game",
-                pairs: 8,
-                symbols: ["🐻", "🦊", "🐰", "🦉", "🐸", "🐢", "🦋", "🐝", "🐞", "🦔", "🐿️", "🦡", "🦅", "🦆", "🦩", "🦜"]
             }
         ]
     },
@@ -627,12 +397,6 @@ const gameData = {
     }
 };
 
-// ==================== ДАННЫЕ КАРТЫ ====================
-let mapData = {
-    cells: [],
-    imageLoaded: false
-};
-
 // ==================== СОСТОЯНИЕ ИГРЫ ====================
 let gameState = {
     currentPlayer: null,
@@ -652,23 +416,9 @@ let gameState = {
     sortItems: [],
     sortBins: [],
     selectedPuzzlePieces: [],
+    spotDifferencesFound: 0,
     cleanupItems: [],
-    cleanupCount: 0,
-    reconnected: false,
-    playerProgress: {},
-    currentTurn: null,
-    turnOrder: [],
-    isMyTurn: false,
-    isAtNewCity: false,
-    hasUnfinishedTask: false,
-    matchGameState: {
-        cards: [],
-        flippedCards: [],
-        matchedPairs: 0,
-        canFlip: true
-    },
-    quizSelectedAnswer: null,
-    visitedCities: {} // Хранит, посещали ли мы уже город
+    reconnected: false
 };
 
 // ==================== ФУНКЦИИ ПОДКЛЮЧЕНИЯ ====================
@@ -731,35 +481,12 @@ socket.on('join-success', (playerData) => {
     console.log('✅ Успешно присоединились к комнате', playerData);
     gameState.roomId = playerData.roomId || currentRoomId;
     gameState.reconnected = playerData.reconnected || false;
-    gameState.currentTurn = playerData.currentTurn;
-    gameState.turnOrder = playerData.turnOrder || [];
-    gameState.isMyTurn = playerData.isMyTurn || false;
-    gameState.hasUnfinishedTask = playerData.hasUnfinishedTask || false;
-    
-    // Загружаем сохраненный прогресс игрока
-    if (playerData.playerProgress) {
-        gameState.playerProgress[playerData.playerId] = playerData.playerProgress;
-    }
-    
     initializeGame(playerData);
     
     // Запрашиваем позиции всех игроков после присоединения к комнате
     setTimeout(() => {
         requestAllPlayersPositions();
     }, 1500);
-    
-    // Обновляем индикатор очереди
-    updateTurnIndicator();
-    
-    // Если есть незавершенное задание, показываем его
-    if (gameState.hasUnfinishedTask && gameState.currentTask) {
-        elements.currentTask.style.display = 'block';
-        elements.taskDescription.textContent = gameState.currentTask.description;
-        elements.noTaskMessage.style.display = 'none';
-        elements.completeTaskBtn.disabled = false;
-        hasCurrentTask = true;
-        elements.rollDiceBtn.disabled = true;
-    }
 });
 
 socket.on('room-error', (message) => {
@@ -769,21 +496,11 @@ socket.on('room-error', (message) => {
     elements.gameContent.style.display = 'none';
     elements.resourcesPlaceholder.style.display = 'none';
     quickActionsBtn.classList.remove('show');
-    // Сбрасываем состояние
-    resetGameState();
 });
 
 socket.on('room_state', (roomData) => {
     console.log('🔄 Получено обновление комнаты:', roomData);
     updateRoomState(roomData);
-    
-    // Обновляем очередь ходов
-    if (roomData.currentTurn) {
-        gameState.currentTurn = roomData.currentTurn;
-        gameState.turnOrder = roomData.turnOrder || [];
-        gameState.isMyTurn = (socket.id === roomData.currentTurn);
-        updateTurnIndicator();
-    }
 });
 
 socket.on('player_joined', (data) => {
@@ -821,24 +538,20 @@ socket.on('player_left', (data) => {
     addLogEntry(`👋 Игрок "${data.playerName}" покинул игру.`);
 });
 
-// Получаем сообщения из чата и отображаем их
 socket.on('new_chat_message', (data) => {
-    console.log('💬 Получено сообщение от сервера:', data);
     if (data.playerName && data.message) {
-        addChatMessage(data.playerName, data.message, false);
+        addChatMessage(data.playerName, data.message);
     }
 });
 
 socket.on('chat_history', (messages) => {
     console.log('💬 Получена история чата:', messages.length, 'сообщений');
-    if (messages && Array.isArray(messages)) {
-        elements.chatMessages.innerHTML = '';
-        messages.forEach(msg => {
-            if (msg.playerName && msg.playerName !== 'Система') {
-                addChatMessage(msg.playerName, msg.message, false);
-            }
-        });
-    }
+    elements.chatMessages.innerHTML = '';
+    messages.forEach(msg => {
+        if (msg.playerName && msg.playerName !== 'Система') {
+            addChatMessage(msg.playerName, msg.message);
+        }
+    });
 });
 
 socket.on('player_dice_roll', (data) => {
@@ -857,41 +570,10 @@ socket.on('player_dice_roll', (data) => {
 });
 
 socket.on('progress_updated', (data) => {
-    // Обновляем прогресс для конкретного игрока
-    if (!gameState.playerProgress[data.playerId]) {
-        gameState.playerProgress[data.playerId] = {};
-    }
-    gameState.playerProgress[data.playerId][data.cityKey] = data.progress;
+    gameState.cityProgress[data.cityKey] = data.progress;
+    createCurrentCityProgress();
     
-    // Если это текущий игрок, обновляем UI
-    if (data.playerId === gameState.currentPlayerId) {
-        createCurrentCityProgress();
-        addLogEntry(`📊 Ваш прогресс очищения города обновлен: ${data.progress}%`);
-        
-        // Обновляем карточки городов
-        createCitiesGrid();
-    }
-});
-
-socket.on('turn_update', (data) => {
-    console.log('🔄 Получено обновление очереди ходов:', data);
-    gameState.currentTurn = data.currentTurn;
-    gameState.turnOrder = data.turnOrder || [];
-    gameState.isMyTurn = (socket.id === data.currentTurn);
-    
-    updateTurnIndicator();
-    
-    if (gameState.isMyTurn) {
-        showNotification('🎉 Сейчас ваш ход! Бросайте кубик.', 'success');
-        elements.rollDiceBtn.disabled = false;
-        addLogEntry('🎲 Сейчас ваш ход! Бросайте кубик.');
-    } else {
-        const currentPlayer = gameState.players[data.currentTurn];
-        if (currentPlayer) {
-            showNotification(`⏳ Сейчас ходит ${currentPlayer.name}. Ожидайте своей очереди.`, 'info');
-            elements.rollDiceBtn.disabled = true;
-        }
-    }
+    addLogEntry(`📊 Прогресс очищения города обновлен: ${data.progress}%`);
 });
 
 // ==================== СИНХРОНИЗАЦИЯ ДВИЖЕНИЯ ИГРОКОВ ====================
@@ -939,20 +621,28 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, color) {
             tooltip.style.opacity = '0';
         });
         
-        elements.mapOverlay.appendChild(marker);
+        elements.mapGrid.appendChild(marker);
         console.log(`🆕 Создан маркер для игрока ${playerName}`);
     }
     
-    // Находим клетку с указанной позицией
-    const cell = mapData.cells.find(c => c.number === position);
-    if (cell) {
-        marker.style.left = `${cell.x + cell.width/2}px`;
-        marker.style.top = `${cell.y + cell.height/2}px`;
-        
-        const tooltip = marker.querySelector('.player-tooltip');
-        if (tooltip) {
-            tooltip.textContent = `${playerName} (поз. ${position})`;
-        }
+    const cellNumber = position || 1;
+    const row = Math.floor((cellNumber - 1) / 10);
+    const col = (cellNumber - 1) % 10;
+    
+    const leftPercent = (col * 10) + 5;
+    const topPercent = (row * 10) + 5;
+    
+    if (row % 2 === 1) {
+        marker.style.left = `${leftPercent + 2.5}%`;
+    } else {
+        marker.style.left = `${leftPercent}%`;
+    }
+    
+    marker.style.top = `${topPercent}%`;
+    
+    const tooltip = marker.querySelector('.player-tooltip');
+    if (tooltip) {
+        tooltip.textContent = `${playerName} (поз. ${position})`;
     }
     
     updatePlayerInList(playerId, position, playerName);
@@ -1030,17 +720,13 @@ function showNotification(message, type = 'info') {
     elements.notification.className = 'notification';
     
     if (type === 'success') {
-        elements.notification.classList.add('success');
         elements.notification.style.background = 'var(--success)';
     } else if (type === 'warning') {
-        elements.notification.classList.add('warning');
         elements.notification.style.background = 'var(--warning)';
     } else if (type === 'error') {
-        elements.notification.classList.add('error');
         elements.notification.style.background = 'var(--accent)';
     } else {
-        elements.notification.classList.add('info');
-        elements.notification.style.background = 'linear-gradient(135deg, #8e44ad, #3498db)';
+        elements.notification.style.background = 'var(--secondary)';
     }
     
     elements.notification.classList.add('show');
@@ -1071,132 +757,41 @@ function initializeGame(playerData) {
     gameState.currentPlayer = playerData;
     gameState.currentPlayerId = socket.id;
     
-    // Инициализируем прогресс для текущего игрока
-    if (!gameState.playerProgress[gameState.currentPlayerId]) {
-        gameState.playerProgress[gameState.currentPlayerId] = {};
-        for (const cityKey in gameData.cities) {
-            gameState.playerProgress[gameState.currentPlayerId][cityKey] = playerData.progress?.[cityKey] || 0;
-        }
-    }
-    
     elements.authSection.style.display = 'none';
     elements.gameContent.style.display = 'block';
     elements.resourcesPlaceholder.style.display = 'flex';
     updatePlayerUI();
     elements.roomNumber.textContent = currentRoomId || gameState.roomId;
     
-    loadMap();
+    createMap();
     createCitiesGrid();
     createBuildingsList();
     updateDifficultyButtons();
-    updateLevelProgress();
     
     initializeQuickActions();
-    initEmojiPicker();
-    updateRecentEmojisDisplay();
     
-    // Обновляем URL игры в приглашении
-    elements.inviteGameUrl.textContent = window.location.origin;
+    addLogEntry(`🎮 Добро пожаловать в игру, ${playerData.name}!`);
     
-    // Проверяем сохраненную тему - по умолчанию темная тема
-    const savedTheme = localStorage.getItem('lightTheme');
-    if (savedTheme === 'enabled') {
-        toggleLightTheme(); // Включаем светлую если сохранена
-    } else {
-        // По умолчанию темная тема
-        quickThemeBtn.innerHTML = '🌞<div class="tooltip">Включить светлую тему</div>';
-    }
-    
-    addLogEntry(`🎮 Добро пожаловать в игре, ${playerData.name}!`);
-    
-    // Обновляем состояние кнопки броска кубика
-    updateRollDiceButtonState();
-    
-    // НЕ показываем информацию о Твери сразу - только при входе в город
-    // Вместо этого показываем общее приветствие
     setTimeout(() => {
-        showNotification(`🎮 Добро пожаловать в игре, ${playerData.name}! Начните с броска кубика.`, 'success');
+        showCityModal(gameState.currentPlayer.city);
     }, 1000);
     
     socket.emit('get_room_state');
     
     if (gameState.reconnected) {
         showNotification('✅ Соединение восстановлено! Вы можете продолжать игру.', 'success');
+        elements.rollDiceBtn.disabled = false;
         elements.buildBtn.disabled = false;
-        updateTurnIndicator();
     }
-}
-
-function resetGameState() {
-    // Сбрасываем состояние игры при выходе из комнаты
-    gameState = {
-        currentPlayer: null,
-        currentPlayerId: null,
-        players: {},
-        roomId: null,
-        cityProgress: {},
-        currentTask: null,
-        currentDifficulty: "easy",
-        gameOver: false,
-        usedTasks: { easy: [], medium: [], hard: [] },
-        nextCity: null,
-        askedForChoice: {},
-        taskInProgress: false,
-        dragItems: [],
-        dropZones: [],
-        sortItems: [],
-        sortBins: [],
-        selectedPuzzlePieces: [],
-        cleanupItems: [],
-        cleanupCount: 0,
-        reconnected: false,
-        playerProgress: {},
-        currentTurn: null,
-        turnOrder: [],
-        isMyTurn: false,
-        isAtNewCity: false,
-        hasUnfinishedTask: false,
-        matchGameState: {
-            cards: [],
-            flippedCards: [],
-            matchedPairs: 0,
-            canFlip: true
-        },
-        quizSelectedAnswer: null,
-        visitedCities: {}
-    };
-    
-    hasCurrentTask = false;
-    currentRoomId = null;
-    
-    // Сбрасываем UI
-    elements.interactiveTask.style.display = 'none';
-    elements.currentTask.style.display = 'none';
-    elements.noTaskMessage.style.display = 'block';
-    elements.checkTaskBtn.style.display = 'none';
-    elements.retryTaskBtn.style.display = 'none';
-    elements.completeTaskBtn.style.display = 'block';
-    elements.completeTaskBtn.disabled = true;
-    elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
-    elements.rollDiceBtn.disabled = true;
-    elements.buildBtn.disabled = true;
-    elements.moveBtn.disabled = true;
-    elements.taskResult.textContent = '';
-    elements.taskArea.innerHTML = '';
 }
 
 function updateRoomState(roomData) {
-    gameState.players = roomData.players || {};
+    gameState.players = roomData.players;
     gameState.cityProgress = roomData.cityProgress || {};
-    
-    // Загружаем прогресс игроков, если он есть
-    if (roomData.playerProgress) {
-        gameState.playerProgress = roomData.playerProgress;
-    }
     
     updatePlayersList();
     updatePlayerMarkers();
-    elements.onlinePlayers.textContent = Object.keys(gameState.players).filter(id => gameState.players[id].connected).length;
+    elements.onlinePlayers.textContent = Object.keys(roomData.players).filter(id => roomData.players[id].connected).length;
     
     createCurrentCityProgress();
     
@@ -1204,34 +799,15 @@ function updateRoomState(roomData) {
         const serverPlayer = gameState.players[gameState.currentPlayerId];
         gameState.currentPlayer = serverPlayer;
         updatePlayerUI();
-        
-        // Обновляем прогресс из данных сервера
-        if (roomData.playerProgress && roomData.playerProgress[gameState.currentPlayerId]) {
-            gameState.playerProgress[gameState.currentPlayerId] = roomData.playerProgress[gameState.currentPlayerId];
-            createCurrentCityProgress();
-            createCitiesGrid();
-        }
     }
 }
 
-// Функция добавления сообщения в чат
-function addChatMessage(sender, message, isLocal = false) {
-    console.log(`💬 Добавление сообщения в чат: ${sender}: ${message} (isLocal: ${isLocal})`);
-    
+function addChatMessage(sender, message) {
     const messageElement = document.createElement('div');
     messageElement.className = 'chat-message';
     messageElement.innerHTML = `<span class="chat-sender">${sender}:</span> <span class="chat-text">${message}</span>`;
     elements.chatMessages.appendChild(messageElement);
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-    
-    // Ищем эмодзи в сообщении и добавляем в недавние
-    const emojiRegex = /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu;
-    const emojis = message.match(emojiRegex);
-    if (emojis) {
-        emojis.forEach(emoji => {
-            addRecentEmoji(emoji);
-        });
-    }
 }
 
 function savePlayerState() {
@@ -1248,180 +824,99 @@ function savePlayerState() {
         level: gameState.currentPlayer.level,
         completedTasks: gameState.currentPlayer.completedTasks,
         color: gameState.currentPlayer.color || getRandomColor(gameState.currentPlayerId),
-        connected: true,
-        progress: gameState.playerProgress[gameState.currentPlayerId],
-        currentTask: gameState.currentTask,
-        hasUnfinishedTask: hasCurrentTask || gameState.taskInProgress
+        connected: true
     });
 }
 
-// Функция отправки сообщения в чат
 function sendChatMessage(message) {
     if (isConnected && gameState.currentPlayer) {
-        console.log(`📤 Отправка сообщения в чат: ${message}`);
-        
-        // Отправляем сообщение на сервер
         socket.emit('chat_message', {
             message: message
         });
-        
-        // Очищаем поле ввода
-        elements.chatInput.value = '';
-        
-        // НЕ добавляем сообщение локально - оно придет от сервера
-        // чтобы избежать задвоения
     }
-}
-
-// ==================== ФУНКЦИИ ДЛЯ КАРТЫ ====================
-function loadMap() {
-    console.log('🗺️ Загрузка карты...');
-    
-    // Используем карту из mapData.js
-    if (window.mapData && window.mapData.imageUrl) {
-        elements.mapImage.src = window.mapData.imageUrl;
-        elements.mapImage.onload = function() {
-            console.log('✅ Изображение карты загружено');
-            mapData.imageLoaded = true;
-            
-            // Загружаем сохраненную карту из файла
-            loadSavedMap();
-            
-            // Обновляем маркеры игроков
-            updatePlayerMarkers();
-        };
-        
-        elements.mapImage.onerror = function() {
-            console.error('❌ Ошибка загрузки изображения карты');
-            showNotification('Ошибка загрузки карты', 'error');
-            mapData.imageLoaded = false;
-            
-            // Создаем заглушку
-            loadSavedMap();
-        };
-    } else {
-        console.error('❐ Данные карты не найдены в mapData.js');
-        showNotification('Данные карты не найдены', 'error');
-        
-        // Загружаем сохраненную карту из файла
-        loadSavedMap();
-    }
-}
-
-function loadSavedMap() {
-    console.log('📂 Загрузка сохраненной карты...');
-    
-    // Используем данные карты из mapData.js
-    if (window.mapData && window.mapData.cells) {
-        mapData.cells = window.mapData.cells;
-        console.log(`✅ Загружена карта с ${mapData.cells.length} клетками`);
-        
-        // Создаем клетки на карте
-        createMapCells();
-        
-        // Если есть игроки, обновляем их маркеры
-        updatePlayerMarkers();
-        
-        showNotification('Карта городов России успешно загружена!', 'success');
-    } else {
-        console.error('❌ Ошибка загрузки карты: данные не найдены');
-        
-        // Создаем базовую карту с городами
-        createDefaultMap();
-        showNotification('Используется стандартная карта городов', 'info');
-    }
-}
-
-function createDefaultMap() {
-    console.log('📍 Создание стандартной карты городов');
-    
-    const containerWidth = elements.mapContainer.offsetWidth;
-    const containerHeight = elements.mapContainer.offsetHeight;
-    
-    // Создаем клетки для каждого города
-    const cityPositions = [
-        { city: 'tver', x: containerWidth * 0.1, y: containerHeight * 0.3, number: 1, type: 'start' },
-        { city: 'kineshma', x: containerWidth * 0.3, y: containerHeight * 0.4, number: 2, type: 'city' },
-        { city: 'naberezhnye_chelny', x: containerWidth * 0.5, y: containerHeight * 0.3, number: 3, type: 'city' },
-        { city: 'kazan', x: containerWidth * 0.7, y: containerHeight * 0.4, number: 4, type: 'city' },
-        { city: 'volgograd', x: containerWidth * 0.6, y: containerHeight * 0.6, number: 5, type: 'city' },
-        { city: 'astrakhan', x: containerWidth * 0.8, y: containerHeight * 0.7, number: 6, type: 'finish' }
-    ];
-    
-    mapData.cells = cityPositions.map((pos, index) => ({
-        id: index + 1,
-        number: pos.number,
-        x: pos.x,
-        y: pos.y,
-        width: 40,
-        height: 40,
-        type: pos.type,
-        city: pos.city,
-        description: `Клетка города ${gameData.cities[pos.city]?.name || 'Неизвестный'}`
-    }));
-    
-    createMapCells();
-}
-
-function createMapCells() {
-    // Очищаем overlay
-    elements.mapOverlay.innerHTML = '';
-    
-    // Создаем клетки (всегда скрытые)
-    mapData.cells.forEach(cell => {
-        createCellElement(cell);
-    });
-    
-    console.log(`✅ Создано ${mapData.cells.length} клеток на карте`);
-    
-    // Если есть игроки, обновляем их маркеры
-    updatePlayerMarkers();
-}
-
-function createCellElement(cell) {
-    const cellElement = document.createElement('div');
-    cellElement.className = 'map-cell hidden';
-    cellElement.dataset.cellId = cell.id;
-    cellElement.dataset.cellNumber = cell.number;
-    cellElement.dataset.cellType = cell.type;
-    cellElement.dataset.city = cell.city || '';
-    
-    // Позиционируем клетку
-    cellElement.style.left = `${cell.x}px`;
-    cellElement.style.top = `${cell.y}px`;
-    cellElement.style.width = `${cell.width}px`;
-    cellElement.style.height = `${cell.height}px`;
-    
-    // Добавляем классы в зависимости от типа
-    if (cell.type === 'start') {
-        cellElement.classList.add('start');
-    } else if (cell.type === 'finish') {
-        cellElement.classList.add('finish');
-    } else if (cell.type === 'city') {
-        cellElement.classList.add('city');
-    }
-    
-    // Добавляем обработчики событий
-    cellElement.addEventListener('click', function(e) {
-        e.stopPropagation();
-        
-        // Показываем информацию о городе
-        if (cell.type === 'city' && cell.city) {
-            showCityModal(cell.city);
-        } else if (cell.type === 'start') {
-            showNotification('Это стартовая точка игры!', 'info');
-        } else if (cell.type === 'finish') {
-            showNotification('Это конечная точка игры!', 'info');
-        }
-    });
-    
-    elements.mapOverlay.appendChild(cellElement);
-    return cellElement;
 }
 
 // ==================== ФУНКЦИИ ИНТЕРФЕЙСА ====================
+function createMap() {
+    elements.mapGrid.innerHTML = '';
+    
+    const riverCells = [14, 15, 16, 17, 30, 31, 44, 45, 46, 59, 60, 61, 62, 63, 64, 65, 78, 79, 80];
+    const forestCells = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92];
+    
+    for (let row = 0; row < 10; row++) {
+        for (let col = 0; col < 10; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'map-cell hexagon';
+            cell.style.position = 'relative';
+            
+            const cellNumber = row * 10 + col + 1;
+            
+            if (cellNumber > 100) {
+                cell.classList.add('empty');
+                cell.textContent = '';
+                elements.mapGrid.appendChild(cell);
+                continue;
+            }
+            
+            const numberSpan = document.createElement('span');
+            numberSpan.className = 'cell-number';
+            numberSpan.textContent = cellNumber;
+            numberSpan.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: bold; color: #333; z-index: 1;';
+            
+            if (cellNumber === 1) {
+                cell.classList.add('start');
+                cell.style.background = 'rgba(76, 175, 80, 0.8)';
+                numberSpan.textContent = '1';
+                numberSpan.style.color = 'white';
+                numberSpan.style.fontSize = '10px';
+                numberSpan.style.top = '70%';
+                
+                if (gameState.currentPlayer && !gameState.currentPlayer.position) {
+                    gameState.currentPlayer.position = 1;
+                    updatePlayerUI();
+                }
+            } else if (cellNumber === 100) {
+                cell.classList.add('finish');
+                cell.style.background = 'rgba(244, 67, 54, 0.8)';
+                numberSpan.textContent = '100';
+                numberSpan.style.color = 'white';
+                numberSpan.style.fontSize = '10px';
+                numberSpan.style.top = '70%';
+            } else if (riverCells.includes(cellNumber)) {
+                cell.classList.add('river');
+                cell.style.background = 'rgba(33, 150, 243, 0.3)';
+                numberSpan.style.color = '#2196F3';
+            } else if (forestCells.includes(cellNumber)) {
+                cell.classList.add('forest');
+                cell.style.background = 'rgba(56, 142, 60, 0.3)';
+                numberSpan.style.color = '#388E3C';
+            } else {
+                let isCity = false;
+                for (const cityKey in gameData.cities) {
+                    if (gameData.cities[cityKey].cells.includes(cellNumber)) {
+                        cell.classList.add('city');
+                        cell.style.background = 'rgba(255, 235, 59, 0.8)';
+                        numberSpan.style.top = '70%';
+                        numberSpan.style.color = '#FF9800';
+                        isCity = true;
+                        break;
+                    }
+                }
+                if (!isCity) {
+                    cell.style.background = 'rgba(255, 255, 255, 0.7)';
+                    numberSpan.style.color = '#666';
+                }
+            }
+            
+            cell.appendChild(numberSpan);
+            elements.mapGrid.appendChild(cell);
+        }
+    }
+    
+    updatePlayerMarkers();
+}
+
 function updatePlayerMarkers() {
-    // Удаляем старые маркеры игроков
     document.querySelectorAll('.player-marker').forEach(marker => {
         marker.remove();
     });
@@ -1432,18 +927,8 @@ function updatePlayerMarkers() {
 function updatePlayersList() {
     elements.playersContainer.innerHTML = '';
     
-    // Сортируем игроков по порядку ходов, если есть очередь
-    let playersArray = Object.entries(gameState.players);
-    
-    if (gameState.turnOrder && gameState.turnOrder.length > 0) {
-        playersArray.sort((a, b) => {
-            const indexA = gameState.turnOrder.indexOf(a[0]);
-            const indexB = gameState.turnOrder.indexOf(b[0]);
-            return (indexA - indexB);
-        });
-    }
-    
-    playersArray.forEach(([playerId, player]) => {
+    for (const playerId in gameState.players) {
+        const player = gameState.players[playerId];
         const playerItem = document.createElement('div');
         playerItem.className = 'player-item';
         playerItem.dataset.playerId = playerId;
@@ -1452,27 +937,22 @@ function updatePlayersList() {
             playerItem.classList.add('current');
         }
         
-        if (playerId === gameState.currentTurn) {
-            playerItem.classList.add('turn');
-        }
-        
         if (!player.connected) {
             playerItem.style.opacity = '0.6';
         }
         
         const statusIcon = player.connected ? '🟢' : '🔴';
-        const turnIndicator = playerId === gameState.currentTurn ? ' 👑' : '';
         
         playerItem.innerHTML = `
-            <span>${statusIcon} ${player.name}${turnIndicator}
-                ${playerId === gameState.currentPlayerId ? '<span style="color: #8e44ad;">(Вы)</span>' : ''}
-                <span class="player-position-badge">поз. ${player.position || 0}</span>
+            <span>${statusIcon} ${player.name} 
+                ${playerId === gameState.currentPlayerId ? '<span style="color: var(--secondary);">(Вы)</span>' : ''}
+                <span class="player-position-badge">поз. ${player.position || 1}</span>
             </span>
             <span><strong>${player.cleaningPoints}</strong> баллов</span>
         `;
         
         elements.playersContainer.appendChild(playerItem);
-    });
+    }
 }
 
 function updatePlayerUI() {
@@ -1487,59 +967,6 @@ function updatePlayerUI() {
         // Обновляем верхний плейсхолдер
         elements.topCoinsCount.textContent = gameState.currentPlayer.coins;
         elements.topPlayerLevel.textContent = gameState.currentPlayer.level + ' ур.';
-        
-        // Обновляем прогресс уровня
-        updateLevelProgress();
-    }
-}
-
-function updateLevelProgress() {
-    if (gameState.currentPlayer) {
-        const completedTasks = gameState.currentPlayer.completedTasks || 0;
-        const progress = (completedTasks % 3) * 33.33;
-        elements.levelProgressFill.style.width = `${progress}%`;
-    }
-}
-
-function updateTurnIndicator() {
-    if (gameState.currentTurn) {
-        elements.turnIndicator.style.display = 'block';
-        
-        if (gameState.isMyTurn) {
-            elements.turnIndicator.classList.add('your-turn');
-            elements.turnIndicator.classList.remove('other-turn');
-            elements.turnMessage.textContent = '🎉 Сейчас ваш ход! Бросайте кубик.';
-        } else {
-            const currentPlayer = gameState.players[gameState.currentTurn];
-            if (currentPlayer) {
-                elements.turnIndicator.classList.add('other-turn');
-                elements.turnIndicator.classList.remove('your-turn');
-                elements.turnMessage.textContent = `⏳ Сейчас ходит ${currentPlayer.name}. Ожидайте своей очереди.`;
-            }
-        }
-    } else {
-        elements.turnIndicator.style.display = 'none';
-    }
-}
-
-function updateRollDiceButtonState() {
-    // Отключаем кнопку броска кубика если:
-    // 1. Не наш ход
-    // 2. Есть незавершенное задание
-    // 3. Игра завершена
-    // 4. Задание в процессе выполнения
-    if (gameState.gameOver || gameState.taskInProgress) {
-        elements.rollDiceBtn.disabled = true;
-        elements.rollDiceBtn.style.opacity = '0.7';
-    } else if (!gameState.isMyTurn) {
-        elements.rollDiceBtn.disabled = true;
-        elements.rollDiceBtn.style.opacity = '0.7';
-    } else if (hasCurrentTask) {
-        elements.rollDiceBtn.disabled = true;
-        elements.rollDiceBtn.style.opacity = '0.7';
-    } else {
-        elements.rollDiceBtn.disabled = false;
-        elements.rollDiceBtn.style.opacity = '1';
     }
 }
 
@@ -1549,7 +976,7 @@ function createCurrentCityProgress() {
     if (gameState.currentPlayer && gameState.currentPlayer.city) {
         const cityKey = gameState.currentPlayer.city;
         const city = gameData.cities[cityKey];
-        const progress = gameState.playerProgress[gameState.currentPlayerId]?.[cityKey] || 0;
+        const progress = gameState.cityProgress[cityKey] || 0;
         
         const progressElement = document.createElement('div');
         progressElement.className = 'city-progress';
@@ -1561,167 +988,43 @@ function createCurrentCityProgress() {
             <div class="progress-bar">
                 <div class="progress-fill" style="width: ${progress}%;"></div>
             </div>
-            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-top: 5px;">
-                ${progress >= 100 ? '✅ Город полностью очищен!' : `Для перехода в следующий город необходимо достичь 100%`}
-            </div>
         `;
         
         elements.cityProgressContainer.appendChild(progressElement);
-        
-        // Обновляем кнопку перехода
-        if (progress >= 100 && canMoveToNextCity()) {
-            elements.moveBtn.disabled = false;
-            elements.moveBtn.textContent = "🚗 Перейти в следующий город";
-        } else {
-            elements.moveBtn.disabled = true;
-            elements.moveBtn.textContent = "Завершите очищение города";
-        }
     }
-}
-
-function canMoveToNextCity() {
-    if (!gameState.currentPlayerId || !gameState.playerProgress[gameState.currentPlayerId]) {
-        return false;
-    }
-    
-    const cityKeys = Object.keys(gameData.cities);
-    const currentCityKey = gameState.currentPlayer.city;
-    const currentIndex = cityKeys.indexOf(currentCityKey);
-    
-    if (currentIndex === -1 || currentIndex >= cityKeys.length - 1) {
-        return false;
-    }
-    
-    // Проверяем, достигли ли мы нового города
-    const newCityKey = cityKeys[currentIndex + 1];
-    
-    // Находим клетку с позицией игрока
-    const currentCell = mapData.cells.find(cell => cell.number === gameState.currentPlayer.position);
-    if (!currentCell) return false;
-    
-    // Проверяем, находится ли игрок в городе (по названию города в клетке)
-    return currentCell.city === newCityKey;
 }
 
 function createCitiesGrid() {
     elements.citiesGrid.innerHTML = '';
     
-    const currentCityKey = gameState.currentPlayer?.city || 'tver';
-    
     for (const cityKey in gameData.cities) {
         const city = gameData.cities[cityKey];
-        const progress = gameState.playerProgress[gameState.currentPlayerId]?.[cityKey] || 0;
-        const isCurrentCity = cityKey === currentCityKey;
-        const isCompleted = progress >= 100;
-        const isAccessible = canAccessCity(cityKey);
-        
         const cityCard = document.createElement('div');
         cityCard.className = 'city-card';
         cityCard.dataset.city = cityKey;
         
-        if (isCurrentCity) {
+        if (cityKey === (gameState.currentPlayer?.city || 'tver')) {
             cityCard.classList.add('active');
         }
         
-        if (isCompleted) {
-            cityCard.classList.add('completed');
-        }
-        
-        if (isAccessible && !isCurrentCity) {
-            cityCard.classList.add('accessible');
-        }
-        
-        // Обновляем информацию о клетках городов
-        let cellRange = '';
-        switch(cityKey) {
-            case 'tver':
-                cellRange = '2-13';
-                break;
-            case 'kineshma':
-                cellRange = '18-29';
-                break;
-            case 'naberezhnye_chelny':
-                cellRange = '32-43';
-                break;
-            case 'kazan':
-                cellRange = '47-58';
-                break;
-            case 'volgograd':
-                cellRange = '66-77';
-                break;
-            case 'astrakhan':
-                cellRange = '81-92';
-                break;
-            default:
-                cellRange = '?';
-        }
+        const progress = gameState.cityProgress[cityKey] || 0;
         
         cityCard.innerHTML = `
             <div class="city-name">${city.name}</div>
-            <div class="city-position">Клетка: ${cellRange}</div>
+            <div class="city-position">Клетки: ${city.cells[0]}-${city.cells[city.cells.length-1]}</div>
             <div class="city-progress-mini">
-                <div class="city-progress-fill" style="width: ${progress}%;"></div>
+                <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 5px;">
+                    <div style="width: ${progress}%; height: 100%; background: var(--success); border-radius: 2px;"></div>
+                </div>
             </div>
-            ${isAccessible && !isCurrentCity ? `<button class="city-action-btn" data-city="${cityKey}">🚗 Перейти</button>` : ''}
         `;
         
-        // Обработчик клика для просмотра информации о городе
-        cityCard.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('city-action-btn')) {
-                showCityModal(cityKey);
-            }
+        cityCard.addEventListener('click', () => {
+            showCityModal(cityKey);
         });
-        
-        // Обработчик клика для кнопки перехода
-        const actionBtn = cityCard.querySelector('.city-action-btn');
-        if (actionBtn) {
-            actionBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                moveToExistingCity(cityKey);
-            });
-        }
         
         elements.citiesGrid.appendChild(cityCard);
     }
-}
-
-function canAccessCity(cityKey) {
-    if (!gameState.currentPlayerId || !gameState.playerProgress[gameState.currentPlayerId]) {
-        return false;
-    }
-    
-    const playerProgress = gameState.playerProgress[gameState.currentPlayerId];
-    const cityKeys = Object.keys(gameData.cities);
-    const targetIndex = cityKeys.indexOf(cityKey);
-    const currentIndex = cityKeys.indexOf(gameState.currentPlayer?.city || 'tver');
-    
-    // Можно перейти если:
-    // 1. Это текущий город
-    // 2. Это предыдущий город
-    // 3. Это следующий город и текущий завершен на 100%
-    // 4. Любой город, который уже был пройден (прогресс > 0)
-    
-    const targetProgress = playerProgress[cityKey] || 0;
-    
-    if (targetIndex < currentIndex) {
-        // Предыдущие города доступны всегда
-        return true;
-    } else if (targetIndex === currentIndex + 1) {
-        // Следующий город доступен только если текущий завершен
-        const currentProgress = playerProgress[gameState.currentPlayer.city] || 0;
-        return currentProgress >= 100;
-    } else if (targetIndex > currentIndex + 1) {
-        // Города дальше доступны только если все предыдущие завершены
-        for (let i = currentIndex + 1; i < targetIndex; i++) {
-            const prevCityKey = cityKeys[i];
-            if ((playerProgress[prevCityKey] || 0) < 100) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
-    return false;
 }
 
 function createBuildingsList() {
@@ -1755,19 +1058,19 @@ function createBuildingsList() {
                 
                 updatePlayerUI();
                 
-                // Обновляем прогресс для текущего игрока
-                const cityKey = gameState.currentPlayer.city;
-                const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[cityKey] || 0;
-                const newProgress = Math.min(100, currentProgress + 15);
-                
-                updateCityProgress(cityKey, newProgress);
+                const currentCityProgress = gameState.cityProgress[gameState.currentPlayer.city] || 0;
+                const newProgress = Math.min(100, currentCityProgress + 15);
+                updateCityProgress(gameState.currentPlayer.city, newProgress);
                 
                 addLogEntry(`🏗️ Вы построили "${building.name}"! Получено ${building.points} баллов очищения.`);
                 
                 savePlayerState();
                 
-                // Проверяем завершение игры
-                checkGameCompletion();
+                if (gameState.currentPlayer.position >= 94 && gameState.currentPlayer.buildings.length >= 1) {
+                    gameState.gameOver = true;
+                    addLogEntry(`🎊 Поздравляем! Вы достигли Астрахани и построили объект! Игра завершена.`);
+                    showNotification(`🎊 Поздравляем! Вы достигли Астрахани и построили объект! Игра завершена.`, 'success');
+                }
                 
                 // Показываем уведомление о покупке
                 showNotification(`✅ Успешно построено "${building.name}" за ${building.cost} монет!`, 'success');
@@ -1781,83 +1084,16 @@ function createBuildingsList() {
 }
 
 function updateCityProgress(cityKey, progress) {
-    // Обновляем прогресс для текущего игрока
-    if (!gameState.playerProgress[gameState.currentPlayerId]) {
-        gameState.playerProgress[gameState.currentPlayerId] = {};
-    }
-    gameState.playerProgress[gameState.currentPlayerId][cityKey] = progress;
-    
+    gameState.cityProgress[cityKey] = progress;
     createCurrentCityProgress();
     
-    // Отправляем на сервер
     socket.emit('update_progress', {
         cityKey: cityKey,
-        progress: progress,
-        playerId: gameState.currentPlayerId
+        progress: progress
     });
     
     savePlayerState();
     createCitiesGrid();
-    
-    // Проверяем завершение игры
-    checkGameCompletion();
-}
-
-function checkGameCompletion() {
-    if (!gameState.currentPlayerId || !gameState.playerProgress[gameState.currentPlayerId]) {
-        return;
-    }
-    
-    const playerProgress = gameState.playerProgress[gameState.currentPlayerId];
-    const allCitiesCompleted = Object.values(playerProgress).every(progress => progress >= 100);
-    
-    // Находим финишную клетку
-    const finishCell = mapData.cells.find(cell => cell.type === 'finish');
-    const isAtFinish = finishCell && gameState.currentPlayer.position === finishCell.number;
-    
-    if (allCitiesCompleted && isAtFinish) {
-        gameState.gameOver = true;
-        addLogEntry(`🎊 Поздравляем! Вы завершили игру! Все города очищены на 100% и вы достигли финиша!`);
-        showNotification(`🎊 Поздравляем! Вы завершили игру!`, 'success');
-        
-        // Отключаем кнопки
-        elements.rollDiceBtn.disabled = true;
-        elements.buildBtn.disabled = true;
-        elements.moveBtn.disabled = true;
-        elements.completeTaskBtn.disabled = true;
-    }
-}
-
-// ==================== УВЕДОМЛЕНИЕ О ПЕРЕХОДЕ В НОВЫЙ ГОРОД ====================
-function checkForCityTransition(oldPosition, newPosition) {
-    // Находим клетки, на которых находились и оказались
-    const oldCell = mapData.cells.find(cell => cell.number === oldPosition);
-    const newCell = mapData.cells.find(cell => cell.number === newPosition);
-    
-    if (!oldCell || !newCell) return;
-    
-    // Проверяем, перешли ли мы в новый город
-    if (newCell.type === 'city' && newCell.city) {
-        const cityKey = newCell.city;
-        const city = gameData.cities[cityKey];
-        
-        // Проверяем, был ли игрок уже в этом городе
-        const wasInCity = oldCell.city === cityKey;
-        
-        if (!wasInCity) {
-            // Это новый город для игрока
-            showNotification(`🏙️ Вы прибыли в ${city.name}! ${city.description}`, 'info');
-            addLogEntry(`🏙️ Вы прибыли в город ${city.name}`);
-            
-            // Показываем информацию о городе только при первом посещении
-            if (!gameState.visitedCities[cityKey]) {
-                setTimeout(() => {
-                    showCityModal(cityKey);
-                }, 1000);
-                gameState.visitedCities[cityKey] = true;
-            }
-        }
-    }
 }
 
 function showCityModal(cityKey) {
@@ -1870,25 +1106,6 @@ function showCityModal(cityKey) {
     elements.cityModalProblem.textContent = city.problem;
     elements.cityModalTask.textContent = city.task;
     
-    // Показываем прогресс
-    const progress = gameState.playerProgress[gameState.currentPlayerId]?.[cityKey] || 0;
-    elements.cityModalProgressFill.style.width = `${progress}%`;
-    elements.cityModalProgressText.textContent = `${progress}%`;
-    
-    // Показываем кнопку перехода, если город доступен и не текущий
-    const isCurrentCity = cityKey === (gameState.currentPlayer?.city || 'tver');
-    const isAccessible = canAccessCity(cityKey);
-    
-    if (isAccessible && !isCurrentCity) {
-        elements.cityModalMoveBtn.style.display = 'block';
-        elements.cityModalMoveBtn.onclick = () => {
-            closeCityModal();
-            moveToExistingCity(cityKey);
-        };
-    } else {
-        elements.cityModalMoveBtn.style.display = 'none';
-    }
-    
     elements.cityModal.classList.add('active');
 }
 
@@ -1896,36 +1113,7 @@ function closeCityModal() {
     elements.cityModal.classList.remove('active');
 }
 
-function showInviteModal() {
-    elements.inviteRoomNumber.textContent = currentRoomId || gameState.roomId || '0';
-    elements.inviteModal.classList.add('active');
-}
-
-function closeInviteModal() {
-    elements.inviteModal.classList.remove('active');
-}
-
-function copyInvitation() {
-    const gameUrl = window.location.origin;
-    const invitationText = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n\n🔢 Номер комнаты: ${currentRoomId || gameState.roomId || '0'}\n\n🌐 Игра доступна по адресу: ${gameUrl}\n\n👥 Ждем вас!`;
-    
-    navigator.clipboard.writeText(invitationText).then(() => {
-        showNotification('Приглашение скопировано в буфер обмена!', 'success');
-    }).catch(err => {
-        console.error('Ошибка копирования:', err);
-        showNotification('Не удалось скопировать приглашение', 'error');
-    });
-}
-
 function showChoiceModal(nextCity) {
-    const currentCityKey = gameState.currentPlayer.city;
-    const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[currentCityKey] || 0;
-    const currentCityName = gameData.cities[currentCityKey]?.name || 'Текущий город';
-    
-    elements.choiceCurrentCityName.textContent = currentCityName;
-    elements.choiceCurrentCityProgress.textContent = `${currentProgress}%`;
-    elements.choiceCurrentCityProgressFill.style.width = `${currentProgress}%`;
-    
     gameState.nextCity = nextCity;
     elements.choiceModal.classList.add('active');
 }
@@ -1959,137 +1147,6 @@ function addLogEntry(message) {
     elements.logEntries.appendChild(entry);
     elements.logEntries.scrollTop = elements.logEntries.scrollHeight;
 }
-
-// ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ====================
-
-function getRandomTask(difficulty) {
-    const availableTasks = gameData.tasks[difficulty];
-    if (!availableTasks || availableTasks.length === 0) {
-        // Если нет заданий, создаем простое задание по умолчанию
-        return {
-            description: "Ответьте на вопрос об экологии",
-            type: "quiz",
-            question: "Что помогает сохранить природу?",
-            options: [
-                {text: "Посадка деревьев", correct: true},
-                {text: "Сжигание мусора", correct: false},
-                {text: "Вырубка лесов", correct: false},
-                {text: "Загрязнение рек", correct: false}
-            ]
-        };
-    }
-    
-    if (gameState.usedTasks[difficulty].length >= availableTasks.length) {
-        gameState.usedTasks[difficulty] = [];
-    }
-    
-    let randomTask;
-    let attempts = 0;
-    do {
-        randomTask = availableTasks[Math.floor(Math.random() * availableTasks.length)];
-        attempts++;
-    } while (gameState.usedTasks[difficulty].includes(randomTask.description) && attempts < 20);
-    
-    if (!gameState.usedTasks[difficulty].includes(randomTask.description)) {
-        gameState.usedTasks[difficulty].push(randomTask.description);
-    }
-    
-    // Перемешиваем варианты ответов для тестовых заданий
-    if (randomTask.type === "quiz" && randomTask.options) {
-        randomTask.options = shuffleArray(randomTask.options);
-    }
-    
-    return randomTask;
-}
-
-function shuffleArray(array) {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-}
-
-function createInteractiveTask(task) {
-    elements.taskArea.innerHTML = '';
-    elements.taskResult.textContent = '';
-    elements.checkTaskBtn.style.display = 'none';
-    elements.retryTaskBtn.style.display = 'none';
-    gameState.taskInProgress = true;
-    hasCurrentTask = true;
-    
-    gameState.dragItems = [];
-    gameState.dropZones = [];
-    gameState.sortItems = [];
-    gameState.sortBins = [];
-    gameState.selectedPuzzlePieces = [];
-    gameState.cleanupItems = [];
-    gameState.cleanupCount = 0;
-    gameState.matchGameState = {
-        cards: [],
-        flippedCards: [],
-        matchedPairs: 0,
-        canFlip: true
-    };
-    
-    // Прокручиваем к началу задания
-    setTimeout(() => {
-        elements.taskArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-    
-    // Преобразуем старые типы заданий в новые
-    if (task.type === "drag") {
-        task.type = "drag_click";
-    } else if (task.type === "sort") {
-        task.type = "sort_click";
-    } else if (task.type === "puzzle") {
-        task.type = "puzzle_click";
-    } else if (task.type === "puzzle_sequence" || task.type === "sequence") {
-        task.type = "sequence_click";
-    }
-    
-    if (task.type === "quiz") {
-        createQuizTask(task);
-    } else if (task.type === "drag_click") {
-        createDragClickTask(task);
-    } else if (task.type === "sort_click") {
-        createSortClickTask(task);
-    } else if (task.type === "clean") {
-        createCleanupTask(task);
-    } else if (task.type === "puzzle_click") {
-        createPuzzleClickTask(task);
-    } else if (task.type === "puzzle_image") {
-        createPuzzleImageTask(task);
-    } else if (task.type === "sequence_click") {
-        createSequenceClickTask(task);
-    } else if (task.type === "match_game") {
-        createMatchGameTask(task);
-    } else {
-        createDefaultTask(task);
-    }
-    
-    // Кнопка "Начать выполнение задания" меняется на "Проверить выполнение"
-    elements.completeTaskBtn.style.display = 'none';
-    elements.checkTaskBtn.style.display = 'block';
-    elements.checkTaskBtn.textContent = "✅ Проверить выполнение";
-    elements.checkTaskBtn.disabled = false;
-    
-    // Обновляем состояние кнопки броска кубика
-    updateRollDiceButtonState();
-    
-    // Добавляем контейнер для прокрутки на мобильных устройствах
-    if (window.innerWidth <= 768) {
-        const dragContainers = elements.taskArea.querySelectorAll('.task-container, .drag-container, .sorting-area, .puzzle-area, .sequence-area, .match-grid');
-        dragContainers.forEach(container => {
-            container.parentNode.classList.add('drag-scroll-container');
-            container.classList.add('drag-scroll-content');
-        });
-    }
-}
-
-// Из-за ограничения размера ответа, не все функции заданий включены полностью
-// В реальном проекте они должны быть реализованы
 
 // ==================== КНОПКА БЫСТРЫХ ДЕЙСТВИЙ ====================
 function initializeQuickActions() {
@@ -2139,8 +1196,6 @@ function initializeQuickActions() {
                 showNotification('Игра завершена!', 'warning');
             } else if (hasCurrentTask) {
                 showNotification('Сначала выполните текущее задание!', 'warning');
-            } else if (!gameState.isMyTurn) {
-                showNotification('Сейчас не ваш ход!', 'warning');
             }
         }, 500);
     });
@@ -2156,21 +1211,15 @@ function initializeQuickActions() {
         }
         
         setTimeout(() => {
-            // Прокручиваем к доступным объектам
-            const buildingsContainer = document.getElementById('buildingsContainer');
-            if (buildingsContainer) {
-                buildingsContainer.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-                
-                // Подсвечиваем секцию зданий
-                elements.buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
-                elements.buildingsSection.style.transition = 'box-shadow 0.5s';
-                setTimeout(() => {
-                    elements.buildingsSection.style.boxShadow = '';
-                }, 2000);
-            }
+            scrollToElement('buildingsSection');
+            
+            const buildBtnPosition = elements.buildBtn.getBoundingClientRect().top + window.pageYOffset;
+            window.scrollTo({
+                top: buildBtnPosition - 100,
+                behavior: 'smooth'
+            });
+            
+            elements.buildBtn.focus();
         }, 100);
     });
     
@@ -2214,15 +1263,7 @@ function initializeQuickActions() {
         quickActionsBtn.classList.remove('active');
         quickActionsVisible = false;
         
-        showInviteModal();
-    });
-    
-    quickThemeBtn.addEventListener('click', function() {
-        quickActions.classList.remove('show');
-        quickActionsBtn.classList.remove('active');
-        quickActionsVisible = false;
-        
-        toggleLightTheme();
+        elements.inviteBtn.click();
     });
     
     document.addEventListener('click', function(event) {
@@ -2236,8 +1277,6 @@ function initializeQuickActions() {
     });
     
     function updateQuickButtons() {
-        updateRollDiceButtonState();
-        
         if (gameState.gameOver) {
             quickDiceBtn.style.opacity = '0.5';
             quickDiceBtn.style.cursor = 'not-allowed';
@@ -2246,19 +1285,9 @@ function initializeQuickActions() {
             quickBuildBtn.style.cursor = 'not-allowed';
             quickBuildBtn.title = 'Игра завершена';
         } else {
-            if (!gameState.isMyTurn) {
-                quickDiceBtn.style.opacity = '0.5';
-                quickDiceBtn.style.cursor = 'not-allowed';
-                quickDiceBtn.title = 'Сейчас не ваш ход';
-            } else if (hasCurrentTask || gameState.taskInProgress) {
-                quickDiceBtn.style.opacity = '0.5';
-                quickDiceBtn.style.cursor = 'not-allowed';
-                quickDiceBtn.title = 'Сначала выполните задание';
-            } else {
-                quickDiceBtn.style.opacity = '1';
-                quickDiceBtn.style.cursor = 'pointer';
-                quickDiceBtn.title = 'Бросить кубик';
-            }
+            quickDiceBtn.style.opacity = '1';
+            quickDiceBtn.style.cursor = 'pointer';
+            quickDiceBtn.title = 'Бросить кубик';
             
             if (hasCurrentTask || gameState.taskInProgress) {
                 quickBuildBtn.style.opacity = '0.5';
@@ -2282,9 +1311,630 @@ function initializeQuickActions() {
     updateQuickButtons();
 }
 
-// ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+// ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ====================
+function getRandomTask(difficulty) {
+    const availableTasks = gameData.tasks[difficulty];
+    if (!availableTasks || availableTasks.length === 0) return null;
+    
+    if (gameState.usedTasks[difficulty].length >= availableTasks.length) {
+        gameState.usedTasks[difficulty] = [];
+    }
+    
+    let randomTask;
+    let attempts = 0;
+    do {
+        randomTask = availableTasks[Math.floor(Math.random() * availableTasks.length)];
+        attempts++;
+    } while (gameState.usedTasks[difficulty].includes(randomTask.description) && attempts < 20);
+    
+    if (!gameState.usedTasks[difficulty].includes(randomTask.description)) {
+        gameState.usedTasks[difficulty].push(randomTask.description);
+    }
+    
+    return randomTask;
+}
 
-// Обработчики событий для авторизации
+function createInteractiveTask(task) {
+    elements.taskArea.innerHTML = '';
+    elements.taskResult.textContent = '';
+    gameState.taskInProgress = true;
+    hasCurrentTask = true;
+    
+    gameState.dragItems = [];
+    gameState.dropZones = [];
+    gameState.sortItems = [];
+    gameState.sortBins = [];
+    gameState.selectedPuzzlePieces = [];
+    gameState.spotDifferencesFound = 0;
+    gameState.cleanupItems = [];
+    
+    if (task.type === "quiz") {
+        createQuizTask(task);
+    } else if (task.type === "drag") {
+        createDragTask(task);
+    } else if (task.type === "sort") {
+        createSortTask(task);
+    } else if (task.type === "clean") {
+        createCleanupTask(task);
+    } else if (task.type === "puzzle") {
+        createPuzzleTask(task);
+    } else if (task.type === "spot_difference") {
+        createSpotDifferenceTask(task);
+    } else if (task.type === "puzzle_sequence") {
+        createPuzzleSequenceTask(task);
+    } else if (task.type === "sequence") {
+        createSequenceTask(task);
+    } else {
+        createDefaultTask(task);
+    }
+    
+    elements.checkTaskBtn.disabled = true;
+    
+    // Добавляем контейнер для прокрутки на мобильных устройствах
+    if (window.innerWidth <= 768) {
+        const dragContainers = elements.taskArea.querySelectorAll('.drag-items, .sort-items, .puzzle-pieces, .sequence-pieces');
+        dragContainers.forEach(container => {
+            container.parentNode.classList.add('drag-scroll-container');
+            container.classList.add('drag-scroll-content');
+        });
+    }
+}
+
+function createQuizTask(task) {
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.question}</strong></p>
+        <div class="quiz-options">
+            ${task.options.map((option, index) => 
+                `<div class="quiz-option" data-index="${index}" data-correct="${option.correct}">
+                    ${option.text}
+                </div>`
+            ).join('')}
+        </div>
+    `;
+    
+    document.querySelectorAll('.quiz-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const isCorrect = this.dataset.correct === 'true';
+            const allOptions = document.querySelectorAll('.quiz-option');
+            
+            allOptions.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                if (opt.dataset.correct === 'true') {
+                    opt.classList.add('correct');
+                } else if (opt === this && !isCorrect) {
+                    opt.classList.add('incorrect');
+                }
+            });
+            
+            elements.taskResult.textContent = isCorrect ? 
+                '✅ Правильно! Задание выполнено.' : 
+                '❌ Неправильно. Попробуйте еще раз.';
+            elements.taskResult.style.color = isCorrect ? '#2ecc71' : '#e74c3c';
+            
+            if (isCorrect) {
+                elements.checkTaskBtn.disabled = false;
+            }
+        });
+    });
+}
+
+function createDragTask(task) {
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Перетащите ${task.goal} предметов в специальные зоны:</p>
+        <div class="drag-container">
+            <div class="drag-items">
+                ${task.items.map((item, index) => 
+                    `<div class="draggable-item" data-index="${index}" draggable="true">
+                        ${item}
+                    </div>`
+                ).join('')}
+            </div>
+            <div class="drop-zones">
+                ${Array.from({length: task.zones || task.goal}).map((_, index) => 
+                    `<div class="drop-zone" data-zone="${index}">
+                        Зона ${index + 1}
+                    </div>`
+                ).join('')}
+            </div>
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Перетащено: <span id="dragCount">0</span>/${task.goal}</p>
+    `;
+    
+    initializeDragAndDrop(task.goal);
+}
+
+function initializeDragAndDrop(goal) {
+    const draggables = elements.taskArea.querySelectorAll('.draggable-item');
+    const dropZones = elements.taskArea.querySelectorAll('.drop-zone');
+    let draggedItem = null;
+    let placedCount = 0;
+    
+    // Функция для прокрутки при перетаскивании
+    let scrollInterval;
+    
+    draggables.forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            draggedItem = this;
+            setTimeout(() => {
+                this.style.opacity = '0.4';
+            }, 0);
+            
+            // Начинаем прокрутку при перетаскивании
+            scrollInterval = setInterval(() => {
+                const rect = this.getBoundingClientRect();
+                if (rect.top < 100) {
+                    window.scrollBy(0, -10);
+                } else if (rect.bottom > window.innerHeight - 100) {
+                    window.scrollBy(0, 10);
+                }
+            }, 50);
+        });
+        
+        item.addEventListener('dragend', function() {
+            this.style.opacity = '1';
+            clearInterval(scrollInterval);
+        });
+    });
+    
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('hover');
+        });
+        
+        zone.addEventListener('dragleave', function() {
+            this.classList.remove('hover');
+        });
+        
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            clearInterval(scrollInterval);
+            this.classList.remove('hover');
+            
+            if (draggedItem && !this.querySelector('.draggable-item')) {
+                this.appendChild(draggedItem);
+                draggedItem.style.position = 'static';
+                draggedItem.style.cursor = 'default';
+                draggedItem.draggable = false;
+                placedCount++;
+                
+                document.getElementById('dragCount').textContent = placedCount;
+                
+                if (placedCount >= goal) {
+                    elements.checkTaskBtn.disabled = false;
+                    elements.taskResult.textContent = '✅ Отлично! Все предметы размещены!';
+                    elements.taskResult.style.color = '#2ecc71';
+                }
+            }
+        });
+    });
+}
+
+function completeInteractiveTask() {
+    if (!gameState.currentTask) return;
+    
+    let coinsEarned = 0;
+    let expEarned = 0;
+    
+    switch(gameState.currentDifficulty) {
+        case 'easy': 
+            coinsEarned = 20; 
+            expEarned = 1;
+            break;
+        case 'medium': 
+            coinsEarned = 40; 
+            expEarned = 3;
+            break;
+        case 'hard': 
+            coinsEarned = 60; 
+            expEarned = 5;
+            break;
+    }
+    
+    gameState.currentPlayer.coins += coinsEarned;
+    gameState.currentPlayer.completedTasks += 1;
+    gameState.currentPlayer.cleaningPoints += expEarned;
+    
+    const currentCityProgress = gameState.cityProgress[gameState.currentPlayer.city] || 0;
+    const newProgress = Math.min(100, currentCityProgress + 10);
+    updateCityProgress(gameState.currentPlayer.city, newProgress);
+    
+    if (gameState.currentPlayer.completedTasks >= 3 && gameState.currentPlayer.completedTasks % 3 === 0) {
+        gameState.currentPlayer.level += 1;
+        updatePlayerUI();
+        addLogEntry(`🎉 Поздравляем! Вы повысили уровень до ${gameState.currentPlayer.level}!`);
+        updateDifficultyButtons();
+        showNotification(`Поздравляем! Вы достигли ${gameState.currentPlayer.level}-го уровня!`, 'success');
+    }
+    
+    elements.interactiveTask.style.display = 'none';
+    elements.noTaskMessage.style.display = 'block';
+    elements.checkTaskBtn.disabled = true;
+    elements.completeTaskBtn.disabled = true;
+    gameState.taskInProgress = false;
+    hasCurrentTask = false;
+    
+    elements.buildBtn.disabled = false;
+    elements.rollDiceBtn.disabled = false;
+    
+    addLogEntry(`✅ Вы выполнили задание и получили ${coinsEarned} монет и ${expEarned} опыта!`);
+    
+    savePlayerState();
+    showNotification(`✅ Задание выполнено! Вы получили ${coinsEarned} монет и ${expEarned} опыта!`, 'success');
+    
+    updateQuickButtons();
+}
+
+function createSortTask(task) {
+    const binTypes = {
+        paper: { name: "Бумага", emoji: "📄", color: "#3498db" },
+        plastic: { name: "Пластик", emoji: "🥤", color: "#e74c3c" },
+        glass: { name: "Стекло", emoji: "🍶", color: "#2ecc71" },
+        battery: { name: "Батарейки", emoji: "🔋", color: "#f39c12" },
+        organic: { name: "Органика", emoji: "🍎", color: "#8e44ad" },
+        metal: { name: "Металл", emoji: "🥫", color: "#95a5a6" },
+        textile: { name: "Текстиль", emoji: "👕", color: "#e67e22" },
+        hazardous: { name: "Опасные", emoji: "☢️", color: "#c0392b" },
+        lamp: { name: "Лампочки", emoji: "💡", color: "#f1c40f" },
+        medicine: { name: "Лекарства", emoji: "💊", color: "#9b59b6" },
+        chemical: { name: "Химикаты", emoji: "🧪", color: "#1abc9c" }
+    };
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Перетащите мусор в правильные контейнеры:</p>
+        <div class="sorting-area">
+            ${task.items.map((item, index) => {
+                const binData = binTypes[item.type] || { name: item.name, emoji: item.emoji, color: "#3498db" };
+                return `<div class="sort-bin" data-type="${item.type}">
+                    <div class="bin-icon">${binData.emoji}</div>
+                    <div class="bin-name">${binData.name}</div>
+                    <div class="sort-bin-content"></div>
+                </div>`;
+            }).join('')}
+        </div>
+        <div class="sort-items">
+            ${task.items.map((item, index) => 
+                `<div class="sort-item" data-index="${index}" data-type="${item.type}" draggable="true">
+                    <span class="item-emoji">${item.emoji}</span>
+                    <span class="item-name">${item.name}</span>
+                </div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Отсортировано: <span id="sortCount">0</span>/${task.items.length}</p>
+    `;
+    
+    initializeSorting(task.items.length);
+}
+
+function initializeSorting(totalItems) {
+    const sortItems = elements.taskArea.querySelectorAll('.sort-item');
+    const sortBins = elements.taskArea.querySelectorAll('.sort-bin');
+    let sortedCount = 0;
+    
+    sortItems.forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.type);
+        });
+    });
+    
+    sortBins.forEach(bin => {
+        bin.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        bin.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const itemType = e.dataTransfer.getData('text/plain');
+            const binType = this.dataset.type;
+            
+            if (itemType === binType) {
+                const draggedItem = Array.from(sortItems).find(item => 
+                    item.dataset.type === itemType && !item.dataset.placed
+                );
+                
+                if (draggedItem) {
+                    const binContent = this.querySelector('.sort-bin-content');
+                    binContent.appendChild(draggedItem);
+                    draggedItem.style.margin = '5px';
+                    draggedItem.style.cursor = 'default';
+                    draggedItem.draggable = false;
+                    draggedItem.dataset.placed = 'true';
+                    
+                    sortedCount++;
+                    document.getElementById('sortCount').textContent = sortedCount;
+                    
+                    if (sortedCount >= totalItems) {
+                        elements.checkTaskBtn.disabled = false;
+                        elements.taskResult.textContent = '✅ Отлично! Весь мусор отсортирован!';
+                        elements.taskResult.style.color = '#2ecc71';
+                    }
+                }
+            }
+        });
+    });
+}
+
+function createCleanupTask(task) {
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Кликните по мусору, чтобы очистить:</p>
+        <div class="river-container">
+            ${task.items.map((item, index) => {
+                const left = Math.random() * 80 + 10;
+                const top = Math.random() * 70 + 15;
+                return `<div class="cleanup-item" data-index="${index}">${item}</div>`;
+            }).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Очищено: <span id="cleanupCount">0</span>/${task.goal}</p>
+    `;
+    
+    initializeCleanup(task.goal);
+}
+
+function initializeCleanup(goal) {
+    const cleanupItems = elements.taskArea.querySelectorAll('.cleanup-item');
+    let cleanedCount = 0;
+    
+    cleanupItems.forEach(item => {
+        item.addEventListener('click', function() {
+            if (!this.dataset.cleaned) {
+                this.style.opacity = '0.3';
+                this.style.transform = 'scale(0.8)';
+                this.dataset.cleaned = 'true';
+                
+                cleanedCount++;
+                document.getElementById('cleanupCount').textContent = cleanedCount;
+                
+                if (cleanedCount >= goal) {
+                    elements.checkTaskBtn.disabled = false;
+                    elements.taskResult.textContent = '✅ Отлично! Очистка завершена!';
+                    elements.taskResult.style.color = '#2ecc71';
+                }
+            }
+        });
+    });
+}
+
+function createPuzzleTask(task) {
+    const pieces = task.image.split('');
+    const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Соберите пазл в правильном порядке:</p>
+        <div class="puzzle-target">
+            ${pieces.map((piece, index) => 
+                `<div class="puzzle-target-slot" data-index="${index}"></div>`
+            ).join('')}
+        </div>
+        <div class="puzzle-pieces">
+            ${shuffledPieces.map((piece, index) => 
+                `<div class="puzzle-piece" data-piece="${piece}" draggable="true">${piece}</div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Собрано: <span id="puzzleCount">0</span>/${pieces.length}</p>
+    `;
+    
+    initializePuzzle(pieces.length);
+}
+
+function createPuzzleSequenceTask(task) {
+    const shuffledSequence = [...task.sequence].sort(() => Math.random() - 0.5);
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Расположите элементы в правильной последовательности:</p>
+        <div class="sequence-target">
+            ${task.correctOrder.map((_, index) => 
+                `<div class="sequence-slot" data-index="${index}"></div>`
+            ).join('')}
+        </div>
+        <div class="sequence-pieces">
+            ${shuffledSequence.map((piece, index) => 
+                `<div class="sequence-piece" data-piece="${piece}" draggable="true">${piece}</div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Правильно размещено: <span id="sequenceCount">0</span>/${task.correctOrder.length}</p>
+    `;
+    
+    initializeSequence(task.correctOrder);
+}
+
+function createSequenceTask(task) {
+    const shuffledSequence = [...task.items].sort(() => Math.random() - 0.5);
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Расставьте элементы в правильной последовательности:</p>
+        <div class="sequence-target">
+            ${task.correctOrder.map((_, index) => 
+                `<div class="sequence-slot" data-index="${index}"></div>`
+            ).join('')}
+        </div>
+        <div class="sequence-pieces">
+            ${shuffledSequence.map((piece, index) => 
+                `<div class="sequence-piece" data-piece="${piece}" draggable="true">${piece}</div>`
+            ).join('')}
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Правильно размещено: <span id="sequenceCount">0</span>/${task.correctOrder.length}</p>
+    `;
+    
+    initializeSequence(task.correctOrder);
+}
+
+function createSpotDifferenceTask(task) {
+    const differences = Array.from({length: task.differences}, (_, i) => i + 1);
+    
+    elements.taskArea.innerHTML = `
+        <p><strong>${task.description}</strong></p>
+        <p>Найдите ${task.differences} отличия:</p>
+        <div class="difference-container">
+            <div class="difference-image">
+                <div class="diff-image-content">${task.image1}</div>
+                ${differences.map((_, index) => {
+                    const left = Math.random() * 70 + 15;
+                    const top = Math.random() * 60 + 20;
+                    return `<div class="difference-spot" data-index="${index}" style="left: ${left}%; top: ${top}%;"></div>`;
+                }).join('')}
+            </div>
+            <div class="difference-image">
+                <div class="diff-image-content">${task.image2}</div>
+            </div>
+        </div>
+        <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Найдено отличий: <span id="differenceCount">0</span>/${task.differences}</p>
+        <button class="game-btn small" id="showDifferencesBtn">Показать отличия</button>
+    `;
+    
+    initializeSpotDifference(task.differences);
+}
+
+function createDefaultTask(task) {
+    elements.taskArea.innerHTML = `
+        <p>Задание "${task.description}"</p>
+        <p>Для демонстрации нажмите кнопку "Проверить выполнение"</p>
+        <div class="demo-task-area">
+            <p><strong>Демонстрация задания:</strong></p>
+            <p>Здесь будет интерактивная часть задания</p>
+        </div>
+    `;
+    elements.checkTaskBtn.disabled = false;
+}
+
+function initializePuzzle(totalPieces) {
+    const puzzlePieces = elements.taskArea.querySelectorAll('.puzzle-piece');
+    const puzzleSlots = elements.taskArea.querySelectorAll('.puzzle-target-slot');
+    let placedCount = 0;
+    
+    puzzlePieces.forEach(piece => {
+        piece.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.piece);
+        });
+    });
+    
+    puzzleSlots.forEach(slot => {
+        slot.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        slot.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const piece = e.dataTransfer.getData('text/plain');
+            
+            if (!this.hasChildNodes()) {
+                const pieceElement = Array.from(puzzlePieces).find(p => 
+                    p.dataset.piece === piece && !p.dataset.placed
+                );
+                
+                if (pieceElement) {
+                    this.appendChild(pieceElement);
+                    pieceElement.style.position = 'static';
+                    pieceElement.style.cursor = 'default';
+                    pieceElement.draggable = false;
+                    pieceElement.dataset.placed = 'true';
+                    
+                    placedCount++;
+                    document.getElementById('puzzleCount').textContent = placedCount;
+                    
+                    if (placedCount >= totalPieces) {
+                        elements.checkTaskBtn.disabled = false;
+                        elements.taskResult.textContent = '✅ Отлично! Пазл собран!';
+                        elements.taskResult.style.color = '#2ecc71';
+                    }
+                }
+            }
+        });
+    });
+}
+
+function initializeSequence(correctOrder) {
+    const sequencePieces = elements.taskArea.querySelectorAll('.sequence-piece');
+    const sequenceSlots = elements.taskArea.querySelectorAll('.sequence-slot');
+    let placedCount = 0;
+    
+    sequencePieces.forEach(piece => {
+        piece.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.piece);
+        });
+    });
+    
+    sequenceSlots.forEach((slot, slotIndex) => {
+        slot.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        slot.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const piece = e.dataTransfer.getData('text/plain');
+            const expectedPiece = correctOrder[slotIndex];
+            
+            if (!this.hasChildNodes() && piece === expectedPiece) {
+                const pieceElement = Array.from(sequencePieces).find(p => 
+                    p.dataset.piece === piece && !p.dataset.placed
+                );
+                
+                if (pieceElement) {
+                    this.appendChild(pieceElement);
+                    pieceElement.style.position = 'static';
+                    pieceElement.style.cursor = 'default';
+                    pieceElement.draggable = false;
+                    pieceElement.dataset.placed = 'true';
+                    
+                    placedCount++;
+                    document.getElementById('sequenceCount').textContent = placedCount;
+                    
+                    if (placedCount >= correctOrder.length) {
+                        elements.checkTaskBtn.disabled = false;
+                        elements.taskResult.textContent = '✅ Отлично! Последовательность верная!';
+                        elements.taskResult.style.color = '#2ecc71';
+                    }
+                }
+            }
+        });
+    });
+}
+
+function initializeSpotDifference(totalDifferences) {
+    const differenceSpots = elements.taskArea.querySelectorAll('.difference-spot');
+    let foundCount = 0;
+    
+    differenceSpots.forEach(spot => {
+        spot.addEventListener('click', function() {
+            if (!this.dataset.found) {
+                this.style.background = 'rgba(46, 204, 113, 0.7)';
+                this.dataset.found = 'true';
+                
+                foundCount++;
+                document.getElementById('differenceCount').textContent = foundCount;
+                
+                if (foundCount >= totalDifferences) {
+                    elements.checkTaskBtn.disabled = false;
+                    elements.taskResult.textContent = '✅ Отлично! Все отличия найдены!';
+                    elements.taskResult.style.color = '#2ecc71';
+                }
+            }
+        });
+    });
+    
+    const showDiffBtn = elements.taskArea.querySelector('#showDifferencesBtn');
+    if (showDiffBtn) {
+        showDiffBtn.addEventListener('click', function() {
+            differenceSpots.forEach(spot => {
+                spot.style.display = 'block';
+            });
+            this.disabled = true;
+        });
+    }
+}
+
+// ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+elements.gameInfo.addEventListener('click', function(e) {
+    if (e.target.tagName === 'H3' || e.target.classList.contains('toggle-icon')) {
+        elements.gameInfo.classList.toggle('expanded');
+    }
+});
+
 elements.loginTab.addEventListener('click', () => {
     elements.loginTab.classList.add('active');
     elements.registerTab.classList.remove('active');
@@ -2302,274 +1952,420 @@ elements.registerTab.addEventListener('click', () => {
 elements.loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const username = document.getElementById('loginUsername').value.trim();
-    const roomId = document.getElementById('loginRoom').value.trim();
+    const room = document.getElementById('loginRoom').value.trim();
     
-    if (username && roomId) {
-        joinGame(username, roomId, false);
+    if (username && room) {
+        if (username.length < 2) {
+            showNotification('Имя должно содержать至少 2 символа', 'error');
+            return;
+        }
+        if (room.length < 1) {
+            showNotification('Введите номер комнаты', 'error');
+            return;
+        }
+        joinGame(username, room, false);
+    } else {
+        showNotification('Заполните все поля', 'error');
     }
 });
 
 elements.registerForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const username = document.getElementById('registerUsername').value.trim();
-    const roomId = document.getElementById('registerRoom').value.trim();
+    const room = document.getElementById('registerRoom').value.trim();
     
-    if (username && roomId) {
-        joinGame(username, roomId, true);
+    if (username && room) {
+        if (username.length < 2) {
+            showNotification('Имя должно содержать至少 2 символа', 'error');
+            return;
+        }
+        if (room.length < 1) {
+            showNotification('Введите номер комнаты', 'error');
+            return;
+        }
+        joinGame(username, room, true);
+    } else {
+        showNotification('Заполните все поля', 'error');
     }
 });
 
-// Обработчики событий для игровых действий
+// Кнопка "Построить объект" - прокрутка к зданиям
+elements.buildBtn.addEventListener('click', () => {
+    if (gameState.currentPlayer && gameState.currentPlayer.city) {
+        // Прокручиваем к секции зданий
+        const buildingsSection = document.getElementById('buildingsSection');
+        if (buildingsSection) {
+            buildingsSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'center'
+            });
+            
+            // Добавляем эффект выделения
+            buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
+            buildingsSection.style.transition = 'box-shadow 0.5s';
+            setTimeout(() => {
+                buildingsSection.style.boxShadow = '';
+            }, 2000);
+        }
+    }
+});
+
 elements.rollDiceBtn.addEventListener('click', () => {
-    if (gameState.gameOver || gameState.taskInProgress || hasCurrentTask || !gameState.isMyTurn) {
+    if (gameState.gameOver || gameState.taskInProgress) return;
+    
+    if (hasCurrentTask) {
+        showNotification('Сначала выполните текущее задание!', 'warning');
         return;
     }
     
     elements.diceValue.classList.add('rolling');
+    elements.diceValue.querySelector('.dice-value').textContent = '?';
     elements.rollDiceBtn.disabled = true;
-    
-    // Генерируем случайное значение кубика (1-6)
-    const diceValue = Math.floor(Math.random() * 6) + 1;
+    elements.buildBtn.disabled = true;
+    elements.moveBtn.disabled = true;
     
     setTimeout(() => {
+        const value = Math.floor(Math.random() * 6) + 1;
+        
+        elements.diceValue.querySelector('.dice-value').textContent = value;
         elements.diceValue.classList.remove('rolling');
-        elements.diceValue.querySelector('.dice-value').textContent = diceValue;
         
-        // Сохраняем старую позицию
-        const oldPosition = gameState.currentPlayer.position;
-        
-        // Вычисляем новую позицию
-        let newPosition = gameState.currentPlayer.position + diceValue;
-        
-        // Проверяем, не вышли ли за пределы карты
-        const maxPosition = mapData.cells.length;
-        if (newPosition > maxPosition) {
-            newPosition = maxPosition;
-        }
-        
-        // Обновляем позицию игрока
-        gameState.currentPlayer.position = newPosition;
-        
-        // Определяем город на основе позиции
-        const cell = mapData.cells.find(c => c.number === newPosition);
-        if (cell && cell.city) {
-            gameState.currentPlayer.city = cell.city;
+        gameState.currentPlayer.position += value;
+        if (gameState.currentPlayer.position > 100) {
+            gameState.currentPlayer.position = 100;
         }
         
         updatePlayerUI();
+        updatePlayerCity();
         
-        // Получаем задание
-        const task = getRandomTask(gameState.currentDifficulty);
-        gameState.currentTask = task;
-        
-        // Отображаем задание
-        elements.currentTask.style.display = 'block';
-        elements.taskDescription.textContent = task.description;
-        elements.noTaskMessage.style.display = 'none';
-        elements.completeTaskBtn.disabled = false;
+        const randomTask = getRandomTask(gameState.currentDifficulty);
+        gameState.currentTask = randomTask;
         hasCurrentTask = true;
         
-        // Отправляем результат броска на сервер
-        socket.emit('player_dice_roll', {
-            diceValue: diceValue,
-            newPosition: newPosition,
-            task: task,
-            playerId: gameState.currentPlayerId
-        });
+        if (randomTask) {
+            elements.currentTask.style.display = 'block';
+            elements.taskDescription.textContent = randomTask.description;
+            elements.noTaskMessage.style.display = 'none';
+            elements.completeTaskBtn.disabled = false;
+            
+            elements.rollDiceBtn.disabled = true;
+        }
         
-        // Отправляем обновление позиции
-        sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
-        
-        // Обновляем маркер игрока
+        addLogEntry(`🎲 Вы бросили кубик и выпало: ${value}. Новое положение: ${gameState.currentPlayer.position}`);
         updatePlayerMarkers();
         
-        // Проверяем переход в новый город
-        checkForCityTransition(oldPosition, newPosition);
+        socket.emit('dice_roll', {
+            diceValue: value,
+            newPosition: gameState.currentPlayer.position,
+            task: randomTask
+        });
         
-        addLogEntry(`🎲 Вы бросили кубик: ${diceValue}. Переместились на позицию ${newPosition}`);
-        
-        // Сохраняем состояние
         savePlayerState();
         
-        // Показываем уведомление
-        showNotification(`🎲 Вы бросили кубик: ${diceValue}! Новое положение: ${newPosition}`, 'success');
+        if (gameState.currentPlayer) {
+            setTimeout(() => {
+                sendPlayerPositionToServer(
+                    gameState.currentPlayer.position,
+                    gameState.currentPlayer.city
+                );
+            }, 100);
+        }
         
-        // Передаем ход следующему игроку
-        socket.emit('end_turn');
-        gameState.isMyTurn = false;
-        updateTurnIndicator();
+        showNotification(`🎲 Вы переместились на ${value} клеток! Получено новое задание.`, 'success');
+        elements.buildBtn.disabled = true;
     }, 1200);
 });
 
-elements.completeTaskBtn.addEventListener('click', () => {
-    if (gameState.currentTask) {
-        elements.interactiveTask.style.display = 'block';
-        elements.currentTask.style.display = 'none';
-        createInteractiveTask(gameState.currentTask);
-    }
-});
-
-elements.buildBtn.addEventListener('click', () => {
-    if (hasCurrentTask) {
-        showNotification('Сначала выполните текущее задание!', 'warning');
-        return;
-    }
+function updatePlayerCity() {
+    const playerPosition = gameState.currentPlayer.position;
+    let newCity = gameState.currentPlayer.city;
     
-    // Прокручиваем к секции зданий
-    elements.buildingsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-});
-
-elements.moveBtn.addEventListener('click', () => {
-    if (hasCurrentTask) {
-        showNotification('Сначала выполните текущее задание!', 'warning');
-        return;
-    }
-    
-    // Находим следующий город
-    const cityKeys = Object.keys(gameData.cities);
-    const currentCityKey = gameState.currentPlayer.city;
-    const currentIndex = cityKeys.indexOf(currentCityKey);
-    
-    if (currentIndex < cityKeys.length - 1) {
-        const nextCityKey = cityKeys[currentIndex + 1];
-        const nextCity = gameData.cities[nextCityKey];
-        
-        // Находим первую клетку следующего города
-        const nextCityCell = mapData.cells.find(cell => cell.city === nextCityKey);
-        if (nextCityCell) {
-            // Сохраняем старую позицию
-            const oldPosition = gameState.currentPlayer.position;
-            
-            // Перемещаем игрока
-            gameState.currentPlayer.position = nextCityCell.number;
-            gameState.currentPlayer.city = nextCityKey;
-            
-            updatePlayerUI();
-            
-            // Отправляем обновление позиции
-            sendPlayerPositionToServer(nextCityCell.number, nextCityKey);
-            
-            // Обновляем маркер
-            updatePlayerMarkers();
-            
-            // Проверяем переход в новый город
-            checkForCityTransition(oldPosition, nextCityCell.number);
-            
-            // Обновляем UI
-            createCitiesGrid();
-            createCurrentCityProgress();
-            
-            addLogEntry(`🚗 Вы перешли в следующий город: ${nextCity.name}`);
-            showNotification(`🚗 Вы перешли в ${nextCity.name}!`, 'success');
-            
-            // Сохраняем состояние
-            savePlayerState();
+    for (const cityKey in gameData.cities) {
+        if (gameData.cities[cityKey].cells.includes(playerPosition)) {
+            newCity = cityKey;
+            break;
         }
+    }
+    
+    if (newCity !== gameState.currentPlayer.city) {
+        const currentProgress = gameState.cityProgress[gameState.currentPlayer.city] || 0;
+        const choiceKey = `${gameState.currentPlayer.city}_${newCity}`;
+        
+        if (currentProgress < 100 && !gameState.askedForChoice[choiceKey]) {
+            showChoiceModal(newCity);
+            gameState.askedForChoice[choiceKey] = true;
+            return;
+        }
+        
+        moveToCity(newCity);
+    }
+}
+
+function moveToCity(cityKey) {
+    gameState.currentPlayer.city = cityKey;
+    updatePlayerUI();
+    
+    document.querySelectorAll('.city-card').forEach(card => {
+        card.classList.remove('active');
+        if (card.dataset.city === cityKey) {
+            card.classList.add('active');
+        }
+    });
+    
+    addLogEntry(`🏙️ Вы прибыли в город: ${gameData.cities[cityKey].name}`);
+    
+    sendPlayerPositionToServer(gameState.currentPlayer.position, cityKey);
+    
+    if (gameState.cityProgress[cityKey] >= 100) {
+        elements.moveBtn.disabled = false;
+        elements.moveBtn.textContent = "🚗 Перейти в следующий город";
+    } else {
+        elements.moveBtn.disabled = true;
+        elements.moveBtn.textContent = "Завершите очищение города";
+    }
+    
+    savePlayerState();
+    showNotification(`🏙️ Вы прибыли в ${gameData.cities[cityKey].name}!`, 'success');
+    
+    setTimeout(() => {
+        showCityModal(cityKey);
+    }, 500);
+}
+
+elements.completeTaskBtn.addEventListener('click', () => {
+    if (gameState.currentTask && !gameState.taskInProgress) {
+        elements.currentTask.style.display = 'none';
+        elements.interactiveTask.style.display = 'block';
+        elements.completeTaskBtn.disabled = true;
+        createInteractiveTask(gameState.currentTask);
+        addLogEntry(`▶️ Вы начали выполнение задания: ${gameState.currentTask.description}`);
+    } else if (gameState.taskInProgress) {
+        showNotification('Задание уже выполняется!', 'warning');
+    } else {
+        showNotification('Сначала получите задание, бросив кубик!', 'warning');
     }
 });
 
 elements.checkTaskBtn.addEventListener('click', () => {
-    // Проверка задания будет выполняться в конкретных функциях заданий
+    if (gameState.taskInProgress) {
+        completeInteractiveTask();
+    } else {
+        showNotification('Сначала начните выполнение задания!', 'warning');
+    }
 });
 
-elements.retryTaskBtn.addEventListener('click', () => {
-    // Повтор задания будет выполняться в конкретных функциях заданий
-});
-
-// Обработчики для выбора сложности
 elements.difficultyBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-        if (this.classList.contains('locked')) {
-            showNotification('Этот уровень сложности заблокирован. Повысьте уровень игрока!', 'warning');
+    btn.addEventListener('click', () => {
+        if (btn.classList.contains('locked')) {
+            const requiredLevel = gameData.difficultyRequirements[btn.id.replace('Btn', '')].level;
+            showNotification(`Для этой сложности требуется ${requiredLevel}-й уровень!`, 'warning');
             return;
         }
         
         elements.difficultyBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        gameState.currentDifficulty = this.id.replace('Btn', '');
-        
-        showNotification(`Установлена сложность: ${this.textContent.trim()}`, 'info');
+        btn.classList.add('active');
+        gameState.currentDifficulty = btn.classList.contains('easy') ? 'easy' : 
+                                    btn.classList.contains('medium') ? 'medium' : 'hard';
+        addLogEntry(`⚙️ Установлена сложность: ${gameState.currentDifficulty}`);
     });
 });
 
-// Обработчики для чата
 elements.sendMessageBtn.addEventListener('click', () => {
     const message = elements.chatInput.value.trim();
     if (message && gameState.currentPlayer) {
+        if (message.length > 200) {
+            showNotification('Сообщение слишком длинное (макс. 200 символов)', 'warning');
+            return;
+        }
         sendChatMessage(message);
+        elements.chatInput.value = '';
     }
 });
 
 elements.chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && gameState.currentPlayer) {
-        const message = elements.chatInput.value.trim();
-        if (message) {
-            sendChatMessage(message);
+    if (e.key === 'Enter') {
+        elements.sendMessageBtn.click();
+    }
+});
+
+elements.inviteBtn.addEventListener('click', () => {
+    const roomNumber = currentRoomId || gameState.roomId;
+    if (roomNumber) {
+        const inviteText = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n\n🔢 **Номер комнаты: ${roomNumber}**\n\n🌐 Игра доступна по адресу:\n${window.location.origin}\n\n👥 Ждем вас!`;
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(inviteText).then(() => {
+                showNotification('✅ Приглашение скопировано в буфер обмена! Номер комнаты выделен жирным.', 'success');
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = inviteText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('✅ Приглашение скопировано в буфер обмена! Номер комнаты выделен жирным.', 'success');
+            });
         }
     }
 });
 
-// Обработчики для модальных окон
 elements.cityModalCloseBtn.addEventListener('click', closeCityModal);
 elements.cityModal.addEventListener('click', (e) => {
-    if (e.target === elements.cityModal) {
-        closeCityModal();
-    }
+    if (e.target === elements.cityModal) closeCityModal();
 });
 
 elements.stayBtn.addEventListener('click', () => {
     closeChoiceModal();
-    showNotification('Вы остались в текущем городе', 'info');
+    const currentCityData = gameData.cities[gameState.currentPlayer.city];
+    const firstCell = currentCityData.cells[0];
+    gameState.currentPlayer.position = firstCell;
+    updatePlayerUI();
+    updatePlayerMarkers();
+    
+    addLogEntry(`⏮️ Вы остались в ${currentCityData.name} и вернулись в начало города.`);
+    
+    sendPlayerPositionToServer(gameState.currentPlayer.position, gameState.currentPlayer.city);
+    
+    savePlayerState();
+    showNotification(`⏮️ Вы остались в ${currentCityData.name}!`, 'info');
 });
 
 elements.moveForwardBtn.addEventListener('click', () => {
     closeChoiceModal();
-    // Здесь будет логика перехода вперед
+    moveToCity(gameState.nextCity);
 });
 
 elements.choiceModal.addEventListener('click', (e) => {
-    if (e.target === elements.choiceModal) {
-        closeChoiceModal();
-    }
+    if (e.target === elements.choiceModal) closeChoiceModal();
 });
 
-// Обработчики для приглашения
-elements.inviteBtn.addEventListener('click', showInviteModal);
-elements.copyInviteBtn.addEventListener('click', copyInvitation);
-elements.closeInviteBtn.addEventListener('click', closeInviteModal);
-elements.inviteModal.addEventListener('click', (e) => {
-    if (e.target === elements.inviteModal) {
-        closeInviteModal();
+// Кнопка для перемещения между уже пройденными городами
+elements.moveBtn.addEventListener('click', function() {
+    if (gameState.gameOver) return;
+    
+    const currentCityKey = gameState.currentPlayer.city;
+    if (gameState.cityProgress[currentCityKey] < 100) {
+        showNotification(`❌ Необходимо достичь 100% прогресса очищения в ${gameData.cities[currentCityKey].name} для перехода!`, 'warning');
+        return;
     }
-});
-
-// Обработчик для выхода из комнаты
-elements.leaveRoomBtn.addEventListener('click', () => {
-    if (confirm('Вы уверены, что хотите покинуть комнату?')) {
-        resetGameState();
-        elements.authSection.style.display = 'block';
-        elements.gameContent.style.display = 'none';
-        elements.resourcesPlaceholder.style.display = 'none';
-        quickActionsBtn.classList.remove('show');
-        showNotification('Вы покинули комнату', 'info');
+    
+    const cityKeys = Object.keys(gameData.cities);
+    const currentIndex = cityKeys.indexOf(currentCityKey);
+    
+    if (currentIndex < cityKeys.length - 1) {
+        const nextCity = cityKeys[currentIndex + 1];
+        const nextPosition = gameData.cities[nextCity].cells[0];
+        gameState.currentPlayer.position = nextPosition;
+        moveToCity(nextCity);
         
-        // Отключаемся от комнаты на сервере
-        socket.emit('leave_room');
+        if (nextCity === "astrakhan") {
+            addLogEntry(`🏁 Вы достигли Астрахани! Постройте объект, чтобы завершить игру.`);
+            showNotification(`🏁 Вы достигли Астрахани! Постройте объект, чтобы завершить игру.`, 'success');
+        }
     }
 });
 
-// Обработчик для информации об игре
-elements.gameInfo.querySelector('h3').addEventListener('click', function() {
-    elements.gameInfo.classList.toggle('expanded');
+// Функция для перемещения между уже пройденными городами
+window.moveToExistingCity = function(cityKey) {
+    const cityMenu = document.querySelector('div[style*="position: fixed; top: 0; left: 0; width: 100%"]');
+    if (cityMenu) cityMenu.remove();
+    
+    if (gameState.cityProgress[cityKey] >= 100) {
+        socket.emit('move_to_city', { cityKey: cityKey });
+        showNotification(`🚗 Вы переместились в ${gameData.cities[cityKey].name}!`, 'success');
+        addLogEntry(`🚗 Вы переместились в ${gameData.cities[cityKey].name}`);
+    } else {
+        showNotification(`❌ Этот город еще не полностью очищен!`, 'warning');
+    }
+};
+
+// Обновление кнопки перемещения между городами
+elements.buildBtn.addEventListener('click', function() {
+    if (gameState.currentPlayer && gameState.currentPlayer.city) {
+        const currentCityKey = gameState.currentPlayer.city;
+        const cityKeys = Object.keys(gameData.cities);
+        const currentIndex = cityKeys.indexOf(currentCityKey);
+        
+        if (currentIndex > 0) {
+            // Показываем меню выбора города
+            const cityMenu = document.createElement('div');
+            cityMenu.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center;';
+            cityMenu.innerHTML = `
+                <div style="background: var(--card-bg); padding: 30px; border-radius: 15px; max-width: 500px; width: 90%;">
+                    <h3 style="text-align: center; margin-bottom: 20px;">Переместиться в другой город</h3>
+                    <p style="margin-bottom: 20px;">Выберите город для перемещения (только уже пройденные):</p>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+                        ${cityKeys.slice(0, currentIndex).map(cityKey => {
+                            const city = gameData.cities[cityKey];
+                            const progress = gameState.cityProgress[cityKey] || 0;
+                            return `
+                                <button class="game-btn" onclick="moveToExistingCity('${cityKey}')" style="text-align: left;">
+                                    <div>${city.name}</div>
+                                    <div style="font-size: 0.8rem; opacity: 0.8;">Прогресс: ${progress}%</div>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                    <button class="game-btn" onclick="this.parentElement.parentElement.remove()" style="width: 100%;">Отмена</button>
+                </div>
+            `;
+            
+            document.body.appendChild(cityMenu);
+        }
+    }
 });
 
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Игра "Юный эколог" инициализируется...');
-    
-    // Обновляем URL в приглашении
-    elements.inviteGameUrl.textContent = window.location.origin;
-    
-    // Инициализируем отображение недавних смайликов
-    updateRecentEmojisDisplay();
+// ==================== ПЕРИОДИЧЕСКАЯ СИНХРОНИЗАЦИЯ ====================
+setInterval(() => {
+    if (socket.connected && gameState.currentPlayer) {
+        sendPlayerPositionToServer(
+            gameState.currentPlayer.position,
+            gameState.currentPlayer.city
+        );
+        
+        if (Math.random() < 0.25) {
+            requestAllPlayersPositions();
+        }
+    }
+}, 30000);
+
+window.addEventListener('focus', () => {
+    if (socket.connected) {
+        setTimeout(() => {
+            requestAllPlayersPositions();
+        }, 500);
+    }
 });
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && socket.connected) {
+        setTimeout(() => {
+            requestAllPlayersPositions();
+        }, 1000);
+    }
+});
+
+window.addEventListener('beforeunload', () => {
+    if (isConnected && gameState.currentPlayer) {
+        gameState.currentPlayer.connected = false;
+        savePlayerState();
+    }
+});
+
+// ==================== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ====================
+document.addEventListener('DOMContentLoaded', () => {
+    updateConnectionStatus('connecting', '🔄 Подключение к серверу...');
+    console.log('🎮 Игра "Юный эколог" загружена и готова!');
+    
+    elements.buildBtn.disabled = false;
+    
+    setTimeout(() => {
+        if (!isConnected) {
+            showNotification('Не удалось подключиться к серверу. Проверьте запущен ли server.js', 'error');
+            updateConnectionStatus('error', '❌ Нет подключения');
+        }
+    }, 5000);
+});
+
+console.log('🎮 Игра "Юный эколог" полностью загружена!');
+
