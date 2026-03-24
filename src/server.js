@@ -300,6 +300,15 @@ io.on('connection', (socket) => {
                     playerName: playerName
                 });
 
+                // ИСПРАВЛЕНИЕ: Передача хода при выходе игрока
+                if (lobby.currentTurn === socket.playerId) {
+                    const activePlayerIds = Object.keys(lobby.players).filter(id => lobby.players[id].connected);
+                    if (activePlayerIds.length > 0) {
+                        // Передаем ход первому живому игроку
+                        lobby.currentTurn = activePlayerIds[0];
+                    }
+                }
+
                 // Отправляем обновленное состояние
                 io.to(socket.lobbyId).emit('room_state', {
                     players: lobby.players,
