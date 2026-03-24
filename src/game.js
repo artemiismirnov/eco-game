@@ -2369,4 +2369,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 console.log('🎮 Игра "Юный эколог" полностью загружена!');
 
-
