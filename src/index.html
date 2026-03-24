@@ -227,7 +227,7 @@
         .map-image-container {
             position: relative;
             width: 100%;
-            aspect-ratio: 800 / 750;
+            aspect-ratio: 1083 / 976;
             background: #e8f5e9;
             border-radius: 12px;
             overflow: hidden;
@@ -374,8 +374,8 @@
         /* ==================== МАРКЕРЫ ИГРОКОВ ==================== */
         .player-marker {
             position: absolute;
-            width: 32px;
-            height: 32px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             transform: translate(-50%, -50%);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2662,23 +2662,24 @@
             }
 
             .player-marker {
-                width: 5vw;
-                height: 5vw;
-                max-width: 30px;
-                max-height: 30px;
-                min-width: 20px;
-                min-height: 20px;
-                border-width: 1.5px !important;
+                width: 12px;
+                height: 12px;
+                border-width: 1px !important;
                 z-index: 20;
                 transform: translate(-50%, -50%) !important;
             }
 
             .modal-x-close {
-                top: 5px;
-                right: 5px;
-                width: 38px;
-                height: 38px;
-                font-size: 26px;
+                top: 15px;
+                right: 15px;
+                width: 34px;
+                height: 34px;
+                font-size: 24px;
+                background: rgba(0, 0, 0, 0.6);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .draggable-item,
@@ -4448,8 +4449,8 @@
             // Находим клетку с указанной позицией
             const cell = mapData.cells.find(c => c.number === position);
             if (cell) {
-                const baseWidth = 800;
-                const baseHeight = 750;
+                const baseWidth = 1083;
+                const baseHeight = 976;
                 
                 // Центрируем маркер по середине клетки
                 const leftPercent = ((cell.x + cell.width / 2) / baseWidth) * 100;
@@ -4816,35 +4817,31 @@
         function loadMap() {
             console.log('🗺️ Загрузка карты...');
 
-            // Используем карту из mapData.js
-            if (window.mapData && window.mapData.imageUrl) {
-                elements.mapImage.src = window.mapData.imageUrl;
-                elements.mapImage.onload = function () {
-                    console.log('✅ Изображение карты загружено');
-                    mapData.imageLoaded = true;
-
-                    // Загружаем сохраненную карту из файла
-                    loadSavedMap();
-
-                    // Обновляем маркеры игроков
-                    updatePlayerMarkers();
-                };
-
-                elements.mapImage.onerror = function () {
-                    console.error('❌ Ошибка загрузки изображения карты');
-                    showNotification('Ошибка загрузки карты', 'error');
-                    mapData.imageLoaded = false;
-
-                    // Создаем заглушку
-                    loadSavedMap();
-                };
-            } else {
-                console.error('❐ Данные карты не найдены в mapData.js');
-                showNotification('Данные карты не найдены', 'error');
+            // Используем новую карту
+            elements.mapImage.src = 'newmap.jpg';
+            elements.mapImage.onload = function () {
+                console.log('✅ Изображение карты загружено (newmap.jpg)');
+                mapData.imageLoaded = true;
 
                 // Загружаем сохраненную карту из файла
                 loadSavedMap();
-            }
+
+                // Обновляем маркеры игроков
+                updatePlayerMarkers();
+            };
+
+            elements.mapImage.onerror = function () {
+                console.error('❌ Ошибка загрузки изображения карты (newmap.jpg)');
+                showNotification('Ошибка загрузки карты', 'error');
+                mapData.imageLoaded = false;
+                
+                // Пробуем загрузить из mapData.js если есть
+                if (window.mapData && window.mapData.imageUrl) {
+                    elements.mapImage.src = window.mapData.imageUrl;
+                } else {
+                    loadSavedMap();
+                }
+            };
         }
 
         function loadSavedMap() {
@@ -4937,9 +4934,9 @@
             cellElement.dataset.cellType = cell.type;
             cellElement.dataset.city = cell.city || '';
 
-            // Позиционируем клетку (используем проценты от базовых 800x750)
-            const baseWidth = 800;
-            const baseHeight = 750;
+            // Позиционируем клетку (используем проценты от базовых 1083x976)
+            const baseWidth = 1083;
+            const baseHeight = 976;
 
             cellElement.style.left = `${(cell.x / baseWidth) * 100}%`;
             cellElement.style.top = `${(cell.y / baseHeight) * 100}%`;
