@@ -213,24 +213,30 @@
         
         /* ==================== НОВАЯ КАРТА НА ОСНОВЕ ИЗОБРАЖЕНИЯ ==================== */
         .map-image-container {
-            position: relative;
             width: 100%;
-            display: block; /* Убираем flex для точного позиционирования */
-            line-height: 0; /* Убирает отступ под картинкой */
             background: #e8f5e9;
             border-radius: 12px;
-            overflow: hidden;
             border: 3px solid #2E7D32;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            /* Убраны padding и min-height для идеального совпадения overlay */
+            padding: 0; /* Убрали паддинг для точного масштабирования */
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
         }
         
+        .map-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 100%;
+        }
+
         #mapImage {
+            display: block;
             width: 100%;
             height: auto;
-            display: block;
-            margin: 0;
-            padding: 0;
+            object-fit: contain;
+            background-color: #e8f5e9;
         }
         
         .map-overlay {
@@ -1991,7 +1997,6 @@
         }
         
         .city-modal-content, .choice-modal-content, .invite-modal-content {
-            position: relative;
             background: rgba(30, 30, 46, 0.95);
             border-radius: 15px;
             padding: 30px;
@@ -2002,25 +2007,7 @@
             border: 1px solid rgba(255, 255, 255, 0.25);
             transform: translateY(20px);
             transition: transform 0.3s;
-        }
-        
-        /* КРЕСТИК ЗАКРЫТИЯ ДЛЯ МОДАЛЬНЫХ ОКОН */
-        .modal-close-cross {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 28px;
-            cursor: pointer;
-            z-index: 10;
-            line-height: 1;
-            transition: color 0.3s;
-        }
-        
-        .modal-close-cross:hover {
-            color: white;
+            position: relative; /* Для крестика */
         }
         
         body.light-theme .city-modal-content,
@@ -2030,20 +2017,45 @@
             border: 1px solid var(--card-border);
         }
         
-        body.light-theme .modal-close-cross {
-            color: var(--dark-primary);
-        }
-        
         .city-modal.active .city-modal-content,
         .choice-modal.active .choice-modal-content,
         .invite-modal.active .invite-modal-content {
             transform: translateY(0);
         }
+
+        /* Кнопка закрытия модального окна (крестик) */
+        .modal-close-x {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 28px;
+            cursor: pointer;
+            transition: color 0.3s, transform 0.3s;
+            z-index: 100;
+            line-height: 1;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close-x:hover {
+            color: #ff6b6b;
+            transform: scale(1.1);
+        }
+        body.light-theme .modal-close-x {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        body.light-theme .modal-close-x:hover {
+            color: #e74c3c;
+        }
         
         .city-modal-header, .choice-modal-header, .invite-modal-header {
             margin-bottom: 20px;
             text-align: center;
-            padding-top: 10px;
+            padding-top: 10px; /* Для крестика */
         }
         
         .city-modal-title, .choice-modal-title, .invite-modal-title {
@@ -2434,12 +2446,11 @@
                 height: 12px;
             }
             
-            /* УМЕНЬШЕНО ДЛЯ МОБИЛОК: размер фишки для корректного отображения на сетке */
+            /* Размер маркера игрока для средних экранов */
             .player-marker {
-                width: 18px;
-                height: 18px;
+                width: 24px;
+                height: 24px;
                 font-size: 8px;
-                border-width: 2px;
             }
             
             .draggable-item, .clickable-item, .sort-item {
@@ -2626,6 +2637,25 @@
                 width: 55px;
                 height: 55px;
                 font-size: 1.2rem;
+            }
+
+            /* Мелкие экраны - оптимизируем всплывающие окна и крестики */
+            .city-modal-content, .choice-modal-content, .invite-modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+            .modal-close-x {
+                top: 5px;
+                right: 5px;
+                font-size: 24px;
+            }
+
+            /* Размер маркера игрока для маленьких экранов */
+            .player-marker {
+                width: 18px !important;
+                height: 18px !important;
+                font-size: 8px !important;
+                border-width: 2px !important;
             }
         }
         
@@ -2924,9 +2954,11 @@
                     
                     <div class="game-map">
                         <div class="map-image-container" id="mapContainer">
-                            <img id="mapImage" src="" alt="Карта России">
-                            <div class="map-overlay" id="mapOverlay">
-                                </div>
+                            <div class="map-wrapper">
+                                <img id="mapImage" src="" alt="Карта России">
+                                <div class="map-overlay" id="mapOverlay">
+                                    </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -3062,8 +3094,7 @@
 
     <div class="city-modal" id="cityModal">
         <div class="city-modal-content">
-            <button class="modal-close-cross" id="cityModalCross">&times;</button>
-            
+            <button class="modal-close-x" id="cityModalCloseX">&times;</button>
             <div class="city-modal-header">
                 <h2 class="city-modal-title" id="cityModalTitle">Название города</h2>
                 <div class="city-modal-subtitle" id="cityModalSubtitle">Экологическая проблема</div>
@@ -3098,8 +3129,7 @@
 
     <div class="choice-modal" id="choiceModal">
         <div class="choice-modal-content">
-            <button class="modal-close-cross" id="choiceModalCross">&times;</button>
-            
+            <button class="modal-close-x" id="choiceModalCloseX">&times;</button>
             <div class="choice-modal-header">
                 <h2 class="choice-modal-title">Вы достигли нового города!</h2>
             </div>
@@ -3126,8 +3156,7 @@
 
     <div class="invite-modal" id="inviteModal">
         <div class="invite-modal-content">
-            <button class="modal-close-cross" id="inviteModalCross">&times;</button>
-            
+            <button class="modal-close-x" id="inviteModalCloseX">&times;</button>
             <div class="invite-modal-header">
                 <h2 class="invite-modal-title">🎮 Пригласите друзей!</h2>
             </div>
@@ -3216,10 +3245,6 @@
         let hasCurrentTask = false;
         let lightThemeEnabled = false; // По умолчанию выключена (темная тема включена)
         
-        // БАЗОВЫЕ РАЗМЕРЫ КАРТЫ ДЛЯ ОТНОСИТЕЛЬНОГО ПОЗИЦИОНИРОВАНИЯ
-        const BASE_MAP_WIDTH = 800;
-        const BASE_MAP_HEIGHT = 800;
-
         // ==================== ЭЛЕМЕНТЫ DOM ====================
         const elements = {
             authSection: document.getElementById('authSection'),
@@ -3277,17 +3302,16 @@
             cityModalProblem: document.getElementById('cityModalProblem'),
             cityModalTask: document.getElementById('cityModalTask'),
             cityModalCloseBtn: document.getElementById('cityModalCloseBtn'),
+            cityModalCloseX: document.getElementById('cityModalCloseX'),
             cityModalMoveBtn: document.getElementById('cityModalMoveBtn'),
             cityModalProgressFill: document.getElementById('cityModalProgressFill'),
             cityModalProgressText: document.getElementById('cityModalProgressText'),
             gameInfo: document.getElementById('gameInfo'),
             cityProgressContainer: document.getElementById('cityProgressContainer'),
             choiceModal: document.getElementById('choiceModal'),
+            choiceModalCloseX: document.getElementById('choiceModalCloseX'),
             stayBtn: document.getElementById('stayBtn'),
             moveForwardBtn: document.getElementById('moveForwardBtn'),
-            choiceCurrentCityName: document.getElementById('choiceCurrentCityName'),
-            choiceCurrentCityProgress: document.getElementById('choiceCurrentCityProgress'),
-            choiceCurrentCityProgressFill: document.getElementById('choiceCurrentCityProgressFill'),
             connectionStatusDot: document.getElementById('connectionStatusDot'),
             connectionStatusText: document.getElementById('connectionStatusText'),
             connectionStatusCompact: document.getElementById('connectionStatusCompact'),
@@ -3297,6 +3321,7 @@
             turnIndicator: document.getElementById('turnIndicator'),
             turnMessage: document.getElementById('turnMessage'),
             inviteModal: document.getElementById('inviteModal'),
+            inviteModalCloseX: document.getElementById('inviteModalCloseX'),
             inviteRoomNumber: document.getElementById('inviteRoomNumber'),
             copyInviteBtn: document.getElementById('copyInviteBtn'),
             closeInviteBtn: document.getElementById('closeInviteBtn'),
@@ -3304,16 +3329,6 @@
             recentEmojisContainer: document.getElementById('recentEmojisContainer')
         };
         
-        // Привязываем обработчики для крестиков закрытия окон
-        const cityModalCross = document.getElementById('cityModalCross');
-        if(cityModalCross) cityModalCross.addEventListener('click', closeCityModal);
-        
-        const choiceModalCross = document.getElementById('choiceModalCross');
-        if(choiceModalCross) choiceModalCross.addEventListener('click', closeChoiceModal);
-        
-        const inviteModalCross = document.getElementById('inviteModalCross');
-        if(inviteModalCross) inviteModalCross.addEventListener('click', closeInviteModal);
-
         // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
         const quickActionsBtn = document.getElementById('quickActionsBtn');
         const quickActions = document.getElementById('quickActions');
@@ -3915,9 +3930,12 @@
             // Находим клетку с указанной позицией
             const cell = mapData.cells.find(c => c.number === position);
             if (cell) {
-                // ИСПОЛЬЗУЕМ ПРОЦЕНТЫ для адаптивного позиционирования
-                marker.style.left = `${((cell.x + cell.width/2) / BASE_MAP_WIDTH) * 100}%`;
-                marker.style.top = `${((cell.y + cell.height/2) / BASE_MAP_HEIGHT) * 100}%`;
+                // Вычисляем проценты вместо пикселей
+                const imgW = (elements.mapImage && elements.mapImage.naturalWidth > 0) ? elements.mapImage.naturalWidth : 800;
+                const imgH = (elements.mapImage && elements.mapImage.naturalHeight > 0) ? elements.mapImage.naturalHeight : 800;
+
+                marker.style.left = `${((cell.x + cell.width/2) / imgW) * 100}%`;
+                marker.style.top = `${((cell.y + cell.height/2) / imgH) * 100}%`;
                 
                 const tooltip = marker.querySelector('.player-tooltip');
                 if (tooltip) {
@@ -4079,8 +4097,6 @@
             // Обновляем состояние кнопки броска кубика
             updateRollDiceButtonState();
             
-            // НЕ показываем информацию о Твери сразу - только при входе в город
-            // Вместо этого показываем общее приветствие
             setTimeout(() => {
                 showNotification(`🎮 Добро пожаловать в игре, ${playerData.name}! Начните с броска кубика.`, 'success');
             }, 1000);
@@ -4181,7 +4197,6 @@
             }
         }
         
-        // ИСПРАВЛЕНО: Функция добавления сообщения в чат
         function addChatMessage(sender, message, isLocal = false) {
             console.log(`💬 Добавление сообщения в чат: ${sender}: ${message} (isLocal: ${isLocal})`);
             
@@ -4222,7 +4237,6 @@
             });
         }
         
-        // ИСПРАВЛЕНО: Функция отправки сообщения в чат
         function sendChatMessage(message) {
             if (isConnected && gameState.currentPlayer) {
                 console.log(`📤 Отправка сообщения в чат: ${message}`);
@@ -4234,9 +4248,6 @@
                 
                 // Очищаем поле ввода
                 elements.chatInput.value = '';
-                
-                // НЕ добавляем сообщение локально - оно придет от сервера
-                // чтобы избежать задвоения
             }
         }
         
@@ -4253,9 +4264,6 @@
                     
                     // Загружаем сохраненную карту из файла
                     loadSavedMap();
-                    
-                    // Обновляем маркеры игроков
-                    updatePlayerMarkers();
                 };
                 
                 elements.mapImage.onerror = function() {
@@ -4267,7 +4275,7 @@
                     loadSavedMap();
                 };
             } else {
-                console.error('❐ Данные карты не найдены в mapData.js');
+                console.error('❌ Данные карты не найдены в mapData.js');
                 showNotification('Данные карты не найдены', 'error');
                 
                 // Загружаем сохраненную карту из файла
@@ -4314,14 +4322,17 @@
         function createDefaultMap() {
             console.log('📍 Создание стандартной карты городов');
             
-            // Создаем клетки для каждого города (относительно 800x800)
+            const origW = 800;
+            const origH = 800;
+            
+            // Создаем клетки для каждого города
             const cityPositions = [
-                { city: 'tver', x: 80, y: 240, number: 1, type: 'start' },
-                { city: 'kineshma', x: 240, y: 320, number: 2, type: 'city' },
-                { city: 'naberezhnye_chelny', x: 400, y: 240, number: 3, type: 'city' },
-                { city: 'kazan', x: 560, y: 320, number: 4, type: 'city' },
-                { city: 'volgograd', x: 480, y: 480, number: 5, type: 'city' },
-                { city: 'astrakhan', x: 640, y: 560, number: 6, type: 'finish' }
+                { city: 'tver', x: origW * 0.1, y: origH * 0.3, number: 1, type: 'start' },
+                { city: 'kineshma', x: origW * 0.3, y: origH * 0.4, number: 2, type: 'city' },
+                { city: 'naberezhnye_chelny', x: origW * 0.5, y: origH * 0.3, number: 3, type: 'city' },
+                { city: 'kazan', x: origW * 0.7, y: origH * 0.4, number: 4, type: 'city' },
+                { city: 'volgograd', x: origW * 0.6, y: origH * 0.6, number: 5, type: 'city' },
+                { city: 'astrakhan', x: origW * 0.8, y: origH * 0.7, number: 6, type: 'finish' }
             ];
             
             mapData.cells = cityPositions.map((pos, index) => ({
@@ -4343,56 +4354,55 @@
             // Очищаем overlay
             elements.mapOverlay.innerHTML = '';
             
-            // Создаем клетки (всегда скрытые)
+            // Получаем натуральный размер изображения (или ставим дефолт 800)
+            const imgW = (elements.mapImage && elements.mapImage.naturalWidth > 0) ? elements.mapImage.naturalWidth : 800;
+            const imgH = (elements.mapImage && elements.mapImage.naturalHeight > 0) ? elements.mapImage.naturalHeight : 800;
+            
+            // Создаем клетки (всегда скрытые), пересчитывая в проценты!
             mapData.cells.forEach(cell => {
-                createCellElement(cell);
+                const cellElement = document.createElement('div');
+                cellElement.className = 'map-cell hidden';
+                cellElement.dataset.cellId = cell.id;
+                cellElement.dataset.cellNumber = cell.number;
+                cellElement.dataset.cellType = cell.type;
+                cellElement.dataset.city = cell.city || '';
+                
+                // Позиционируем клетку В ПРОЦЕНТАХ, чтобы она адаптировалась под любой экран
+                cellElement.style.left = `${(cell.x / imgW) * 100}%`;
+                cellElement.style.top = `${(cell.y / imgH) * 100}%`;
+                cellElement.style.width = `${(cell.width / imgW) * 100}%`;
+                cellElement.style.height = `${(cell.height / imgH) * 100}%`;
+                
+                // Добавляем классы в зависимости от типа
+                if (cell.type === 'start') {
+                    cellElement.classList.add('start');
+                } else if (cell.type === 'finish') {
+                    cellElement.classList.add('finish');
+                } else if (cell.type === 'city') {
+                    cellElement.classList.add('city');
+                }
+                
+                // Добавляем обработчики событий
+                cellElement.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    
+                    // Показываем информацию о городе
+                    if (cell.type === 'city' && cell.city) {
+                        showCityModal(cell.city);
+                    } else if (cell.type === 'start') {
+                        showNotification('Это стартовая точка игры!', 'info');
+                    } else if (cell.type === 'finish') {
+                        showNotification('Это конечная точка игры!', 'info');
+                    }
+                });
+                
+                elements.mapOverlay.appendChild(cellElement);
             });
             
             console.log(`✅ Создано ${mapData.cells.length} клеток на карте`);
             
             // Если есть игроки, обновляем их маркеры
             updatePlayerMarkers();
-        }
-        
-        function createCellElement(cell) {
-            const cellElement = document.createElement('div');
-            cellElement.className = 'map-cell hidden';
-            cellElement.dataset.cellId = cell.id;
-            cellElement.dataset.cellNumber = cell.number;
-            cellElement.dataset.cellType = cell.type;
-            cellElement.dataset.city = cell.city || '';
-            
-            // ИСПОЛЬЗУЕМ ПРОЦЕНТЫ для адаптивного позиционирования
-            cellElement.style.left = `${(cell.x / BASE_MAP_WIDTH) * 100}%`;
-            cellElement.style.top = `${(cell.y / BASE_MAP_HEIGHT) * 100}%`;
-            cellElement.style.width = `${(cell.width / BASE_MAP_WIDTH) * 100}%`;
-            cellElement.style.height = `${(cell.height / BASE_MAP_HEIGHT) * 100}%`;
-            
-            // Добавляем классы в зависимости от типа
-            if (cell.type === 'start') {
-                cellElement.classList.add('start');
-            } else if (cell.type === 'finish') {
-                cellElement.classList.add('finish');
-            } else if (cell.type === 'city') {
-                cellElement.classList.add('city');
-            }
-            
-            // Добавляем обработчики событий
-            cellElement.addEventListener('click', function(e) {
-                e.stopPropagation();
-                
-                // Показываем информацию о городе
-                if (cell.type === 'city' && cell.city) {
-                    showCityModal(cell.city);
-                } else if (cell.type === 'start') {
-                    showNotification('Это стартовая точка игры!', 'info');
-                } else if (cell.type === 'finish') {
-                    showNotification('Это конечная точка игры!', 'info');
-                }
-            });
-            
-            elements.mapOverlay.appendChild(cellElement);
-            return cellElement;
         }
         
         // ==================== ФУНКЦИИ ИНТЕРФЕЙСА ====================
@@ -4499,11 +4509,6 @@
         }
         
         function updateRollDiceButtonState() {
-            // Отключаем кнопку броска кубика если:
-            // 1. Не наш ход
-            // 2. Есть незавершенное задание
-            // 3. Игра завершена
-            // 4. Задание в процессе выполнения
             if (gameState.gameOver || gameState.taskInProgress) {
                 elements.rollDiceBtn.disabled = true;
                 elements.rollDiceBtn.style.opacity = '0.7';
@@ -4670,12 +4675,6 @@
             const cityKeys = Object.keys(gameData.cities);
             const targetIndex = cityKeys.indexOf(cityKey);
             const currentIndex = cityKeys.indexOf(gameState.currentPlayer?.city || 'tver');
-            
-            // Можно перейти если:
-            // 1. Это текущий город
-            // 2. Это предыдущий город
-            // 3. Это следующий город и текущий завершен на 100%
-            // 4. Любой город, который уже был пройден (прогресс > 0)
             
             const targetProgress = playerProgress[cityKey] || 0;
             
@@ -4935,35 +4934,7 @@
             elements.logEntries.scrollTop = elements.logEntries.scrollHeight;
         }
         
-        // ФУНКЦИЯ ЗАВЕРШЕНИЯ ХОДА ПРИ БРОСКЕ КУБИКА
-        function finalizeMove(oldPosition, newPosition, diceValue) {
-            updatePlayerUI();
-            updatePlayerMarkers();
-            checkForCityTransition(oldPosition, newPosition);
-            
-            sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
-            savePlayerState();
-            
-            if (diceValue) {
-                addLogEntry(`🎲 Вы бросили кубик и получили ${diceValue}. Новая позиция: ${newPosition}`);
-            }
-            
-            gameState.currentTask = getRandomTask(gameState.currentDifficulty);
-            elements.currentTask.style.display = 'block';
-            elements.taskDescription.textContent = gameState.currentTask.description;
-            elements.noTaskMessage.style.display = 'none';
-            elements.completeTaskBtn.disabled = false;
-            hasCurrentTask = true;
-            
-            updateRollDiceButtonState();
-            
-            socket.emit('end_turn');
-            gameState.isMyTurn = false;
-            updateTurnIndicator();
-        }
-
         // ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ====================
-        // ==================== ИГРОВЫЕ ДАННЫЕ ====================
         const gameDataTasks = {
             tasks: {
                 easy: [
@@ -5003,7 +4974,7 @@
                         items: ["🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
                     },
                     {
-                        description: "Что такое переработка отходы? ♻️",
+                        description: "Что такое переработка отходов? ♻️",
                         type: "quiz",
                         question: "Что такое переработка отходов?",
                         options: [
@@ -5195,12 +5166,9 @@
             }
         };
 
-        // ==================== ФУНКЦИИ ЗАДАНИЙ ====================
-
         function getRandomTask(difficulty) {
             const availableTasks = gameDataTasks.tasks[difficulty];
             if (!availableTasks || availableTasks.length === 0) {
-                // Если нет заданий, создаем простое задание по умолчанию
                 return {
                     description: "Ответьте на вопрос об экологии",
                     type: "quiz",
@@ -5229,7 +5197,6 @@
                 gameState.usedTasks[difficulty].push(randomTask.description);
             }
             
-            // Перемешиваем варианты ответов для тестовых заданий
             if (randomTask.type === "quiz" && randomTask.options) {
                 randomTask.options = shuffleArray(randomTask.options);
             }
@@ -5268,52 +5235,32 @@
                 canFlip: true
             };
             
-            // Прокручиваем к началу задания
             setTimeout(() => {
                 elements.taskArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
             
-            // Преобразуем старые типы заданий в новые
-            if (task.type === "drag") {
-                task.type = "drag_click";
-            } else if (task.type === "sort") {
-                task.type = "sort_click";
-            } else if (task.type === "puzzle") {
-                task.type = "puzzle_click";
-            } else if (task.type === "puzzle_sequence" || task.type === "sequence") {
-                task.type = "sequence_click";
-            }
+            if (task.type === "drag") task.type = "drag_click";
+            else if (task.type === "sort") task.type = "sort_click";
+            else if (task.type === "puzzle") task.type = "puzzle_click";
+            else if (task.type === "puzzle_sequence" || task.type === "sequence") task.type = "sequence_click";
             
-            if (task.type === "quiz") {
-                createQuizTask(task);
-            } else if (task.type === "drag_click") {
-                createDragClickTask(task);
-            } else if (task.type === "sort_click") {
-                createSortClickTask(task);
-            } else if (task.type === "clean") {
-                createCleanupTask(task);
-            } else if (task.type === "puzzle_click") {
-                createPuzzleClickTask(task);
-            } else if (task.type === "puzzle_image") {
-                createPuzzleImageTask(task);
-            } else if (task.type === "sequence_click") {
-                createSequenceClickTask(task);
-            } else if (task.type === "match_game") {
-                createMatchGameTask(task);
-            } else {
-                createDefaultTask(task);
-            }
+            if (task.type === "quiz") createQuizTask(task);
+            else if (task.type === "drag_click") createDragClickTask(task);
+            else if (task.type === "sort_click") createSortClickTask(task);
+            else if (task.type === "clean") createCleanupTask(task);
+            else if (task.type === "puzzle_click") createPuzzleClickTask(task);
+            else if (task.type === "puzzle_image") createPuzzleImageTask(task);
+            else if (task.type === "sequence_click") createSequenceClickTask(task);
+            else if (task.type === "match_game") createMatchGameTask(task);
+            else createDefaultTask(task);
             
-            // ИСПРАВЛЕНО: Кнопка "Начать выполнение задания" меняется на "Проверить выполнение"
             elements.completeTaskBtn.style.display = 'none';
             elements.checkTaskBtn.style.display = 'block';
             elements.checkTaskBtn.textContent = "✅ Проверить выполнение";
             elements.checkTaskBtn.disabled = false;
             
-            // Обновляем состояние кнопки броска кубика
             updateRollDiceButtonState();
             
-            // Добавляем контейнер для прокрутки на мобильных устройствах
             if (window.innerWidth <= 768) {
                 const dragContainers = elements.taskArea.querySelectorAll('.task-container, .drag-container, .sorting-area, .puzzle-area, .sequence-area, .match-grid');
                 dragContainers.forEach(container => {
@@ -5343,21 +5290,16 @@
                 option.addEventListener('click', function() {
                     if (!canSelect) return;
                     
-                    // Сбрасываем предыдущий выбор
                     if (selectedOption) {
                         selectedOption.classList.remove('selected');
                     }
                     
-                    // Выбираем текущий вариант
                     selectedOption = this;
                     this.classList.add('selected');
-                    
-                    // Активируем кнопку проверки
                     elements.checkTaskBtn.disabled = false;
                 });
             });
             
-            // Настраиваем кнопку проверки
             elements.checkTaskBtn.onclick = function() {
                 if (!selectedOption) return;
                 
@@ -5377,7 +5319,6 @@
                     }
                 });
                 
-                // ИСПРАВЛЕНО: Не показываем правильный ответ при ошибке
                 if (isCorrect) {
                     elements.taskResult.textContent = '✅ Правильно! Задание выполнено.';
                     elements.taskResult.style.color = '#2ecc71';
@@ -5394,9 +5335,7 @@
                 }
             };
             
-            // Настраиваем кнопку повторной попытки
             elements.retryTaskBtn.onclick = function() {
-                // Сбрасываем состояние
                 document.querySelectorAll('.quiz-option').forEach(opt => {
                     opt.classList.remove('correct', 'incorrect', 'selected');
                     opt.style.pointerEvents = 'auto';
@@ -5443,7 +5382,7 @@
         function initializeDragClickTask(task) {
             const draggables = elements.taskArea.querySelectorAll('.draggable-item');
             const dropZones = elements.taskArea.querySelectorAll('.drop-zone');
-            let selected Item = null;
+            let selectedItem = null;
             let placedCount = 0;
             let correctPlacedCount = 0;
             
@@ -5455,7 +5394,6 @@
                     selectedItem = this;
                     this.classList.add('selected');
                     
-                    // Подсвечиваем доступные зоны
                     dropZones.forEach(zone => {
                         if (!zone.classList.contains('filled')) {
                             zone.classList.add('hover');
@@ -5467,10 +5405,8 @@
             dropZones.forEach(zone => {
                 zone.addEventListener('click', function() {
                     if (selectedItem && !this.classList.contains('filled')) {
-                        // Убираем подсветку
                         dropZones.forEach(z => z.classList.remove('hover'));
                         
-                        // Размещаем предмет
                         const emoji = selectedItem.dataset.emoji;
                         const isCorrect = selectedItem.dataset.correct === 'true';
                         this.innerHTML = `<div style="font-size: 2.2rem;">${emoji}</div>`;
@@ -5485,9 +5421,7 @@
                         selectedItem = null;
                         
                         placedCount++;
-                        if (isCorrect) {
-                            correctPlacedCount++;
-                        }
+                        if (isCorrect) correctPlacedCount++;
                         document.getElementById('dragCount').textContent = correctPlacedCount;
                         
                         if (placedCount >= task.goal) {
@@ -5515,7 +5449,6 @@
             };
             
             elements.retryTaskBtn.onclick = function() {
-                // Сбрасываем задание
                 createDragClickTask(task);
             };
         }
@@ -5575,13 +5508,10 @@
             
             sortItems.forEach(item => {
                 item.addEventListener('click', function() {
-                    if (selectedItem) {
-                        selectedItem.classList.remove('selected');
-                    }
+                    if (selectedItem) selectedItem.classList.remove('selected');
                     selectedItem = this;
                     this.classList.add('selected');
                     
-                    // Подсвечиваем правильные контейнеры
                     const itemType = this.dataset.type;
                     sortBins.forEach(bin => {
                         if (bin.dataset.type === itemType && !bin.classList.contains('filled')) {
@@ -5597,11 +5527,9 @@
                         const itemType = selectedItem.dataset.type;
                         const binType = this.dataset.type;
                         
-                        // Убираем подсветку со всех контейнеров
                         sortBins.forEach(b => b.classList.remove('hover'));
                         
                         if (itemType === binType) {
-                            // Правильный выбор
                             const binContent = this.querySelector('.sort-bin-content');
                             binContent.innerHTML = '';
                             
@@ -5621,7 +5549,8 @@
                             this.classList.add('filled');
                             selectedItem.classList.remove('selected');
                             selectedItem.style.opacity = '0.5';
-                            selected Item = null;
+                            selectedItem.style.cursor = 'default';
+                            selectedItem = null;
                             
                             sortedCount++;
                             document.getElementById('sortCount').textContent = sortedCount;
@@ -5633,12 +5562,9 @@
                                 elements.taskResult.style.color = '#2ecc71';
                             }
                         } else {
-                            // Неправильный выбор - показываем уведомление
                             if (!errorShown) {
                                 showNotification('❌ Неправильный контейнер! Попробуйте другой.', 'warning');
                                 errorShown = true;
-                                
-                                // Сбрасываем выбор через 1 секунду
                                 setTimeout(() => {
                                     if (selectedItem) {
                                         selectedItem.classList.remove('selected');
@@ -5663,7 +5589,6 @@
             };
             
             elements.retryTaskBtn.onclick = function() {
-                // Сбрасываем задание
                 createSortClickTask(task);
             };
         }
@@ -5722,20 +5647,17 @@
             };
             
             elements.retryTaskBtn.onclick = function() {
-                // Сбрасываем задание
                 createCleanupTask(task);
             };
         }
 
         function createPuzzleClickTask(task) {
-            // Устаревший тип задания - заменяем на puzzle_image
             task.type = "puzzle_image";
             task.imageType = "ecology";
             createPuzzleImageTask(task);
         }
 
         function createPuzzleImageTask(task) {
-            // Определяем изображение в зависимости от типа
             let imagePieces = [];
             
             switch(task.imageType) {
@@ -5752,7 +5674,6 @@
                     imagePieces = ["🌍", "♻️", "🌳", "💧", "🌱", "🌞", "🌀", "🌊", "🦋"];
             }
             
-            // Берем нужное количество кусочков
             const pieces = imagePieces.slice(0, task.pieces);
             const shuffledPieces = shuffleArray([...pieces]);
             
@@ -5799,7 +5720,6 @@
                     selectedPiece = this;
                     this.classList.add('selected');
                     
-                    // Подсвечиваем доступные слоты
                     puzzleSlots.forEach(slot => {
                         if (!slot.classList.contains('filled')) {
                             slot.classList.add('hover');
@@ -5815,10 +5735,8 @@
                         const expectedEmoji = this.dataset.expected;
                         
                         if (pieceEmoji === expectedEmoji) {
-                            // Убираем подсветку
                             puzzleSlots.forEach(s => s.classList.remove('hover'));
                             
-                            // Размещаем пазл
                             this.innerHTML = `<div style="font-size: 2.2rem;">${pieceEmoji}</div>`;
                             this.classList.add('filled');
                             this.classList.remove('hover');
@@ -5840,7 +5758,6 @@
                             elements.taskResult.textContent = '❌ Неправильное место! Попробуйте другой слот.';
                             elements.taskResult.style.color = '#e74c3c';
                             
-                            // Сбрасываем выбор
                             selectedPiece.classList.remove('selected');
                             selectedPiece = null;
                             puzzleSlots.forEach(s => s.classList.remove('hover'));
@@ -5860,7 +5777,6 @@
             };
             
             elements.retryTaskBtn.onclick = function() {
-                // Нужно получить оригинальный task
                 const originalTask = gameState.currentTask;
                 if (originalTask) {
                     createPuzzleImageTask(originalTask);
@@ -5897,94 +5813,10 @@
             initializeSequenceClick(correctOrder);
         }
 
-        function initializeSequenceClick(correctOrder) {
-            const sequencePieces = elements.taskArea.querySelectorAll('.sequence-piece');
-            const sequenceSlots = elements.taskArea.querySelectorAll('.sequence-slot');
-            let selectedPiece = null;
-            let placedCount = 0;
-            
-            sequencePieces.forEach(piece => {
-                piece.addEventListener('click', function() {
-                    if (selectedPiece) {
-                        selectedPiece.classList.remove('selected');
-                    }
-                    selectedPiece = this;
-                    this.classList.add('selected');
-                    
-                    // Подсвечиваем доступные слоты
-                    sequenceSlots.forEach((slot, slotIndex) => {
-                        if (!slot.classList.contains('filled')) {
-                            slot.classList.add('hover');
-                        }
-                    });
-                });
-            });
-            
-            sequenceSlots.forEach((slot, slotIndex) => {
-                slot.addEventListener('click', function() {
-                    if (selectedPiece && this.classList.contains('hover')) {
-                        const pieceEmoji = selectedPiece.dataset.piece;
-                        const expectedEmoji = this.dataset.expected;
-                        
-                        if (pieceEmoji === expectedEmoji) {
-                            // Убираем подсветку
-                            sequenceSlots.forEach(s => s.classList.remove('hover'));
-                            
-                            // Размещаем элемент
-                            this.innerHTML = `<div style="font-size: 2.2rem;">${pieceEmoji}</div>`;
-                            this.classList.add('filled');
-                            this.classList.remove('hover');
-                            
-                            selectedPiece.classList.remove('selected');
-                            selectedPiece.style.opacity = '0.5';
-                            selectedPiece.style.cursor = 'default';
-                            selectedPiece = null;
-                            
-                            placedCount++;
-                            document.getElementById('sequenceCount').textContent = placedCount;
-                            
-                            if (placedCount >= correctOrder.length) {
-                                elements.checkTaskBtn.disabled = false;
-                                elements.taskResult.textContent = '✅ Отлично! Последовательность верная!';
-                                elements.taskResult.style.color = '#2ecc71';
-                            }
-                        } else {
-                            elements.taskResult.textContent = '❌ Неправильная последовательность! Попробуйте другой слот.';
-                            elements.taskResult.style.color = '#e74c3c';
-                            
-                            // Сбрасываем выбор
-                            selectedPiece.classList.remove('selected');
-                            selectedPiece = null;
-                            sequenceSlots.forEach(s => s.classList.remove('hover'));
-                        }
-                    }
-                });
-            });
-            
-            elements.checkTaskBtn.onclick = function() {
-                if (placedCount >= correctOrder.length) {
-                    completeInteractiveTask();
-                } else {
-                    elements.taskResult.textContent = `❌ Последовательность не завершена! Осталось: ${correctOrder.length - placedCount}`;
-                    elements.taskResult.style.color = '#e74c3c';
-                    elements.retryTaskBtn.style.display = 'block';
-                }
-            };
-            
-            elements.retryTaskBtn.onclick = function() {
-                // Нужно получить оригинальный task
-                const originalTask = gameState.currentTask;
-                if (originalTask) {
-                    createSequenceClickTask(originalTask);
-                }
-            };
-        }
-
         function createMatchGameTask(task) {
             const symbols = task.symbols;
             const pairs = task.pairs;
             
-            // Создаем пары символов
             let cards = [];
             for (let i = 0; i < pairs; i++) {
                 const symbol = symbols[i % symbols.length];
@@ -5992,7 +5824,6 @@
                 cards.push({symbol: symbol, id: i});
             }
             
-            // Перемешиваем карточки
             cards = shuffleArray(cards);
             
             elements.taskArea.innerHTML = `
@@ -6041,7 +5872,6 @@
                         const card2 = gameState.matchGameState.flippedCards[1];
                         
                         if (card1.dataset.id === card2.dataset.id) {
-                            // Найдена пара
                             setTimeout(() => {
                                 card1.classList.add('matched');
                                 card2.classList.add('matched');
@@ -6058,7 +5888,6 @@
                                 }
                             }, 500);
                         } else {
-                            // Не пара - переворачиваем обратно
                             setTimeout(() => {
                                 card1.classList.remove('flipped');
                                 card2.classList.remove('flipped');
@@ -6081,15 +5910,12 @@
             };
             
             elements.retryTaskBtn.onclick = function() {
-                // Сбрасываем состояние
                 gameState.matchGameState = {
                     cards: [],
                     flippedCards: [],
                     matchedPairs: 0,
                     canFlip: true
                 };
-                
-                // Пересоздаем задание
                 createMatchGameTask(task);
             };
         }
@@ -6107,6 +5933,84 @@
             
             elements.checkTaskBtn.onclick = function() {
                 completeInteractiveTask();
+            };
+        }
+
+        function initializeSequenceClick(correctOrder) {
+            const sequencePieces = elements.taskArea.querySelectorAll('.sequence-piece');
+            const sequenceSlots = elements.taskArea.querySelectorAll('.sequence-slot');
+            let selectedPiece = null;
+            let placedCount = 0;
+            
+            sequencePieces.forEach(piece => {
+                piece.addEventListener('click', function() {
+                    if (selectedPiece) {
+                        selectedPiece.classList.remove('selected');
+                    }
+                    selectedPiece = this;
+                    this.classList.add('selected');
+                    
+                    sequenceSlots.forEach((slot, slotIndex) => {
+                        if (!slot.classList.contains('filled')) {
+                            slot.classList.add('hover');
+                        }
+                    });
+                });
+            });
+            
+            sequenceSlots.forEach((slot, slotIndex) => {
+                slot.addEventListener('click', function() {
+                    if (selectedPiece && this.classList.contains('hover')) {
+                        const pieceEmoji = selectedPiece.dataset.piece;
+                        const expectedEmoji = this.dataset.expected;
+                        
+                        if (pieceEmoji === expectedEmoji) {
+                            sequenceSlots.forEach(s => s.classList.remove('hover'));
+                            
+                            this.innerHTML = `<div style="font-size: 2.2rem;">${pieceEmoji}</div>`;
+                            this.classList.add('filled');
+                            this.classList.remove('hover');
+                            
+                            selectedPiece.classList.remove('selected');
+                            selectedPiece.style.opacity = '0.5';
+                            selectedPiece.style.cursor = 'default';
+                            selectedPiece = null;
+                            
+                            placedCount++;
+                            document.getElementById('sequenceCount').textContent = placedCount;
+                            
+                            if (placedCount >= correctOrder.length) {
+                                elements.checkTaskBtn.disabled = false;
+                                elements.taskResult.textContent = '✅ Отлично! Последовательность верная!';
+                                elements.taskResult.style.color = '#2ecc71';
+                            }
+                        } else {
+                            elements.taskResult.textContent = '❌ Неправильная последовательность! Попробуйте другой слот.';
+                            elements.taskResult.style.color = '#e74c3c';
+                            
+                            selectedPiece.classList.remove('selected');
+                            selectedPiece = null;
+                            sequenceSlots.forEach(s => s.classList.remove('hover'));
+                        }
+                    }
+                });
+            });
+            
+            elements.checkTaskBtn.onclick = function() {
+                if (placedCount >= correctOrder.length) {
+                    completeInteractiveTask();
+                } else {
+                    elements.taskResult.textContent = `❌ Последовательность не завершена! Осталось: ${correctOrder.length - placedCount}`;
+                    elements.taskResult.style.color = '#e74c3c';
+                    elements.retryTaskBtn.style.display = 'block';
+                }
+            };
+            
+            elements.retryTaskBtn.onclick = function() {
+                const originalTask = gameState.currentTask;
+                if (originalTask) {
+                    createSequenceClickTask(originalTask);
+                }
             };
         }
 
@@ -6138,7 +6042,6 @@
             gameState.currentPlayer.completedTasks += 1;
             gameState.currentPlayer.cleaningPoints += expEarned;
             
-            // Обновляем прогресс для текущего игрока
             const cityKey = gameState.currentPlayer.city;
             const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[cityKey] || 0;
             const newProgress = Math.min(100, currentProgress + 10);
@@ -6167,10 +6070,8 @@
             
             elements.buildBtn.disabled = false;
             
-            // Обновляем состояние кнопки броска кубика
             updateRollDiceButtonState();
             
-            // Передаем ход следующему игроку
             if (gameState.isMyTurn) {
                 socket.emit('end_turn');
                 gameState.isMyTurn = false;
@@ -6182,7 +6083,6 @@
             savePlayerState();
             showNotification(`✅ Задание выполнено! Вы получили ${coinsEarned} монет и ${expEarned} опыта!`, 'success');
             
-            // Обновляем быстрые кнопки
             if (window.updateQuickButtons) {
                 updateQuickButtons();
             }
@@ -6195,38 +6095,31 @@
                 return;
             }
             
-            // Находим клетку с этим городом
             const cityCell = mapData.cells.find(cell => cell.city === cityKey);
             if (!cityCell) {
                 showNotification(`❌ Клетка для города ${gameData.cities[cityKey].name} не найдена!`, 'error');
                 return;
             }
             
-            // Сохраняем старую позицию
             const oldPosition = gameState.currentPlayer.position;
             
-            // Обновляем позицию игрока
             gameState.currentPlayer.position = cityCell.number;
             gameState.currentPlayer.city = cityKey;
             
             updatePlayerUI();
             updatePlayerMarkers();
             
-            // Проверяем переход в новый город
             checkForCityTransition(oldPosition, cityCell.number);
             
-            // Отправляем обновление на сервер
             sendPlayerPositionToServer(cityCell.number, cityKey);
             savePlayerState();
             
-            // Обновляем UI
             createCitiesGrid();
             createCurrentCityProgress();
             
             showNotification(`🚗 Вы переместились в ${gameData.cities[cityKey].name}!`, 'success');
             addLogEntry(`🚗 Вы переместились в ${gameData.cities[cityKey].name}`);
             
-            // Показываем информацию о городе (если еще не показывали)
             if (!gameState.visitedCities[cityKey]) {
                 setTimeout(() => {
                     showCityModal(cityKey);
@@ -6300,7 +6193,6 @@
                 }
                 
                 setTimeout(() => {
-                    // Прокручиваем к доступным объектам
                     const buildingsContainer = document.getElementById('buildingsContainer');
                     if (buildingsContainer) {
                         buildingsContainer.scrollIntoView({ 
@@ -6308,7 +6200,6 @@
                             block: 'start'
                         });
                         
-                        // Подсвечиваем секцию зданий
                         elements.buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
                         elements.buildingsSection.style.transition = 'box-shadow 0.5s';
                         setTimeout(() => {
@@ -6422,13 +6313,13 @@
                 }
             }
             
+            window.updateQuickButtons = updateQuickButtons;
             setInterval(updateQuickButtons, 1000);
             updateQuickButtons();
         }
         
         // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
         
-        // Обработчики событий для авторизации
         elements.loginTab.addEventListener('click', () => {
             elements.loginTab.classList.add('active');
             elements.registerTab.classList.remove('active');
@@ -6463,7 +6354,6 @@
             }
         });
         
-        // Обработчики событий для игровых действий
         elements.rollDiceBtn.addEventListener('click', () => {
             if (gameState.gameOver || gameState.taskInProgress || hasCurrentTask || !gameState.isMyTurn) {
                 return;
@@ -6477,37 +6367,40 @@
                 elements.diceValue.querySelector('.dice-value').textContent = diceValue;
                 elements.diceValue.classList.remove('rolling');
                 
-                // Сохраняем старую позицию
                 const oldPosition = gameState.currentPlayer.position;
                 
-                // Обновляем позицию игрока
                 const newPosition = Math.min(gameState.currentPlayer.position + diceValue, mapData.cells.length);
                 gameState.currentPlayer.position = newPosition;
                 
-                // Находим клетку, на которую попал игрок
                 const currentCell = mapData.cells.find(cell => cell.number === newPosition);
-                
                 if (currentCell) {
-                    if (currentCell.type === 'city' && currentCell.city && currentCell.city !== gameState.currentPlayer.city) {
-                        // Игрок дошел до нового города!
-                        // Проверяем, завершен ли предыдущий город
-                        const currentCityKey = gameState.currentPlayer.city;
-                        const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[currentCityKey] || 0;
-                        
-                        if (currentProgress < 100) {
-                            // Показываем окно выбора, так как город не завершен
-                            showChoiceModal(currentCell.city);
-                            // ВАЖНО: Завершение хода произойдет только после выбора игрока!
-                            return; 
-                        } else {
-                            // Если старый город завершен, просто переходим в новый
-                            gameState.currentPlayer.city = currentCell.city;
-                        }
+                    if (currentCell.type === 'city' && currentCell.city) {
+                        gameState.currentPlayer.city = currentCell.city;
                     }
                 }
                 
-                // Если нет выбора города (обычный ход), завершаем ход
-                finalizeMove(oldPosition, newPosition, diceValue);
+                updatePlayerUI();
+                updatePlayerMarkers();
+                
+                checkForCityTransition(oldPosition, newPosition);
+                
+                sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
+                savePlayerState();
+                
+                addLogEntry(`🎲 Вы бросили кубик и получили ${diceValue}. Новая позиция: ${newPosition}`);
+                
+                gameState.currentTask = getRandomTask(gameState.currentDifficulty);
+                elements.currentTask.style.display = 'block';
+                elements.taskDescription.textContent = gameState.currentTask.description;
+                elements.noTaskMessage.style.display = 'none';
+                elements.completeTaskBtn.disabled = false;
+                hasCurrentTask = true;
+                
+                updateRollDiceButtonState();
+                
+                socket.emit('end_turn');
+                gameState.isMyTurn = false;
+                updateTurnIndicator();
                 
             }, 1200);
         });
@@ -6533,7 +6426,6 @@
             }
         });
         
-        // Обработчик отправки сообщения в чат
         elements.sendMessageBtn.addEventListener('click', () => {
             const message = elements.chatInput.value.trim();
             if (message) {
@@ -6558,7 +6450,21 @@
         elements.closeInviteBtn.addEventListener('click', () => {
             closeInviteModal();
         });
+
+        // Добавленные крестики закрытия модалок
+        elements.cityModalCloseX.addEventListener('click', () => {
+            closeCityModal();
+        });
         
+        elements.choiceModalCloseX.addEventListener('click', () => {
+            closeChoiceModal();
+        });
+        
+        elements.inviteModalCloseX.addEventListener('click', () => {
+            closeInviteModal();
+        });
+        // ----------------------------------------
+
         elements.leaveRoomBtn.addEventListener('click', () => {
             if (confirm('Вы уверены, что хотите покинуть комнату?')) {
                 socket.emit('leave-room');
@@ -6577,44 +6483,13 @@
         
         elements.stayBtn.addEventListener('click', () => {
             closeChoiceModal();
-            showNotification('Вы остались в текущем городе. Возвращаемся в начало!', 'info');
-            
-            // Возвращаем игрока в начало текущего города
-            const currentCityKey = gameState.currentPlayer.city;
-            const cityCells = mapData.cells.filter(c => c.city === currentCityKey).sort((a, b) => a.number - b.number);
-            
-            if (cityCells.length > 0) {
-                const startCityPosition = cityCells[0].number;
-                const oldPosition = gameState.currentPlayer.position;
-                
-                gameState.currentPlayer.position = startCityPosition;
-                
-                // Завершаем ход с новой позицией (возврат в начало)
-                finalizeMove(oldPosition, startCityPosition, null);
-            } else {
-                finalizeMove(gameState.currentPlayer.position, gameState.currentPlayer.position, null);
-            }
+            showNotification('Вы остались в текущем городе', 'info');
         });
         
         elements.moveForwardBtn.addEventListener('click', () => {
             closeChoiceModal();
             if (gameState.nextCity) {
-                // Игрок решил перейти в новый город
-                const nextCityCell = mapData.cells.find(c => c.city === gameState.nextCity);
-                if (nextCityCell) {
-                    const oldPosition = gameState.currentPlayer.position;
-                    
-                    gameState.currentPlayer.position = nextCityCell.number;
-                    gameState.currentPlayer.city = gameState.nextCity;
-                    
-                    // Обнуляем прогресс в новом городе (или берем старый, если уже был)
-                    if (gameState.playerProgress[gameState.currentPlayerId][gameState.nextCity] === undefined) {
-                        gameState.playerProgress[gameState.currentPlayerId][gameState.nextCity] = 0;
-                    }
-                    
-                    // Завершаем ход
-                    finalizeMove(oldPosition, nextCityCell.number, null);
-                }
+                moveToExistingCity(gameState.nextCity);
             }
         });
         
@@ -6622,7 +6497,6 @@
             elements.gameInfo.classList.toggle('expanded');
         });
         
-        // Обработчики выбора сложности
         elements.difficultyBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 if (this.classList.contains('locked')) {
@@ -6640,11 +6514,9 @@
             });
         });
         
-        // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 Игра "Юный эколог" запущена!');
             
-            // Проверяем соединение
             setTimeout(() => {
                 if (!isConnected) {
                     updateConnectionStatus('error', '❌ Не подключено к серверу');
@@ -6652,7 +6524,6 @@
                 }
             }, 5000);
             
-            // Инициализация недавних смайликов
             updateRecentEmojisDisplay();
         });
     </script>
