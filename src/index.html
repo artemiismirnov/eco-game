@@ -215,23 +215,16 @@
         .map-image-container {
             position: relative;
             width: 100%;
-            min-height: 600px;
-            background: #e8f5e9;
+            display: block;
             border-radius: 12px;
             overflow: hidden;
-            border: 3px solid #2E7D32;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
+            background: #e8f5e9;
         }
         
         #mapImage {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
+            width: 100%;
             height: auto;
+            display: block;
             object-fit: contain;
             background-color: #e8f5e9;
         }
@@ -2007,6 +2000,7 @@
         }
         
         .city-modal-content, .choice-modal-content, .invite-modal-content {
+            position: relative;
             background: rgba(30, 30, 46, 0.95);
             border-radius: 15px;
             padding: 30px;
@@ -2019,11 +2013,34 @@
             transition: transform 0.3s;
         }
         
+        /* КРЕСТИК ЗАКРЫТИЯ ДЛЯ МОДАЛЬНЫХ ОКОН */
+        .modal-close-cross {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 10;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        
+        .modal-close-cross:hover {
+            color: white;
+        }
+        
         body.light-theme .city-modal-content,
         body.light-theme .choice-modal-content,
         body.light-theme .invite-modal-content {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
+        }
+        
+        body.light-theme .modal-close-cross {
+            color: var(--dark-primary);
         }
         
         .city-modal.active .city-modal-content,
@@ -2035,6 +2052,7 @@
         .city-modal-header, .choice-modal-header, .invite-modal-header {
             margin-bottom: 20px;
             text-align: center;
+            padding-top: 10px;
         }
         
         .city-modal-title, .choice-modal-title, .invite-modal-title {
@@ -2425,10 +2443,12 @@
                 height: 12px;
             }
             
+            /* УМЕНЬШЕНО ДЛЯ МОБИЛОК: размер фишки для корректного отображения на сетке */
             .player-marker {
-                width: 24px;
-                height: 24px;
+                width: 18px;
+                height: 18px;
                 font-size: 8px;
+                border-width: 2px;
             }
             
             .draggable-item, .clickable-item, .sort-item {
@@ -2511,16 +2531,6 @@
             
             .resource-value {
                 font-size: 1rem;
-            }
-            
-            .map-image-container {
-                height: 400px;
-            }
-            
-            #mapImage {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
             }
             
             /* Прокрутка при перетаскивании на мобильных */
@@ -2625,16 +2635,6 @@
                 width: 55px;
                 height: 55px;
                 font-size: 1.2rem;
-            }
-            
-            .map-image-container {
-                height: 300px;
-            }
-            
-            #mapImage {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
             }
         }
         
@@ -2757,13 +2757,11 @@
 </head>
 <body>
     <div class="container">
-        <!-- Шапка -->
         <header>
             <h1>Юный эколог</h1>
             <div class="subtitle">Многопользовательская экологическая игра</div>
         </header>
         
-        <!-- Плейсхолдер ресурсов (монеты и уровень) -->
         <div class="resources-placeholder" id="resourcesPlaceholder" style="display: none;">
             <div class="resource-item">
                 <div class="resource-icon">🪙</div>
@@ -2775,13 +2773,11 @@
             </div>
         </div>
         
-        <!-- Статус подключения (компактный) -->
         <div class="connection-status-compact" id="connectionStatusCompact">
             <div class="connection-dot" id="connectionStatusDot"></div>
             <div class="connection-status-text" id="connectionStatusText">Подключение...</div>
         </div>
         
-        <!-- Информация об игре -->
         <section class="game-info" id="gameInfo">
             <h3>Информация об игре "Юный эколог" <span class="toggle-icon">▼</span></h3>
             <div class="game-info-content">
@@ -2847,14 +2843,12 @@
             </div>
         </section>
         
-        <!-- Авторизация -->
         <section class="auth-section" id="authSection">
             <div class="auth-tabs">
                 <div class="auth-tab active" id="loginTab">Войти в комнату</div>
                 <div class="auth-tab" id="registerTab">Создать комнату</div>
             </div>
             
-            <!-- Форма входа -->
             <form class="auth-form active" id="loginForm">
                 <div class="form-group">
                     <label for="loginUsername">Имя пользователя</label>
@@ -2867,7 +2861,6 @@
                 <button type="submit" class="auth-btn">Войти в комнату</button>
             </form>
             
-            <!-- Форма регистрации -->
             <form class="auth-form" id="registerForm">
                 <div class="form-group">
                     <label for="registerUsername">Имя пользователя</label>
@@ -2881,9 +2874,7 @@
             </form>
         </section>
         
-        <!-- Основное игровое содержимое -->
         <main id="gameContent" style="display: none;">
-            <!-- Информация о комнате -->
             <div class="room-section">
                 <div class="room-info">
                     <div>
@@ -2896,12 +2887,10 @@
                     </div>
                 </div>
                 
-                <!-- Индикатор очереди хода -->
                 <div class="turn-indicator" id="turnIndicator" style="display: none;">
                     <p id="turnMessage">Ожидание хода...</p>
                 </div>
                 
-                <!-- Список игроков -->
                 <div class="players-list">
                     <h4>Игроки в комнате:</h4>
                     <div id="playersContainer">
@@ -2912,7 +2901,6 @@
                     </div>
                 </div>
                 
-                <!-- Чат -->
                 <div class="chat-section">
                     <h4>Чат комнаты</h4>
                     <div class="chat-messages" id="chatMessages">
@@ -2927,57 +2915,45 @@
                             <input type="text" id="chatInput" placeholder="Введите сообщение..." maxlength="200">
                             <button class="emoji-picker-btn" id="emojiPickerBtn">😀</button>
                             <div class="emoji-picker" id="emojiPicker">
-                                <!-- Недавние смайлики будут добавлены здесь -->
                                 <div class="recent-emojis-section" id="recentEmojisSection" style="display: none;">
                                     <div class="recent-emojis-title">Недавние смайлики:</div>
                                     <div class="recent-emojis-container" id="recentEmojisContainer">
-                                        <!-- Недавние смайлики будут добавлены через JS -->
-                                    </div>
+                                        </div>
                                 </div>
-                                <!-- Категории смайликов будут добавлены через JS -->
-                            </div>
+                                </div>
                         </div>
                         <button class="game-btn small" id="sendMessageBtn">Отправить</button>
                     </div>
                 </div>
             </div>
             
-            <!-- Игровой контейнер -->
             <div class="game-container">
-                <!-- Игровая доска (левая часть) -->
                 <div class="game-board">
                     <h2 style="text-align: center;">Игровое поле - Карта России</h2>
                     
-                    <!-- Контейнер для карты -->
                     <div class="game-map">
                         <div class="map-image-container" id="mapContainer">
                             <img id="mapImage" src="" alt="Карта России">
                             <div class="map-overlay" id="mapOverlay">
-                                <!-- Здесь будут создаваться невидимые клетки -->
-                            </div>
+                                </div>
                         </div>
                     </div>
                     
-                    <!-- Сетка городов -->
                     <div class="cities-section">
                         <h4>Города на карте:</h4>
                         <div class="cities-grid" id="citiesGrid">
-                            <!-- Города будут добавлены через JS -->
-                        </div>
+                            </div>
                         <div style="margin-top: 10px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
                             <p>Нажмите на город для подробной информации или для перемещения в уже пройденный город</p>
                         </div>
                     </div>
                     
-                    <!-- Прогресс очищения -->
                     <div class="game-progress">
                         <h3>Прогресс очищения текущего города</h3>
                         <div id="cityProgressContainer">
-                            <!-- Прогресс по текущему городу будет добавлен через JS -->
-                        </div>
+                            </div>
                     </div>
                     
-                    <!-- Журнал игры -->
                     <div class="game-log">
                         <h3>Журнал игры</h3>
                         <div id="logEntries">
@@ -2989,9 +2965,7 @@
                     </div>
                 </div>
                 
-                <!-- Панель информации об игре (правая часть) -->
                 <div class="game-info-panel">
-                    <!-- Информация об игроке -->
                     <div class="player-info">
                         <div class="stats-section">
                             <div class="stat">
@@ -3030,7 +3004,6 @@
                             </div>
                         </div>
                         
-                        <!-- Действия игрока -->
                         <div class="actions-section">
                             <button class="game-btn" id="rollDiceBtn" disabled>🎲 Бросить кубик</button>
                             <button class="game-btn" id="buildBtn" disabled>🏗️ Построить объект</button>
@@ -3038,7 +3011,6 @@
                         </div>
                     </div>
                     
-                    <!-- Кубик -->
                     <div class="dice-container">
                         <h3>Кубик</h3>
                         <div class="dice" id="diceValue">
@@ -3046,7 +3018,6 @@
                         </div>
                     </div>
                     
-                    <!-- Задания -->
                     <div class="task-card">
                         <h3>Задание 📋</h3>
                         <div id="currentTask" class="current-task" style="display: none;">
@@ -3057,8 +3028,7 @@
                         <div id="interactiveTask" class="interactive-task" style="display: none;">
                             <h4>Выполните задание:</h4>
                             <div id="taskArea" class="task-area">
-                                <!-- Интерактивная область для задания -->
-                            </div>
+                                </div>
                             <button class="game-btn" id="checkTaskBtn" style="display: none;">✅ Проверить выполнение</button>
                             <button class="game-btn" id="retryTaskBtn" style="display: none; margin-top: 10px;">🔄 Попробовать снова</button>
                             <p id="taskResult" style="margin-top: 10px; font-weight: bold;"></p>
@@ -3066,7 +3036,6 @@
                         
                         <p id="noTaskMessage">Бросьте кубик, чтобы получить задание</p>
                         
-                        <!-- Выбор сложности -->
                         <div class="difficulty-selector">
                             <div class="difficulty-btn easy active" id="easyBtn">
                                 Легкий
@@ -3082,31 +3051,28 @@
                         <button class="game-btn" id="completeTaskBtn" disabled>▶️ Начать выполнение задания</button>
                     </div>
                     
-                    <!-- Доступные объекты -->
                     <div class="buildings-list" id="buildingsSection">
                         <h3>Доступные объекты 🏗️</h3>
                         <div id="buildingsContainer">
-                            <!-- Здания будут добавлены через JS -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
         </main>
         
-        <!-- Подвал -->
         <div class="copyright">
             © 2025 Юный Эколог - Многопользовательская экологическая игра
         </div>
     </div>
 
-    <!-- Уведомления -->
     <div class="notification" id="notification">
         Уведомление
     </div>
 
-    <!-- Модальное окно города -->
     <div class="city-modal" id="cityModal">
         <div class="city-modal-content">
+            <button class="modal-close-cross" id="cityModalCross">&times;</button>
+            
             <div class="city-modal-header">
                 <h2 class="city-modal-title" id="cityModalTitle">Название города</h2>
                 <div class="city-modal-subtitle" id="cityModalSubtitle">Экологическая проблема</div>
@@ -3139,9 +3105,10 @@
         </div>
     </div>
 
-    <!-- Модальное окно выбора -->
     <div class="choice-modal" id="choiceModal">
         <div class="choice-modal-content">
+            <button class="modal-close-cross" id="choiceModalCross">&times;</button>
+            
             <div class="choice-modal-header">
                 <h2 class="choice-modal-title">Вы достигли нового города!</h2>
             </div>
@@ -3166,9 +3133,10 @@
         </div>
     </div>
 
-    <!-- Модальное окно приглашения -->
     <div class="invite-modal" id="inviteModal">
         <div class="invite-modal-content">
+            <button class="modal-close-cross" id="inviteModalCross">&times;</button>
+            
             <div class="invite-modal-header">
                 <h2 class="invite-modal-title">🎮 Пригласите друзей!</h2>
             </div>
@@ -3201,7 +3169,6 @@
         </div>
     </div>
 
-    <!-- Кнопка быстрых действий -->
     <button class="floating-action-btn" id="quickActionsBtn">
         <div class="icon">⚡</div>
     </button>
@@ -3233,7 +3200,6 @@
         </button>
     </div>
 
-    <!-- Подключение Socket.IO, mapData.js и игровая логика -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script src="mapData.js"></script>
     <script>
@@ -3259,6 +3225,10 @@
         let hasCurrentTask = false;
         let lightThemeEnabled = false; // По умолчанию выключена (темная тема включена)
         
+        // БАЗОВЫЕ РАЗМЕРЫ КАРТЫ ДЛЯ ОТНОСИТЕЛЬНОГО ПОЗИЦИОНИРОВАНИЯ
+        const BASE_MAP_WIDTH = 800;
+        const BASE_MAP_HEIGHT = 800;
+
         // ==================== ЭЛЕМЕНТЫ DOM ====================
         const elements = {
             authSection: document.getElementById('authSection'),
@@ -3340,6 +3310,16 @@
             recentEmojisContainer: document.getElementById('recentEmojisContainer')
         };
         
+        // Привязываем обработчики для крестиков закрытия окон
+        const cityModalCross = document.getElementById('cityModalCross');
+        if(cityModalCross) cityModalCross.addEventListener('click', closeCityModal);
+        
+        const choiceModalCross = document.getElementById('choiceModalCross');
+        if(choiceModalCross) choiceModalCross.addEventListener('click', closeChoiceModal);
+        
+        const inviteModalCross = document.getElementById('inviteModalCross');
+        if(inviteModalCross) inviteModalCross.addEventListener('click', closeInviteModal);
+
         // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
         const quickActionsBtn = document.getElementById('quickActionsBtn');
         const quickActions = document.getElementById('quickActions');
@@ -3584,234 +3564,6 @@
                     task: "Ваша финальная задача — помочь сохранить уникальную экосистему дельты Волги и восстановить природное равновесие."
                 }
             },
-            tasks: {
-                easy: [
-                    {
-                        description: "Посадите 3 дерева в парке 🌲",
-                        type: "drag_click",
-                        goal: 3,
-                        items: ["🌲", "🌳", "🌲", "🌲", "🌳"],
-                        zones: 3,
-                        correctItems: ["🌲", "🌲", "🌲"]
-                    },
-                    {
-                        description: "Сортируйте мусор по контейнерам 🗑️",
-                        type: "sort_click",
-                        items: [
-                            {name: "Бумага", type: "paper", emoji: "📄"},
-                            {name: "Пластик", type: "plastic", emoji: "🥤"},
-                            {name: "Стекло", type: "glass", emoji: "🍶"},
-                            {name: "Батарейки", type: "battery", emoji: "🔋"}
-                        ]
-                    },
-                    {
-                        description: "Ответьте на вопрос об экологии ❓",
-                        type: "quiz",
-                        question: "Какой из этих материалов разлагается дольше всего?",
-                        options: [
-                            {text: "Бумага", correct: false},
-                            {text: "Пластиковая бутылка", correct: true},
-                            {text: "Банан", correct: false},
-                            {text: "Хлопковая футболка", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Соберите мусор в парке 🧹",
-                        type: "clean",
-                        goal: 4,
-                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
-                    },
-                    {
-                        description: "Что такое переработка отходов? ♻️",
-                        type: "quiz",
-                        question: "Что такое переработка отходов?",
-                        options: [
-                            {text: "Повторное использование материалов", correct: true},
-                            {text: "Сжигание мусора", correct: false},
-                            {text: "Закапывание отходов", correct: false},
-                            {text: "Вывоз мусора на свалку", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Разделите отходы по категориям 📦",
-                        type: "sort_click",
-                        items: [
-                            {name: "Органика", type: "organic", emoji: "🍎"},
-                            {name: "Металл", type: "metal", emoji: "🥫"},
-                            {name: "Текстиль", type: "textile", emoji: "👕"},
-                            {name: "Опасные", type: "hazardous", emoji: "☢️"}
-                        ]
-                    },
-                    {
-                        description: "Как экономить воду? 💧",
-                        type: "quiz",
-                        question: "Какой способ помогает экономить воду?",
-                        options: [
-                            {text: "Принимать душ вместо ванны", correct: true},
-                            {text: "Оставлять воду течь при чистке зубов", correct: false},
-                            {text: "Поливать растения днем", correct: false},
-                            {text: "Мыть машину ежедневно", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Соберите простой экологический пазл 🌍",
-                        type: "puzzle_image",
-                        pieces: 4,
-                        imageType: "ecology"
-                    },
-                    {
-                        description: "Найдите парные экологические символы 🎯",
-                        type: "match_game",
-                        pairs: 4,
-                        symbols: ["🌍", "♻️", "🌳", "💧", "🐦", "🐝", "🦋", "🐠"]
-                    }
-                ],
-                medium: [
-                    {
-                        description: "Очистите реку от 5 единиц мусора 🌊",
-                        type: "clean",
-                        goal: 5,
-                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🌿", "🌿", "🌿"]
-                    },
-                    {
-                        description: "Что такое устойчивое развитие? 🌱",
-                        type: "quiz",
-                        question: "Что такое устойчивое развитие?",
-                        options: [
-                            {text: "Развитие, удовлетворяющее потребности настоящего без ущерба для будущего", correct: true},
-                            {text: "Быстрое экономическое развитие", correct: false},
-                            {text: "Развитие только сельского хозяйства", correct: false},
-                            {text: "Развитие промышленности без ограничений", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Соберите пазл из экологических символов 🧩",
-                        type: "puzzle_image",
-                        pieces: 6,
-                        imageType: "animals"
-                    },
-                    {
-                        description: "Посадите лес из 6 деревьев 🌲",
-                        type: "drag_click",
-                        goal: 6,
-                        items: ["🌲", "🌲", "🌳", "🌲", "🌲", "🌲", "🌲", "🌳"],
-                        zones: 6,
-                        correctItems: ["🌲", "🌲", "🌲", "🌲", "🌲", "🌲"]
-                    },
-                    {
-                        description: "Сортируйте опасные отходы ⚠️",
-                        type: "sort_click",
-                        items: [
-                            {name: "Батарейки", type: "battery", emoji: "🔋"},
-                            {name: "Лампочки", type: "lamp", emoji: "💡"},
-                            {name: "Лекарства", type: "medicine", emoji: "💊"},
-                            {name: "Химикаты", type: "chemical", emoji: "🧪"}
-                        ]
-                    },
-                    {
-                        description: "Создайте пищевую цепь 🐟",
-                        type: "sequence_click",
-                        items: ["🌿", "🐛", "🐦", "🦊"],
-                        correctOrder: ["🌿", "🐛", "🐦", "🦊"]
-                    },
-                    {
-                        description: "Что такое биоразнообразие? 🦋",
-                        type: "quiz",
-                        question: "Что означает биоразнообразие?",
-                        options: [
-                            {text: "Разнообразие живых организмов в экосистеме", correct: true},
-                            {text: "Количество заводов в регионе", correct: false},
-                            {text: "Разнообразие автомобилей", correct: false},
-                            {text: "Количество жителей в городе", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Создайте экологическую последовательность 🌿",
-                        type: "sequence_click",
-                        items: ["🌱", "🌳", "🍎", "♻️"],
-                        correctOrder: ["🌱", "🌳", "🍎", "♻️"]
-                    },
-                    {
-                        description: "Найдите парные экологические символы 🎯",
-                        type: "match_game",
-                        pairs: 6,
-                        symbols: ["🌍", "♻️", "🌳", "💧", "🐦", "🐝", "🦋", "🐠", "🐻", "🦊", "🐸", "🦉"]
-                    }
-                ],
-                hard: [
-                    {
-                        description: "Что такое углеродный след? 👣",
-                        type: "quiz",
-                        question: "Что такое углеродный след?",
-                        options: [
-                            {text: "Количество парниковых газов, производимых деятельностью человека", correct: true},
-                            {text: "След от угля на земле", correct: false},
-                            {text: "Количество деревьев для поглощения CO2", correct: false},
-                            {text: "Уровень загрязнения воздуха в городе", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Решите экологическую головоломку 🧠",
-                        type: "sequence_click",
-                        items: ["🌱", "🌳", "🏭", "💨", "🌍", "🔥"],
-                        correctOrder: ["🌱", "🌳", "🏭", "💨", "🔥", "🌍"]
-                    },
-                    {
-                        description: "Соберите сложный экологический пазл 🧩",
-                        type: "puzzle_image",
-                        pieces: 9,
-                        imageType: "nature"
-                    },
-                    {
-                        description: "Что такое возобновляемая энергия? ⚡",
-                        type: "quiz",
-                        question: "Что такое возобновляемая энергия?",
-                        options: [
-                            {text: "Энергия из неиссякаемых источников (солнце, ветер, вода)", correct: true},
-                            {text: "Энергия из угля и нефти", correct: false},
-                            {text: "Атомная энергия", correct: false},
-                            {text: "Энергия из газа", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Очистите океан от мусора 🌊",
-                        type: "clean",
-                        goal: 8,
-                        items: ["🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🗑️", "🐠", "🐟", "🐡"]
-                    },
-                    {
-                        description: "Создайте экосистему из 8 элементов 🏞️",
-                        type: "drag_click",
-                        goal: 8,
-                        items: ["🌱", "🌳", "💧", "☀️", "🦋", "🐝", "🐞", "🦔", "🌼", "🍄"],
-                        zones: 8,
-                        correctItems: ["🌱", "🌳", "💧", "☀️", "🦋", "🐝", "🐞", "🦔"]
-                    },
-                    {
-                        description: "Расставьте стадии переработки ♻️",
-                        type: "sequence_click",
-                        items: ["🗑️", "🚚", "🏭", "🔄", "📦"],
-                        correctOrder: ["🗑️", "🚚", "🏭", "🔄", "📦"]
-                    },
-                    {
-                        description: "Что такое деградация почв? 🌵",
-                        type: "quiz",
-                        question: "Что вызывает деградацию почв?",
-                        options: [
-                            {text: "Вырубка лесов и эрозия", correct: true},
-                            {text: "Посадка деревьев", correct: false},
-                            {text: "Использование удобрений", correct: false},
-                            {text: "Строительство парков", correct: false}
-                        ]
-                    },
-                    {
-                        description: "Найдите все пары животных 🎯",
-                        type: "match_game",
-                        pairs: 8,
-                        symbols: ["🐻", "🦊", "🐰", "🦉", "🐸", "🐢", "🦋", "🐝", "🐞", "🦔", "🐿️", "🦡", "🦅", "🦆", "🦩", "🦜"]
-                    }
-                ]
-            },
             buildings: [
                 {
                     name: "Станция переработки",
@@ -4045,7 +3797,6 @@
             addLogEntry(`👋 Игрок "${data.playerName}" покинул игру.`);
         });
         
-        // ИСПРАВЛЕНО: Получаем сообщения из чата и отображаем их
         socket.on('new_chat_message', (data) => {
             console.log('💬 Получено сообщение от сервера:', data);
             if (data.playerName && data.message) {
@@ -4170,8 +3921,9 @@
             // Находим клетку с указанной позицией
             const cell = mapData.cells.find(c => c.number === position);
             if (cell) {
-                marker.style.left = `${cell.x + cell.width/2}px`;
-                marker.style.top = `${cell.y + cell.height/2}px`;
+                // ИСПОЛЬЗУЕМ ПРОЦЕНТЫ для адаптивного позиционирования
+                marker.style.left = `${((cell.x + cell.width/2) / BASE_MAP_WIDTH) * 100}%`;
+                marker.style.top = `${((cell.y + cell.height/2) / BASE_MAP_HEIGHT) * 100}%`;
                 
                 const tooltip = marker.querySelector('.player-tooltip');
                 if (tooltip) {
@@ -4568,17 +4320,14 @@
         function createDefaultMap() {
             console.log('📍 Создание стандартной карты городов');
             
-            const containerWidth = elements.mapContainer.offsetWidth;
-            const containerHeight = elements.mapContainer.offsetHeight;
-            
-            // Создаем клетки для каждого города
+            // Создаем клетки для каждого города (относительно 800x800)
             const cityPositions = [
-                { city: 'tver', x: containerWidth * 0.1, y: containerHeight * 0.3, number: 1, type: 'start' },
-                { city: 'kineshma', x: containerWidth * 0.3, y: containerHeight * 0.4, number: 2, type: 'city' },
-                { city: 'naberezhnye_chelny', x: containerWidth * 0.5, y: containerHeight * 0.3, number: 3, type: 'city' },
-                { city: 'kazan', x: containerWidth * 0.7, y: containerHeight * 0.4, number: 4, type: 'city' },
-                { city: 'volgograd', x: containerWidth * 0.6, y: containerHeight * 0.6, number: 5, type: 'city' },
-                { city: 'astrakhan', x: containerWidth * 0.8, y: containerHeight * 0.7, number: 6, type: 'finish' }
+                { city: 'tver', x: 80, y: 240, number: 1, type: 'start' },
+                { city: 'kineshma', x: 240, y: 320, number: 2, type: 'city' },
+                { city: 'naberezhnye_chelny', x: 400, y: 240, number: 3, type: 'city' },
+                { city: 'kazan', x: 560, y: 320, number: 4, type: 'city' },
+                { city: 'volgograd', x: 480, y: 480, number: 5, type: 'city' },
+                { city: 'astrakhan', x: 640, y: 560, number: 6, type: 'finish' }
             ];
             
             mapData.cells = cityPositions.map((pos, index) => ({
@@ -4619,11 +4368,11 @@
             cellElement.dataset.cellType = cell.type;
             cellElement.dataset.city = cell.city || '';
             
-            // Позиционируем клетку
-            cellElement.style.left = `${cell.x}px`;
-            cellElement.style.top = `${cell.y}px`;
-            cellElement.style.width = `${cell.width}px`;
-            cellElement.style.height = `${cell.height}px`;
+            // ИСПОЛЬЗУЕМ ПРОЦЕНТЫ для адаптивного позиционирования
+            cellElement.style.left = `${(cell.x / BASE_MAP_WIDTH) * 100}%`;
+            cellElement.style.top = `${(cell.y / BASE_MAP_HEIGHT) * 100}%`;
+            cellElement.style.width = `${(cell.width / BASE_MAP_WIDTH) * 100}%`;
+            cellElement.style.height = `${(cell.height / BASE_MAP_HEIGHT) * 100}%`;
             
             // Добавляем классы в зависимости от типа
             if (cell.type === 'start') {
@@ -5964,8 +5713,7 @@
             task.imageType = "ecology";
             createPuzzleImageTask(task);
         }
-
-        function createPuzzleImageTask(task) {
+function createPuzzleImageTask(task) {
             // Определяем изображение в зависимости от типа
             let imagePieces = [];
             
@@ -6869,4 +6617,3 @@
     </script>
 </body>
 </html>
-
