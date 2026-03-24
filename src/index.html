@@ -215,18 +215,22 @@
         .map-image-container {
             position: relative;
             width: 100%;
-            display: block;
+            display: block; /* Убираем flex для точного позиционирования */
+            line-height: 0; /* Убирает отступ под картинкой */
+            background: #e8f5e9;
             border-radius: 12px;
             overflow: hidden;
-            background: #e8f5e9;
+            border: 3px solid #2E7D32;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            /* Убраны padding и min-height для идеального совпадения overlay */
         }
         
         #mapImage {
             width: 100%;
             height: auto;
             display: block;
-            object-fit: contain;
-            background-color: #e8f5e9;
+            margin: 0;
+            padding: 0;
         }
         
         .map-overlay {
@@ -1262,19 +1266,6 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
         }
-        
-        .game-map {
-            width: 100%;
-            background: #e8f5e9;
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 20px;
-            border: 3px solid #2E7D32;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        /* Убрана легенда карты */
         
         .game-info-panel {
             flex: 1;
@@ -3294,6 +3285,9 @@
             choiceModal: document.getElementById('choiceModal'),
             stayBtn: document.getElementById('stayBtn'),
             moveForwardBtn: document.getElementById('moveForwardBtn'),
+            choiceCurrentCityName: document.getElementById('choiceCurrentCityName'),
+            choiceCurrentCityProgress: document.getElementById('choiceCurrentCityProgress'),
+            choiceCurrentCityProgressFill: document.getElementById('choiceCurrentCityProgressFill'),
             connectionStatusDot: document.getElementById('connectionStatusDot'),
             connectionStatusText: document.getElementById('connectionStatusText'),
             connectionStatusCompact: document.getElementById('connectionStatusCompact'),
@@ -4941,6 +4935,33 @@
             elements.logEntries.scrollTop = elements.logEntries.scrollHeight;
         }
         
+        // ФУНКЦИЯ ЗАВЕРШЕНИЯ ХОДА ПРИ БРОСКЕ КУБИКА
+        function finalizeMove(oldPosition, newPosition, diceValue) {
+            updatePlayerUI();
+            updatePlayerMarkers();
+            checkForCityTransition(oldPosition, newPosition);
+            
+            sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
+            savePlayerState();
+            
+            if (diceValue) {
+                addLogEntry(`🎲 Вы бросили кубик и получили ${diceValue}. Новая позиция: ${newPosition}`);
+            }
+            
+            gameState.currentTask = getRandomTask(gameState.currentDifficulty);
+            elements.currentTask.style.display = 'block';
+            elements.taskDescription.textContent = gameState.currentTask.description;
+            elements.noTaskMessage.style.display = 'none';
+            elements.completeTaskBtn.disabled = false;
+            hasCurrentTask = true;
+            
+            updateRollDiceButtonState();
+            
+            socket.emit('end_turn');
+            gameState.isMyTurn = false;
+            updateTurnIndicator();
+        }
+
         // ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ====================
         // ==================== ИГРОВЫЕ ДАННЫЕ ====================
         const gameDataTasks = {
@@ -5422,7 +5443,7 @@
         function initializeDragClickTask(task) {
             const draggables = elements.taskArea.querySelectorAll('.draggable-item');
             const dropZones = elements.taskArea.querySelectorAll('.drop-zone');
-            let selectedItem = null;
+            let selected Item = null;
             let placedCount = 0;
             let correctPlacedCount = 0;
             
@@ -5600,8 +5621,7 @@
                             this.classList.add('filled');
                             selectedItem.classList.remove('selected');
                             selectedItem.style.opacity = '0.5';
-                            selectedItem.style.cursor = 'default';
-                            selectedItem = null;
+                            selected Item = null;
                             
                             sortedCount++;
                             document.getElementById('sortCount').textContent = sortedCount;
@@ -5713,7 +5733,8 @@
             task.imageType = "ecology";
             createPuzzleImageTask(task);
         }
-function createPuzzleImageTask(task) {
+
+        function createPuzzleImageTask(task) {
             // Определяем изображение в зависимости от типа
             let imagePieces = [];
             
@@ -5876,6 +5897,89 @@ function createPuzzleImageTask(task) {
             initializeSequenceClick(correctOrder);
         }
 
+        function initializeSequenceClick(correctOrder) {
+            const sequencePieces = elements.taskArea.querySelectorAll('.sequence-piece');
+            const sequenceSlots = elements.taskArea.querySelectorAll('.sequence-slot');
+            let selectedPiece = null;
+            let placedCount = 0;
+            
+            sequencePieces.forEach(piece => {
+                piece.addEventListener('click', function() {
+                    if (selectedPiece) {
+                        selectedPiece.classList.remove('selected');
+                    }
+                    selectedPiece = this;
+                    this.classList.add('selected');
+                    
+                    // Подсвечиваем доступные слоты
+                    sequenceSlots.forEach((slot, slotIndex) => {
+                        if (!slot.classList.contains('filled')) {
+                            slot.classList.add('hover');
+                        }
+                    });
+                });
+            });
+            
+            sequenceSlots.forEach((slot, slotIndex) => {
+                slot.addEventListener('click', function() {
+                    if (selectedPiece && this.classList.contains('hover')) {
+                        const pieceEmoji = selectedPiece.dataset.piece;
+                        const expectedEmoji = this.dataset.expected;
+                        
+                        if (pieceEmoji === expectedEmoji) {
+                            // Убираем подсветку
+                            sequenceSlots.forEach(s => s.classList.remove('hover'));
+                            
+                            // Размещаем элемент
+                            this.innerHTML = `<div style="font-size: 2.2rem;">${pieceEmoji}</div>`;
+                            this.classList.add('filled');
+                            this.classList.remove('hover');
+                            
+                            selectedPiece.classList.remove('selected');
+                            selectedPiece.style.opacity = '0.5';
+                            selectedPiece.style.cursor = 'default';
+                            selectedPiece = null;
+                            
+                            placedCount++;
+                            document.getElementById('sequenceCount').textContent = placedCount;
+                            
+                            if (placedCount >= correctOrder.length) {
+                                elements.checkTaskBtn.disabled = false;
+                                elements.taskResult.textContent = '✅ Отлично! Последовательность верная!';
+                                elements.taskResult.style.color = '#2ecc71';
+                            }
+                        } else {
+                            elements.taskResult.textContent = '❌ Неправильная последовательность! Попробуйте другой слот.';
+                            elements.taskResult.style.color = '#e74c3c';
+                            
+                            // Сбрасываем выбор
+                            selectedPiece.classList.remove('selected');
+                            selectedPiece = null;
+                            sequenceSlots.forEach(s => s.classList.remove('hover'));
+                        }
+                    }
+                });
+            });
+            
+            elements.checkTaskBtn.onclick = function() {
+                if (placedCount >= correctOrder.length) {
+                    completeInteractiveTask();
+                } else {
+                    elements.taskResult.textContent = `❌ Последовательность не завершена! Осталось: ${correctOrder.length - placedCount}`;
+                    elements.taskResult.style.color = '#e74c3c';
+                    elements.retryTaskBtn.style.display = 'block';
+                }
+            };
+            
+            elements.retryTaskBtn.onclick = function() {
+                // Нужно получить оригинальный task
+                const originalTask = gameState.currentTask;
+                if (originalTask) {
+                    createSequenceClickTask(originalTask);
+                }
+            };
+        }
+
         function createMatchGameTask(task) {
             const symbols = task.symbols;
             const pairs = task.pairs;
@@ -6003,89 +6107,6 @@ function createPuzzleImageTask(task) {
             
             elements.checkTaskBtn.onclick = function() {
                 completeInteractiveTask();
-            };
-        }
-
-        function initializeSequenceClick(correctOrder) {
-            const sequencePieces = elements.taskArea.querySelectorAll('.sequence-piece');
-            const sequenceSlots = elements.taskArea.querySelectorAll('.sequence-slot');
-            let selectedPiece = null;
-            let placedCount = 0;
-            
-            sequencePieces.forEach(piece => {
-                piece.addEventListener('click', function() {
-                    if (selectedPiece) {
-                        selectedPiece.classList.remove('selected');
-                    }
-                    selectedPiece = this;
-                    this.classList.add('selected');
-                    
-                    // Подсвечиваем доступные слоты
-                    sequenceSlots.forEach((slot, slotIndex) => {
-                        if (!slot.classList.contains('filled')) {
-                            slot.classList.add('hover');
-                        }
-                    });
-                });
-            });
-            
-            sequenceSlots.forEach((slot, slotIndex) => {
-                slot.addEventListener('click', function() {
-                    if (selectedPiece && this.classList.contains('hover')) {
-                        const pieceEmoji = selectedPiece.dataset.piece;
-                        const expectedEmoji = this.dataset.expected;
-                        
-                        if (pieceEmoji === expectedEmoji) {
-                            // Убираем подсветку
-                            sequenceSlots.forEach(s => s.classList.remove('hover'));
-                            
-                            // Размещаем элемент
-                            this.innerHTML = `<div style="font-size: 2.2rem;">${pieceEmoji}</div>`;
-                            this.classList.add('filled');
-                            this.classList.remove('hover');
-                            
-                            selectedPiece.classList.remove('selected');
-                            selectedPiece.style.opacity = '0.5';
-                            selectedPiece.style.cursor = 'default';
-                            selectedPiece = null;
-                            
-                            placedCount++;
-                            document.getElementById('sequenceCount').textContent = placedCount;
-                            
-                            if (placedCount >= correctOrder.length) {
-                                elements.checkTaskBtn.disabled = false;
-                                elements.taskResult.textContent = '✅ Отлично! Последовательность верная!';
-                                elements.taskResult.style.color = '#2ecc71';
-                            }
-                        } else {
-                            elements.taskResult.textContent = '❌ Неправильная последовательность! Попробуйте другой слот.';
-                            elements.taskResult.style.color = '#e74c3c';
-                            
-                            // Сбрасываем выбор
-                            selectedPiece.classList.remove('selected');
-                            selectedPiece = null;
-                            sequenceSlots.forEach(s => s.classList.remove('hover'));
-                        }
-                    }
-                });
-            });
-            
-            elements.checkTaskBtn.onclick = function() {
-                if (placedCount >= correctOrder.length) {
-                    completeInteractiveTask();
-                } else {
-                    elements.taskResult.textContent = `❌ Последовательность не завершена! Осталось: ${correctOrder.length - placedCount}`;
-                    elements.taskResult.style.color = '#e74c3c';
-                    elements.retryTaskBtn.style.display = 'block';
-                }
-            };
-            
-            elements.retryTaskBtn.onclick = function() {
-                // Нужно получить оригинальный task
-                const originalTask = gameState.currentTask;
-                if (originalTask) {
-                    createSequenceClickTask(originalTask);
-                }
             };
         }
 
@@ -6465,39 +6486,28 @@ function createPuzzleImageTask(task) {
                 
                 // Находим клетку, на которую попал игрок
                 const currentCell = mapData.cells.find(cell => cell.number === newPosition);
+                
                 if (currentCell) {
-                    if (currentCell.type === 'city' && currentCell.city) {
-                        gameState.currentPlayer.city = currentCell.city;
+                    if (currentCell.type === 'city' && currentCell.city && currentCell.city !== gameState.currentPlayer.city) {
+                        // Игрок дошел до нового города!
+                        // Проверяем, завершен ли предыдущий город
+                        const currentCityKey = gameState.currentPlayer.city;
+                        const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[currentCityKey] || 0;
+                        
+                        if (currentProgress < 100) {
+                            // Показываем окно выбора, так как город не завершен
+                            showChoiceModal(currentCell.city);
+                            // ВАЖНО: Завершение хода произойдет только после выбора игрока!
+                            return; 
+                        } else {
+                            // Если старый город завершен, просто переходим в новый
+                            gameState.currentPlayer.city = currentCell.city;
+                        }
                     }
                 }
                 
-                updatePlayerUI();
-                updatePlayerMarkers();
-                
-                // Проверяем переход в новый город
-                checkForCityTransition(oldPosition, newPosition);
-                
-                // Отправляем на сервер
-                sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
-                savePlayerState();
-                
-                addLogEntry(`🎲 Вы бросили кубик и получили ${diceValue}. Новая позиция: ${newPosition}`);
-                
-                // Получаем задание
-                gameState.currentTask = getRandomTask(gameState.currentDifficulty);
-                elements.currentTask.style.display = 'block';
-                elements.taskDescription.textContent = gameState.currentTask.description;
-                elements.noTaskMessage.style.display = 'none';
-                elements.completeTaskBtn.disabled = false;
-                hasCurrentTask = true;
-                
-                // Обновляем состояние кнопки броска кубика
-                updateRollDiceButtonState();
-                
-                // Передаем ход следующему игроку
-                socket.emit('end_turn');
-                gameState.isMyTurn = false;
-                updateTurnIndicator();
+                // Если нет выбора города (обычный ход), завершаем ход
+                finalizeMove(oldPosition, newPosition, diceValue);
                 
             }, 1200);
         });
@@ -6523,7 +6533,7 @@ function createPuzzleImageTask(task) {
             }
         });
         
-        // ИСПРАВЛЕНО: Обработчик отправки сообщения в чат
+        // Обработчик отправки сообщения в чат
         elements.sendMessageBtn.addEventListener('click', () => {
             const message = elements.chatInput.value.trim();
             if (message) {
@@ -6567,13 +6577,44 @@ function createPuzzleImageTask(task) {
         
         elements.stayBtn.addEventListener('click', () => {
             closeChoiceModal();
-            showNotification('Вы остались в текущем городе', 'info');
+            showNotification('Вы остались в текущем городе. Возвращаемся в начало!', 'info');
+            
+            // Возвращаем игрока в начало текущего города
+            const currentCityKey = gameState.currentPlayer.city;
+            const cityCells = mapData.cells.filter(c => c.city === currentCityKey).sort((a, b) => a.number - b.number);
+            
+            if (cityCells.length > 0) {
+                const startCityPosition = cityCells[0].number;
+                const oldPosition = gameState.currentPlayer.position;
+                
+                gameState.currentPlayer.position = startCityPosition;
+                
+                // Завершаем ход с новой позицией (возврат в начало)
+                finalizeMove(oldPosition, startCityPosition, null);
+            } else {
+                finalizeMove(gameState.currentPlayer.position, gameState.currentPlayer.position, null);
+            }
         });
         
         elements.moveForwardBtn.addEventListener('click', () => {
             closeChoiceModal();
             if (gameState.nextCity) {
-                moveToExistingCity(gameState.nextCity);
+                // Игрок решил перейти в новый город
+                const nextCityCell = mapData.cells.find(c => c.city === gameState.nextCity);
+                if (nextCityCell) {
+                    const oldPosition = gameState.currentPlayer.position;
+                    
+                    gameState.currentPlayer.position = nextCityCell.number;
+                    gameState.currentPlayer.city = gameState.nextCity;
+                    
+                    // Обнуляем прогресс в новом городе (или берем старый, если уже был)
+                    if (gameState.playerProgress[gameState.currentPlayerId][gameState.nextCity] === undefined) {
+                        gameState.playerProgress[gameState.currentPlayerId][gameState.nextCity] = 0;
+                    }
+                    
+                    // Завершаем ход
+                    finalizeMove(oldPosition, nextCityCell.number, null);
+                }
             }
         });
         
