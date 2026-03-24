@@ -399,15 +399,34 @@
         }
 
         @keyframes float {
-            0% { transform: translate(-50%, -50%) translateY(0); }
-            50% { transform: translate(-50%, -50%) translateY(-10%); }
-            100% { transform: translate(-50%, -50%) translateY(0); }
+            0% {
+                transform: translate(-50%, -50%) translateY(0);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) translateY(-10%);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) translateY(0);
+            }
         }
 
         @keyframes float-gold {
-            0% { transform: translate(-50%, -50%) translateY(0); box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); }
-            50% { transform: translate(-50%, -50%) translateY(-15%); box-shadow: 0 0 20px rgba(255, 215, 0, 0.9); }
-            100% { transform: translate(-50%, -50%) translateY(0); box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); }
+            0% {
+                transform: translate(-50%, -50%) translateY(0);
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) translateY(-15%);
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) translateY(0);
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+            }
         }
 
         /* ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ==================== */
@@ -2203,7 +2222,7 @@
         .modal-x-close {
             position: absolute;
             top: 10px;
-            right: 10px;
+            right: 15px;
             font-size: 32px;
             color: white;
             cursor: pointer;
@@ -2217,9 +2236,9 @@
             border-radius: 50%;
             transition: all 0.3s;
             line-height: 1;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            padding-bottom: 4px; /* Уравновешиваем символ &times; */
+            z-index: 1001; /* Ensure it's above everything */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            padding-bottom: 4px; /* Balance &times; symbol */
         }
 
         .modal-x-close:hover {
@@ -2643,14 +2662,23 @@
             }
 
             .player-marker {
-                width: 7vw;
-                height: 7vw;
-                max-width: 40px;
-                max-height: 40px;
-                min-width: 25px;
-                min-height: 25px;
-                border-width: 2px;
-                z-index: 10;
+                width: 5vw;
+                height: 5vw;
+                max-width: 30px;
+                max-height: 30px;
+                min-width: 20px;
+                min-height: 20px;
+                border-width: 1.5px !important;
+                z-index: 20;
+                transform: translate(-50%, -50%) !important;
+            }
+
+            .modal-x-close {
+                top: 5px;
+                right: 5px;
+                width: 38px;
+                height: 38px;
+                font-size: 26px;
             }
 
             .draggable-item,
@@ -4422,19 +4450,54 @@
             if (cell) {
                 const baseWidth = 800;
                 const baseHeight = 750;
+                
+                // Центрируем маркер по середине клетки
                 const leftPercent = ((cell.x + cell.width / 2) / baseWidth) * 100;
                 const topPercent = ((cell.y + cell.height / 2) / baseHeight) * 100;
-                
+
                 marker.style.left = `${leftPercent}%`;
                 marker.style.top = `${topPercent}%`;
                 
+                // Сохраняем номер клетки в атрибуте для функции перепозиционирования
+                marker.setAttribute('data-current-cell', position);
+                
+                // Добавляем transform для центрирования самого маркера
+                marker.style.transform = 'translate(-50%, -50%)';
+
                 const tooltip = marker.querySelector('.player-tooltip');
                 if (tooltip) {
                     tooltip.textContent = `${playerName} (поз. ${position})`;
                 }
+                
+                // Пересчитываем положение всех игроков на этой клетке, чтобы они не перекрывали друг друга
+                repositionMarkersOnCell(position);
             }
 
             updatePlayerInList(playerId, position, playerName);
+        }
+
+        function repositionMarkersOnCell(cellNumber) {
+            const markers = document.querySelectorAll(`.player-marker[data-current-cell="${cellNumber}"]`);
+            if (markers.length <= 1) {
+                // Если игрок один, сбрасываем смещение
+                if (markers.length === 1) {
+                    markers[0].style.marginLeft = '0px';
+                    markers[0].style.marginTop = '0px';
+                }
+                return;
+            }
+
+            // Если несколько игроков на одной клетке, распределяем их по кругу или со смещением
+            const radius = 10; // Радиус смещения в пикселях
+            markers.forEach((m, index) => {
+                const angle = (index / markers.length) * 2 * Math.PI;
+                const offsetX = Math.cos(angle) * radius;
+                const offsetY = Math.sin(angle) * radius;
+                
+                m.style.marginLeft = `${offsetX}px`;
+                m.style.marginTop = `${offsetY}px`;
+                m.style.zIndex = 30 + index; // Чтобы верхний маркер был виден лучше
+            });
         }
 
         function getRandomColor(playerId) {
@@ -4877,12 +4940,12 @@
             // Позиционируем клетку (используем проценты от базовых 800x750)
             const baseWidth = 800;
             const baseHeight = 750;
-            
+
             cellElement.style.left = `${(cell.x / baseWidth) * 100}%`;
             cellElement.style.top = `${(cell.y / baseHeight) * 100}%`;
             cellElement.style.width = `${(cell.width / baseWidth) * 100}%`;
             cellElement.style.height = `${(cell.height / baseHeight) * 100}%`;
-            
+
             // На мобильных устройствах делаем клетки чуть крупнее для удобства нажатия
             if (window.innerWidth <= 768) {
                 cellElement.style.width = `${(cell.width / baseWidth) * 100 * 1.5}%`;
