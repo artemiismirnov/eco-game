@@ -4832,15 +4832,16 @@
 
             elements.mapImage.onerror = function () {
                 console.error('❌ Ошибка загрузки изображения карты (newmap.jpg)');
-                showNotification('Ошибка загрузки карты', 'error');
+                showNotification('Ошибка загрузки картинки. Используется старая карта', 'warning');
                 mapData.imageLoaded = false;
                 
                 // Пробуем загрузить из mapData.js если есть
                 if (window.mapData && window.mapData.imageUrl) {
                     elements.mapImage.src = window.mapData.imageUrl;
-                } else {
-                    loadSavedMap();
                 }
+                
+                // ВАЖНО: Всегда загружаем координаты, даже если картинка не загрузилась!
+                loadSavedMap();
             };
         }
 
