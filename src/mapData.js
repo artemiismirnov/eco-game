@@ -8,3 +8,4 @@ window.mapData = {
 
 console.log('🗺️ MapData загружен с base64 изображением');
 
+
