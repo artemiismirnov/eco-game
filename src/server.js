@@ -113,6 +113,63 @@ io.on('connection', (socket) => {
         }
 
         const lobby = lobbies.get(roomId);
+
+        // === УМНАЯ ПРОВЕРКА ИГРОКА (ВОССТАНОВЛЕНИЕ СЕССИИ) ===
+        const existingActivePlayer = Object.values(lobby.players).find(p => 
+            p.name.toLowerCase() === cleanPlayerName.toLowerCase() && p.connected
+        );
+        const existingDisconnectedPlayer = Object.values(lobby.players).find(p => 
+            p.name.toLowerCase() === cleanPlayerName.toLowerCase() && !p.connected
+        );
+
+        // Если игрок с таким именем прямо сейчас в игре
+        if (existingActivePlayer) {
+            socket.emit('room-error', 'Игрок с таким именем уже играет в этой комнате');
+            return;
+        }
+
+        // Если игрок вылетел/вышел и пытается вернуться
+        if (existingDisconnectedPlayer) {
+            const playerId = existingDisconnectedPlayer.id;
+            const player = lobby.players[playerId];
+            player.connected = true; // Возвращаем в строй
+            
+            // Привязываем новый сокет к старому ID игрока
+            socket.playerId = playerId;
+            socket.lobbyId = roomId;
+            socket.playerName = cleanPlayerName;
+            socket.join(roomId);
+            
+            console.log(`🔄 ${cleanPlayerName} успешно вернулся в лобби ${roomId}`);
+            
+            // Отправляем личные данные игроку
+            socket.emit('join-success', { 
+                ...player,
+                roomId: roomId,
+                currentTurn: lobby.currentTurn,
+                turnOrder: lobby.turnOrder,
+                playerProgress: lobby.playerProgress[playerId]
+            });
+
+            // Отправляем актуальное состояние комнаты ВСЕМ
+            io.to(roomId).emit('room_state', {
+                players: lobby.players,
+                cityProgress: lobby.cityProgress,
+                roomId: roomId
+            });
+
+            // Уведомляем остальных, что игрок вернулся
+            socket.to(roomId).emit('player_reconnected', {
+                playerId: playerId,
+                playerName: player.name
+            });
+
+            if (lobby.messages) {
+                socket.emit('chat_history', lobby.messages.slice(-50));
+            }
+            return; // Прерываем выполнение, чтобы не создать нового игрока
+        }
+        // === КОНЕЦ УМНОЙ ПРОВЕРКИ ===
         
         // Лимит игроков
         const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
