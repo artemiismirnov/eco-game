@@ -1985,6 +1985,58 @@
         }
         
         /* ==================== МОДАЛЬНЫЕ ОКНА ==================== */
+
+        /* Стили для модального окна выбора цвета */
+        .color-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s;
+        }
+        .color-modal.active {
+            opacity: 1; visibility: visible;
+        }
+        .color-modal-content {
+            background: rgba(30, 30, 46, 0.95);
+            border-radius: 15px; padding: 30px; max-width: 450px; width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transform: translateY(20px); transition: transform 0.3s;
+        }
+        body.light-theme .color-modal-content {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+        }
+        .color-modal.active .color-modal-content {
+            transform: translateY(0);
+        }
+        .color-options {
+            display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 20px 0;
+        }
+        .color-swatch {
+            width: 60px; height: 60px; border-radius: 50%; cursor: pointer;
+            transition: all 0.3s; border: 3px solid transparent;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative;
+        }
+        .color-swatch:hover:not(.disabled) {
+            transform: scale(1.15); box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        .color-swatch.selected {
+            border-color: white; transform: scale(1.15); box-shadow: 0 0 20px rgba(255,255,255,0.8);
+        }
+        .color-swatch.selected::after {
+            content: '✓'; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); font-size: 1.5rem; color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .color-swatch.disabled {
+            opacity: 0.3; cursor: not-allowed; filter: grayscale(80%);
+        }
+        .color-swatch.disabled::after {
+            content: '❌'; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); font-size: 1.5rem;
+        }
+        
         .city-modal, .choice-modal, .invite-modal {
             position: fixed;
             top: 0;
@@ -3162,6 +3214,27 @@
             <div class="choice-modal-actions">
                 <button class="game-btn" id="stayBtn">Остаться и вернуться в начало города</button>
                 <button class="game-btn" id="moveForwardBtn">Перейти вперед</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="color-modal" id="colorModal">
+        <div class="color-modal-content">
+            <div class="color-modal-header">
+                <h2 class="city-modal-title">Выберите цвет фишки</h2>
+                <p class="city-modal-subtitle" style="margin-bottom: 20px;">Этот цвет будет представлять вас на карте</p>
+            </div>
+            <div class="color-options" id="colorOptions">
+                <div class="color-swatch" data-color="#2ecc71" style="background: #2ecc71;" title="Зеленый"></div>
+                <div class="color-swatch" data-color="#e74c3c" style="background: #e74c3c;" title="Красный"></div>
+                <div class="color-swatch" data-color="#f1c40f" style="background: #f1c40f;" title="Желтый"></div>
+                <div class="color-swatch" data-color="#3498db" style="background: #3498db;" title="Синий"></div>
+                <div class="color-swatch" data-color="#9b59b6" style="background: #9b59b6;" title="Фиолетовый"></div>
+                <div class="color-swatch" data-color="#e67e22" style="background: #e67e22;" title="Оранжевый"></div>
+            </div>
+            <div class="color-modal-actions" style="margin-top: 25px;">
+                <button class="game-btn" id="confirmColorBtn" disabled>Начать игру 🎮</button>
+                <button class="game-btn red" id="cancelColorBtn" style="margin-top: 10px;">Отмена</button>
             </div>
         </div>
     </div>
