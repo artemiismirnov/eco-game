@@ -370,7 +370,7 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            transform: translate(-50%, -100%);
+            transform: translate(-50%, -50%);
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 30;
             display: flex;
@@ -393,31 +393,31 @@
 
         @keyframes float {
             0% {
-                transform: translate(-50%, -100%) translateY(0px);
+                transform: translate(-50%, -50%) translateY(0px);
             }
 
             50% {
-                transform: translate(-50%, -100%) translateY(-5px);
+                transform: translate(-50%, -50%) translateY(-5px);
             }
 
             100% {
-                transform: translate(-50%, -100%) translateY(0px);
+                transform: translate(-50%, -50%) translateY(0px);
             }
         }
 
         @keyframes float-gold {
             0% {
-                transform: translate(-50%, -100%) translateY(0px);
+                transform: translate(-50%, -50%) translateY(0px);
                 box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
             }
 
             50% {
-                transform: translate(-50%, -100%) translateY(-7px);
+                transform: translate(-50%, -50%) translateY(-7px);
                 box-shadow: 0 0 25px rgba(255, 215, 0, 0.9);
             }
 
             100% {
-                transform: translate(-50%, -100%) translateY(0px);
+                transform: translate(-50%, -50%) translateY(0px);
                 box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
             }
         }
@@ -4432,10 +4432,11 @@
             // Находим клетку с указанной позицией
             const cell = mapData.cells.find(c => c.number === position);
             if (cell) {
-                // Позиционируем маркер в процентах от базовых размеров карты (1083×976)
-                const BASE_W = 1083, BASE_H = 976;
-                marker.style.left = `${((cell.x + cell.width / 2) / BASE_W) * 100}%`;
-                marker.style.top = `${((cell.y + cell.height / 2) / BASE_H) * 100}%`;
+                // Позиционируем маркер в процентах от реальных размеров изображения карты
+                const bw = mapData.baseWidth || 1083;
+                const bh = mapData.baseHeight || 976;
+                marker.style.left = `${((cell.x + cell.width / 2) / bw) * 100}%`;
+                marker.style.top = `${((cell.y + cell.height / 2) / bh) * 100}%`;
 
                 const tooltip = marker.querySelector('.player-tooltip');
                 if (tooltip) {
@@ -4768,6 +4769,10 @@
                 elements.mapImage.onload = function () {
                     console.log('✅ Изображение карты загружено');
                     mapData.imageLoaded = true;
+                    // Запоминаем реальные размеры изображения для расчёта координат в %
+                    mapData.baseWidth = elements.mapImage.naturalWidth;
+                    mapData.baseHeight = elements.mapImage.naturalHeight;
+                    console.log(`📐 Размеры карты: ${mapData.baseWidth}×${mapData.baseHeight}`);
 
                     // Загружаем сохраненную карту из файла
                     loadSavedMap();
@@ -4883,12 +4888,13 @@
             cellElement.dataset.cellType = cell.type;
             cellElement.dataset.city = cell.city || '';
 
-            // Позиционируем клетку в процентах от базовых размеров карты (1083×976)
-            const BASE_W = 1083, BASE_H = 976;
-            cellElement.style.left = `${(cell.x / BASE_W) * 100}%`;
-            cellElement.style.top = `${(cell.y / BASE_H) * 100}%`;
-            cellElement.style.width = `${(cell.width / BASE_W) * 100}%`;
-            cellElement.style.height = `${(cell.height / BASE_H) * 100}%`;
+            // Позиционируем клетку в процентах от реальных размеров изображения карты
+            const bw = mapData.baseWidth || 1083;
+            const bh = mapData.baseHeight || 976;
+            cellElement.style.left = `${(cell.x / bw) * 100}%`;
+            cellElement.style.top = `${(cell.y / bh) * 100}%`;
+            cellElement.style.width = `${(cell.width / bw) * 100}%`;
+            cellElement.style.height = `${(cell.height / bh) * 100}%`;
 
             // Добавляем классы в зависимости от типа
             if (cell.type === 'start') {
