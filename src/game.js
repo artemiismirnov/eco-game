@@ -806,7 +806,6 @@ socket.on('player_left', (data) => {
     addLogEntry(`👋 Игрок "${data.playerName}" покинул игру.`);
 });
 
-// ИСПРАВЛЕНО: Получаем сообщения из чата и отображаем их
 socket.on('new_chat_message', (data) => {
     console.log('💬 Получено сообщение от сервера:', data);
     if (data.playerName && data.message) {
@@ -830,14 +829,17 @@ socket.on('player_dice_roll', (data) => {
     if (gameState.players[data.playerId] && data.playerId !== gameState.currentPlayerId) {
         gameState.players[data.playerId].position = data.newPosition;
         gameState.players[data.playerId].currentTask = data.task;
-        updatePlayerMarkers();
+        
+        // ИСПРАВЛЕНО: Убрано updatePlayerMarkers(), двигаем фишку напрямую
+        updateOtherPlayerMarker(
+            data.playerId, 
+            gameState.players[data.playerId].name, 
+            data.newPosition, 
+            '', 
+            gameState.players[data.playerId].color
+        );
         
         addLogEntry(`🎲 Игрок "${gameState.players[data.playerId].name}" бросил кубик: ${data.diceValue}`);
-        
-        if (data.playerId !== socket.id) {
-            console.log(`🎲 Игрок ${gameState.players[data.playerId].name} бросил кубик, новая позиция: ${data.newPosition}`);
-            updateOtherPlayerMarker(data.playerId, gameState.players[data.playerId].name, data.newPosition, '', '');
-        }
     }
 });
 
@@ -1196,7 +1198,6 @@ function updateRoomState(roomData) {
     }
 }
 
-// ИСПРАВЛЕНО: Функция добавления сообщения в чат
 function addChatMessage(sender, message, isLocal = false) {
     console.log(`💬 Добавление сообщения в чат: ${sender}: ${message} (isLocal: ${isLocal})`);
     
@@ -1237,7 +1238,6 @@ function savePlayerState() {
     });
 }
 
-// ИСПРАВЛЕНО: Функция отправки сообщения в чат
 function sendChatMessage(message) {
     if (isConnected && gameState.currentPlayer) {
         console.log(`📤 Отправка сообщения в чат: ${message}`);
@@ -1249,9 +1249,6 @@ function sendChatMessage(message) {
         
         // Очищаем поле ввода
         elements.chatInput.value = '';
-        
-        // НЕ добавляем сообщение локально - оно придет от сервера
-        // чтобы избежать задвоения
     }
 }
 
@@ -1517,11 +1514,6 @@ function updateTurnIndicator() {
 }
 
 function updateRollDiceButtonState() {
-    // Отключаем кнопку броска кубика если:
-    // 1. Не наш ход
-    // 2. Есть незавершенное задание
-    // 3. Игра завершена
-    // 4. Задание в процессе выполнения
     if (gameState.gameOver || gameState.taskInProgress) {
         elements.rollDiceBtn.disabled = true;
         elements.rollDiceBtn.style.opacity = '0.7';
@@ -3202,7 +3194,15 @@ function moveToExistingCity(cityKey) {
     gameState.currentPlayer.city = cityKey;
     
     updatePlayerUI();
-    updatePlayerMarkers();
+    
+    // ИСПРАВЛЕНО: Двигаем фишку напрямую вместо полной перезагрузки
+    updateOtherPlayerMarker(
+        gameState.currentPlayerId, 
+        gameState.currentPlayer.name, 
+        cityCell.number, 
+        cityKey, 
+        gameState.currentPlayer.color || '#8e44ad'
+    );
     
     // Проверяем переход в новый город
     checkForCityTransition(oldPosition, cityCell.number);
@@ -3485,7 +3485,15 @@ elements.rollDiceBtn.addEventListener('click', () => {
         }
         
         updatePlayerUI();
-        updatePlayerMarkers();
+        
+        // ИСПРАВЛЕНО: Двигаем свою фишку плавно и локально
+        updateOtherPlayerMarker(
+            gameState.currentPlayerId, 
+            gameState.currentPlayer.name, 
+            newPosition, 
+            gameState.currentPlayer.city, 
+            gameState.currentPlayer.color || '#8e44ad'
+        );
         
         // Проверяем переход в новый город
         checkForCityTransition(oldPosition, newPosition);
@@ -3536,7 +3544,7 @@ elements.retryTaskBtn.addEventListener('click', () => {
     }
 });
 
-// ИСПРАВЛЕНО: Обработчик отправки сообщения в чат
+// Обработчик отправки сообщения в чат
 elements.sendMessageBtn.addEventListener('click', () => {
     const message = elements.chatInput.value.trim();
     if (message) {
