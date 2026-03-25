@@ -65,7 +65,7 @@ function advanceTurn(lobby) {
     return lobby.currentTurn;
 }
 
-// Генерация случайного цвета
+// Генерация случайного цвета (если вдруг не выбрали)
 function getRandomColor(playerId) {
     const colors = ['#4ecdc4', '#ff6b6b', '#1dd1a1', '#54a0ff', '#ff9ff3', '#feca57', '#ff9f43', '#00d2d3', '#5f27cd', '#ff9e1f'];
     let hash = 0;
@@ -83,9 +83,54 @@ io.on('connection', (socket) => {
         socketId: socket.id
     });
 
-    // Присоединение к лобби
+    // === ПРОВЕРКА КОМНАТЫ ПЕРЕД ВХОДОМ (ДЛЯ ВЫБОРА ЦВЕТА) ===
+    socket.on('check_room', (data) => {
+        const { roomId, isNewRoom, playerName } = data;
+        const cleanPlayerName = playerName.trim();
+        const lobby = lobbies.get(roomId);
+
+        if (isNewRoom && lobby) {
+            return socket.emit('check_room_response', { success: false, message: 'Лобби с таким номером уже существует!' });
+        }
+        if (!isNewRoom && !lobby) {
+            return socket.emit('check_room_response', { success: false, message: 'Лобби не найдено' });
+        }
+
+        let takenColors = [];
+        if (lobby) {
+            // Проверяем, может игрок восстанавливает сессию
+            const existingDisconnected = Object.values(lobby.players).find(p => 
+                p.name.toLowerCase() === cleanPlayerName.toLowerCase() && !p.connected
+            );
+            const existingActive = Object.values(lobby.players).find(p => 
+                p.name.toLowerCase() === cleanPlayerName.toLowerCase() && p.connected
+            );
+
+            if (existingActive) {
+                return socket.emit('check_room_response', { success: false, message: 'Игрок с таким именем уже играет в этой комнате' });
+            }
+
+            if (existingDisconnected) {
+                // Игрок переподключается, цвет выбирать не нужно
+                return socket.emit('check_room_response', { success: true, isReconnect: true });
+            }
+
+            // Проверяем лимит
+            const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
+            if (activePlayers >= lobby.maxPlayers) {
+                return socket.emit('check_room_response', { success: false, message: 'Лобби заполнено (максимум 6 игроков)' });
+            }
+
+            // Собираем уже занятые цвета
+            takenColors = Object.values(lobby.players).map(p => p.color);
+        }
+
+        socket.emit('check_room_response', { success: true, takenColors: takenColors, isReconnect: false });
+    });
+
+    // Присоединение к лобби (окончательное)
     socket.on('join-room', (data) => {
-        const { roomId, playerName, isNewRoom = false } = data;
+        const { roomId, playerName, isNewRoom = false, color } = data;
         
         if (!playerName || playerName.trim().length < 2) {
             return socket.emit('room-error', 'Имя должно содержать минимум 2 символа');
@@ -106,27 +151,14 @@ io.on('connection', (socket) => {
                 maxPlayers: 6
             });
             console.log(`🆕 Создано лобби: ${roomId}`);
-        } else if (isNewRoom && lobbies.has(roomId)) {
-            return socket.emit('room-error', 'Лобби с таким номером уже существует!');
-        } else if (!isNewRoom && !lobbies.has(roomId)) {
-            return socket.emit('room-error', 'Лобби не найдено');
         }
 
         const lobby = lobbies.get(roomId);
 
         // === УМНАЯ ПРОВЕРКА ИГРОКА (ВОССТАНОВЛЕНИЕ СЕССИИ) ===
-        const existingActivePlayer = Object.values(lobby.players).find(p => 
-            p.name.toLowerCase() === cleanPlayerName.toLowerCase() && p.connected
-        );
         const existingDisconnectedPlayer = Object.values(lobby.players).find(p => 
             p.name.toLowerCase() === cleanPlayerName.toLowerCase() && !p.connected
         );
-
-        // Если игрок с таким именем прямо сейчас в игре
-        if (existingActivePlayer) {
-            socket.emit('room-error', 'Игрок с таким именем уже играет в этой комнате');
-            return;
-        }
 
         // Если игрок вылетел/вышел и пытается вернуться
         if (existingDisconnectedPlayer) {
@@ -170,12 +202,6 @@ io.on('connection', (socket) => {
             return; // Прерываем выполнение, чтобы не создать нового игрока
         }
         // === КОНЕЦ УМНОЙ ПРОВЕРКИ ===
-        
-        // Лимит игроков
-        const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
-        if (activePlayers >= lobby.maxPlayers && !lobby.players[socket.id]) {
-            return socket.emit('room-error', 'Лобби заполнено (максимум 6 игроков)');
-        }
 
         const isFirstPlayer = Object.keys(lobby.players).length === 0;
 
@@ -190,7 +216,7 @@ io.on('connection', (socket) => {
             buildings: [],
             level: 1,
             completedTasks: 0,
-            color: getRandomColor(socket.id),
+            color: color || getRandomColor(socket.id),
             connected: true
         };
 
