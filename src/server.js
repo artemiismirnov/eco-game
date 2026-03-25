@@ -79,9 +79,10 @@ io.on('connection', (socket) => {
         socketId: socket.id
     });
 
-    // === ПРОВЕРКА КОМНАТЫ ПЕРЕД ВХОДОМ ===
+    // === ПРОВЕРКА КОМНАТЫ И ЦВЕТОВ ПЕРЕД ВХОДОМ ===
     socket.on('check_room', (data) => {
-        // ИСПРАВЛЕНО: Безопасное чтение имени (защита от краша сервера)
+        console.log(`📥 Получен запрос check_room:`, data);
+        
         const playerName = data.playerName || data.username || '';
         
         if (!playerName) {
@@ -126,14 +127,14 @@ io.on('connection', (socket) => {
             takenColors = Object.values(lobby.players).map(p => p.color);
         }
 
+        console.log(`📤 Отправляем check_room_response. Занятые цвета:`, takenColors);
         socket.emit('check_room_response', { success: true, takenColors: takenColors, isReconnect: false });
     });
 
-    // === ПРИСОЕДИНЕНИЕ К ЛОББИ ===
+    // === ОКОНЧАТЕЛЬНЫЙ ВХОД В ЛОББИ ===
     socket.on('join-room', (data) => {
         const { roomId, playerName, isNewRoom = false, color } = data;
         
-        // Безопасная проверка имени
         if (!playerName || playerName.trim().length < 2) {
             return socket.emit('room-error', 'Имя должно содержать минимум 2 символа');
         }
@@ -183,7 +184,17 @@ io.on('connection', (socket) => {
         const isFirstPlayer = Object.keys(lobby.players).length === 0;
 
         const player = {
-            id: socket.id, name: cleanPlayerName, position: 1, city: "tver", coins: 100, cleaningPoints: 0, buildings: [], level: 1, completedTasks: 0, color: color || getRandomColor(socket.id), connected: true
+            id: socket.id, 
+            name: cleanPlayerName, 
+            position: 1, 
+            city: "tver", 
+            coins: 100, 
+            cleaningPoints: 0, 
+            buildings: [], 
+            level: 1, 
+            completedTasks: 0, 
+            color: color || getRandomColor(socket.id), 
+            connected: true
         };
 
         lobby.players[socket.id] = player;
