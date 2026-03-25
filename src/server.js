@@ -63,7 +63,7 @@ function advanceTurn(lobby) {
 }
 
 function getRandomColor(playerId) {
-    const colors = ['#4ecdc4', '#ff6b6b', '#1dd1a1', '#54a0ff', '#ff9ff3', '#feca57', '#ff9f43', '#00d2d3', '#5f27cd', '#ff9e1f'];
+    const colors = ['#2ecc71', '#e74c3c', '#f1c40f', '#3498db', '#9b59b6', '#e67e22', '#4ecdc4', '#ff6b6b', '#1dd1a1', '#54a0ff'];
     let hash = 0;
     for (let i = 0; i < playerId.length; i++) {
         hash = playerId.charCodeAt(i) + ((hash << 5) - hash);
@@ -79,61 +79,9 @@ io.on('connection', (socket) => {
         socketId: socket.id
     });
 
-    // === ПРОВЕРКА КОМНАТЫ И ЦВЕТОВ ПЕРЕД ВХОДОМ ===
-    socket.on('check_room', (data) => {
-        console.log(`📥 Получен запрос check_room:`, data);
-        
-        const playerName = data.playerName || data.username || '';
-        
-        if (!playerName) {
-            return socket.emit('check_room_response', { success: false, message: 'Имя не может быть пустым' });
-        }
-
-        const cleanPlayerName = playerName.trim();
-        const roomId = data.roomId;
-        const isNewRoom = data.isNewRoom;
-        
-        const lobby = lobbies.get(roomId);
-
-        if (isNewRoom && lobby) {
-            return socket.emit('check_room_response', { success: false, message: 'Лобби с таким номером уже существует!' });
-        }
-        if (!isNewRoom && !lobby) {
-            return socket.emit('check_room_response', { success: false, message: 'Лобби не найдено' });
-        }
-
-        let takenColors = [];
-        if (lobby) {
-            const existingDisconnected = Object.values(lobby.players).find(p => 
-                p.name.toLowerCase() === cleanPlayerName.toLowerCase() && !p.connected
-            );
-            const existingActive = Object.values(lobby.players).find(p => 
-                p.name.toLowerCase() === cleanPlayerName.toLowerCase() && p.connected
-            );
-
-            if (existingActive) {
-                return socket.emit('check_room_response', { success: false, message: 'Игрок с таким именем уже играет в этой комнате' });
-            }
-
-            if (existingDisconnected) {
-                return socket.emit('check_room_response', { success: true, isReconnect: true });
-            }
-
-            const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
-            if (activePlayers >= lobby.maxPlayers) {
-                return socket.emit('check_room_response', { success: false, message: 'Лобби заполнено (максимум 6 игроков)' });
-            }
-
-            takenColors = Object.values(lobby.players).map(p => p.color);
-        }
-
-        console.log(`📤 Отправляем check_room_response. Занятые цвета:`, takenColors);
-        socket.emit('check_room_response', { success: true, takenColors: takenColors, isReconnect: false });
-    });
-
-    // === ОКОНЧАТЕЛЬНЫЙ ВХОД В ЛОББИ ===
+    // === ПРИСОЕДИНЕНИЕ К ЛОББИ ===
     socket.on('join-room', (data) => {
-        const { roomId, playerName, isNewRoom = false, color } = data;
+        const { roomId, playerName, isNewRoom = false } = data;
         
         if (!playerName || playerName.trim().length < 2) {
             return socket.emit('room-error', 'Имя должно содержать минимум 2 символа');
@@ -158,6 +106,13 @@ io.on('connection', (socket) => {
         const existingDisconnectedPlayer = Object.values(lobby.players).find(p => 
             p.name.toLowerCase() === cleanPlayerName.toLowerCase() && !p.connected
         );
+        const existingActivePlayer = Object.values(lobby.players).find(p => 
+            p.name.toLowerCase() === cleanPlayerName.toLowerCase() && p.connected
+        );
+
+        if (existingActivePlayer) {
+            return socket.emit('room-error', 'Игрок с таким именем уже играет в этой комнате');
+        }
 
         if (existingDisconnectedPlayer) {
             const playerId = existingDisconnectedPlayer.id;
@@ -171,7 +126,15 @@ io.on('connection', (socket) => {
             
             console.log(`🔄 ${cleanPlayerName} успешно вернулся в лобби ${roomId}`);
             
-            socket.emit('join-success', { ...player, roomId: roomId, currentTurn: lobby.currentTurn, turnOrder: lobby.turnOrder, playerProgress: lobby.playerProgress[playerId] });
+            socket.emit('join-success', { 
+                ...player, 
+                roomId: roomId, 
+                currentTurn: lobby.currentTurn, 
+                turnOrder: lobby.turnOrder, 
+                playerProgress: lobby.playerProgress[playerId],
+                isReconnect: true // Флаг переподключения (не показывать окно цвета)
+            });
+            
             io.to(roomId).emit('room_state', { players: lobby.players, cityProgress: lobby.cityProgress, roomId: roomId });
             socket.to(roomId).emit('player_reconnected', { playerId: playerId, playerName: player.name });
 
@@ -181,19 +144,27 @@ io.on('connection', (socket) => {
             return; 
         }
         
+        // Лимит игроков
+        const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
+        if (activePlayers >= lobby.maxPlayers) {
+            return socket.emit('room-error', 'Лобби заполнено (максимум 6 игроков)');
+        }
+
         const isFirstPlayer = Object.keys(lobby.players).length === 0;
 
+        // Определяем свободные цвета, чтобы случайно не выдать занятый
+        const takenColors = Object.values(lobby.players).map(p => p.color);
+        let assignedColor = getRandomColor(socket.id);
+        const mainColors = ['#2ecc71', '#e74c3c', '#f1c40f', '#3498db', '#9b59b6', '#e67e22'];
+        const freeColors = mainColors.filter(c => !takenColors.includes(c));
+        
+        if (freeColors.length > 0 && takenColors.includes(assignedColor)) {
+            assignedColor = freeColors[0];
+        }
+
         const player = {
-            id: socket.id, 
-            name: cleanPlayerName, 
-            position: 1, 
-            city: "tver", 
-            coins: 100, 
-            cleaningPoints: 0, 
-            buildings: [], 
-            level: 1, 
-            completedTasks: 0, 
-            color: color || getRandomColor(socket.id), 
+            id: socket.id, name: cleanPlayerName, position: 1, city: "tver", coins: 100, cleaningPoints: 0, buildings: [], level: 1, completedTasks: 0, 
+            color: assignedColor, 
             connected: true
         };
 
@@ -206,11 +177,35 @@ io.on('connection', (socket) => {
         if (!lobby.playerProgress[socket.id]) lobby.playerProgress[socket.id] = {};
 
         socket.join(roomId);
-        console.log(`✅ ${cleanPlayerName} присоединился к лобби ${roomId} с цветом ${player.color}`);
+        console.log(`✅ ${cleanPlayerName} присоединился к лобби ${roomId}`);
         
-        socket.emit('join-success', { ...player, roomId: roomId, currentTurn: lobby.currentTurn, turnOrder: lobby.turnOrder, playerProgress: lobby.playerProgress[socket.id] });
+        // Отправляем успешный вход с флагом isReconnect = false и списком занятых цветов
+        socket.emit('join-success', { 
+            ...player, 
+            roomId: roomId, 
+            currentTurn: lobby.currentTurn, 
+            turnOrder: lobby.turnOrder, 
+            playerProgress: lobby.playerProgress[socket.id],
+            isReconnect: false,
+            takenColors: takenColors
+        });
+        
         if (lobby.messages.length > 0) socket.emit('chat_history', lobby.messages);
         socket.to(roomId).emit('player_joined', { playerId: socket.id, player: player });
+    });
+
+    // === ИЗМЕНЕНИЕ ЦВЕТА ФИШКИ ===
+    socket.on('change_color', (data) => {
+        if (!socket.lobbyId || !socket.playerId) return;
+        const lobby = lobbies.get(socket.lobbyId);
+        if (lobby && lobby.players[socket.playerId]) {
+            lobby.players[socket.playerId].color = data.color;
+            // Уведомляем всех в комнате о смене цвета
+            io.to(socket.lobbyId).emit('player_color_updated', {
+                playerId: socket.playerId,
+                color: data.color
+            });
+        }
     });
 
     socket.on('request_all_positions', () => {
