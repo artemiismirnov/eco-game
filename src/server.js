@@ -34,7 +34,6 @@ setInterval(() => {
     let cleaned = 0;
     
     for (const [lobbyId, lobby] of lobbies.entries()) {
-        // Удаляем лобби, пустые более 30 минут
         const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
         if (activePlayers === 0 && now - new Date(lobby.created).getTime() > 30 * 60 * 1000) {
             lobbies.delete(lobbyId);
@@ -47,14 +46,12 @@ setInterval(() => {
     }
 }, 5 * 60 * 1000);
 
-// Передача хода следующему активному игроку
 function advanceTurn(lobby) {
     if (!lobby || lobby.turnOrder.length === 0) return null;
 
     let currentIndex = lobby.turnOrder.indexOf(lobby.currentTurn);
     let nextIndex = (currentIndex + 1) % lobby.turnOrder.length;
     
-    // Пропускаем отключенных игроков
     let attempts = 0;
     while (!lobby.players[lobby.turnOrder[nextIndex]].connected && attempts < lobby.turnOrder.length) {
         nextIndex = (nextIndex + 1) % lobby.turnOrder.length;
@@ -65,7 +62,6 @@ function advanceTurn(lobby) {
     return lobby.currentTurn;
 }
 
-// Генерация случайного цвета (если вдруг не выбрали)
 function getRandomColor(playerId) {
     const colors = ['#4ecdc4', '#ff6b6b', '#1dd1a1', '#54a0ff', '#ff9ff3', '#feca57', '#ff9f43', '#00d2d3', '#5f27cd', '#ff9e1f'];
     let hash = 0;
@@ -83,7 +79,7 @@ io.on('connection', (socket) => {
         socketId: socket.id
     });
 
-    // === ПРОВЕРКА КОМНАТЫ ПЕРЕД ВХОДОМ (ДЛЯ ВЫБОРА ЦВЕТА) ===
+    // === ПРОВЕРКА КОМНАТЫ ПЕРЕД ВХОДОМ ===
     socket.on('check_room', (data) => {
         const { roomId, isNewRoom, playerName } = data;
         const cleanPlayerName = playerName.trim();
@@ -98,7 +94,6 @@ io.on('connection', (socket) => {
 
         let takenColors = [];
         if (lobby) {
-            // Проверяем, может игрок восстанавливает сессию
             const existingDisconnected = Object.values(lobby.players).find(p => 
                 p.name.toLowerCase() === cleanPlayerName.toLowerCase() && !p.connected
             );
@@ -111,24 +106,21 @@ io.on('connection', (socket) => {
             }
 
             if (existingDisconnected) {
-                // Игрок переподключается, цвет выбирать не нужно
                 return socket.emit('check_room_response', { success: true, isReconnect: true });
             }
 
-            // Проверяем лимит
             const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
             if (activePlayers >= lobby.maxPlayers) {
                 return socket.emit('check_room_response', { success: false, message: 'Лобби заполнено (максимум 6 игроков)' });
             }
 
-            // Собираем уже занятые цвета
             takenColors = Object.values(lobby.players).map(p => p.color);
         }
 
         socket.emit('check_room_response', { success: true, takenColors: takenColors, isReconnect: false });
     });
 
-    // Присоединение к лобби (окончательное)
+    // === ПРИСОЕДИНЕНИЕ К ЛОББИ ===
     socket.on('join-room', (data) => {
         const { roomId, playerName, isNewRoom = false, color } = data;
         
@@ -138,35 +130,30 @@ io.on('connection', (socket) => {
 
         const cleanPlayerName = playerName.trim();
         
-        // Создаем лобби, если его нет
+        // ИСПРАВЛЕНО: Правильная проверка существования комнаты
         if (isNewRoom && !lobbies.has(roomId)) {
             lobbies.set(roomId, {
-                players: {},
-                turnOrder: [],
-                currentTurn: null,
-                cityProgress: {},
-                playerProgress: {},
-                messages: [],
-                created: new Date().toISOString(),
-                maxPlayers: 6
+                players: {}, turnOrder: [], currentTurn: null, cityProgress: {}, playerProgress: {}, messages: [], created: new Date().toISOString(), maxPlayers: 6
             });
             console.log(`🆕 Создано лобби: ${roomId}`);
+        } else if (isNewRoom && lobbies.has(roomId)) {
+            return socket.emit('room-error', 'Лобби с таким номером уже существует!');
+        } else if (!isNewRoom && !lobbies.has(roomId)) {
+            return socket.emit('room-error', 'Лобби не найдено');
         }
 
         const lobby = lobbies.get(roomId);
 
-        // === УМНАЯ ПРОВЕРКА ИГРОКА (ВОССТАНОВЛЕНИЕ СЕССИИ) ===
+        // Восстановление сессии
         const existingDisconnectedPlayer = Object.values(lobby.players).find(p => 
             p.name.toLowerCase() === cleanPlayerName.toLowerCase() && !p.connected
         );
 
-        // Если игрок вылетел/вышел и пытается вернуться
         if (existingDisconnectedPlayer) {
             const playerId = existingDisconnectedPlayer.id;
             const player = lobby.players[playerId];
-            player.connected = true; // Возвращаем в строй
+            player.connected = true; 
             
-            // Привязываем новый сокет к старому ID игрока
             socket.playerId = playerId;
             socket.lobbyId = roomId;
             socket.playerName = cleanPlayerName;
@@ -174,103 +161,44 @@ io.on('connection', (socket) => {
             
             console.log(`🔄 ${cleanPlayerName} успешно вернулся в лобби ${roomId}`);
             
-            // Отправляем личные данные игроку
-            socket.emit('join-success', { 
-                ...player,
-                roomId: roomId,
-                currentTurn: lobby.currentTurn,
-                turnOrder: lobby.turnOrder,
-                playerProgress: lobby.playerProgress[playerId]
-            });
-
-            // Отправляем актуальное состояние комнаты ВСЕМ
-            io.to(roomId).emit('room_state', {
-                players: lobby.players,
-                cityProgress: lobby.cityProgress,
-                roomId: roomId
-            });
-
-            // Уведомляем остальных, что игрок вернулся
-            socket.to(roomId).emit('player_reconnected', {
-                playerId: playerId,
-                playerName: player.name
-            });
+            socket.emit('join-success', { ...player, roomId: roomId, currentTurn: lobby.currentTurn, turnOrder: lobby.turnOrder, playerProgress: lobby.playerProgress[playerId] });
+            io.to(roomId).emit('room_state', { players: lobby.players, cityProgress: lobby.cityProgress, roomId: roomId });
+            socket.to(roomId).emit('player_reconnected', { playerId: playerId, playerName: player.name });
 
             if (lobby.messages) {
                 socket.emit('chat_history', lobby.messages.slice(-50));
             }
-            return; // Прерываем выполнение, чтобы не создать нового игрока
+            return; 
         }
-        // === КОНЕЦ УМНОЙ ПРОВЕРКИ ===
-
+        
         const isFirstPlayer = Object.keys(lobby.players).length === 0;
 
-        // Создаем или обновляем игрока
         const player = {
-            id: socket.id,
-            name: cleanPlayerName,
-            position: 1,
-            city: "tver",
-            coins: 100,
-            cleaningPoints: 0,
-            buildings: [],
-            level: 1,
-            completedTasks: 0,
-            color: color || getRandomColor(socket.id),
-            connected: true
+            id: socket.id, name: cleanPlayerName, position: 1, city: "tver", coins: 100, cleaningPoints: 0, buildings: [], level: 1, completedTasks: 0, color: color || getRandomColor(socket.id), connected: true
         };
 
         lobby.players[socket.id] = player;
         socket.lobbyId = roomId;
         socket.playerId = socket.id;
 
-        if (!lobby.turnOrder.includes(socket.id)) {
-            lobby.turnOrder.push(socket.id);
-        }
-
-        if (isFirstPlayer) {
-            lobby.currentTurn = socket.id;
-        }
-
-        if (!lobby.playerProgress[socket.id]) {
-            lobby.playerProgress[socket.id] = {};
-        }
+        if (!lobby.turnOrder.includes(socket.id)) lobby.turnOrder.push(socket.id);
+        if (isFirstPlayer) lobby.currentTurn = socket.id;
+        if (!lobby.playerProgress[socket.id]) lobby.playerProgress[socket.id] = {};
 
         socket.join(roomId);
-        
         console.log(`✅ ${cleanPlayerName} присоединился к лобби ${roomId}`);
         
-        // 1. Отправляем успех самому игроку
-        socket.emit('join-success', { 
-            ...player,
-            roomId: roomId,
-            currentTurn: lobby.currentTurn,
-            turnOrder: lobby.turnOrder,
-            playerProgress: lobby.playerProgress[socket.id]
-        });
-
-        // 2. Отправляем историю чата
-        if (lobby.messages.length > 0) {
-            socket.emit('chat_history', lobby.messages);
-        }
-
-        // 3. Уведомляем остальных
-        socket.to(roomId).emit('player_joined', {
-            playerId: socket.id,
-            player: player
-        });
+        socket.emit('join-success', { ...player, roomId: roomId, currentTurn: lobby.currentTurn, turnOrder: lobby.turnOrder, playerProgress: lobby.playerProgress[socket.id] });
+        if (lobby.messages.length > 0) socket.emit('chat_history', lobby.messages);
+        socket.to(roomId).emit('player_joined', { playerId: socket.id, player: player });
     });
 
-    // Запрос позиций всех игроков (для карты)
     socket.on('request_all_positions', () => {
         if (!socket.lobbyId) return;
         const lobby = lobbies.get(socket.lobbyId);
-        if (lobby) {
-            socket.emit('all_players_positions', { players: lobby.players });
-        }
+        if (lobby) socket.emit('all_players_positions', { players: lobby.players });
     });
 
-    // Обновление координаты фишки на карте
     socket.on('player_position_update', (data) => {
         if (!socket.lobbyId || !socket.playerId) return;
         const lobby = lobbies.get(socket.lobbyId);
@@ -278,103 +206,64 @@ io.on('connection', (socket) => {
             const player = lobby.players[socket.playerId];
             player.position = data.position;
             player.city = data.city;
-
-            socket.to(socket.lobbyId).emit('player_position_update', {
-                playerId: socket.playerId,
-                playerName: player.name,
-                position: data.position,
-                city: data.city,
-                color: player.color
-            });
+            socket.to(socket.lobbyId).emit('player_position_update', { playerId: socket.playerId, playerName: player.name, position: data.position, city: data.city, color: player.color });
         }
     });
 
-    // Передача хода
     socket.on('end_turn', () => {
         if (!socket.lobbyId) return;
         const lobby = lobbies.get(socket.lobbyId);
         if (lobby) {
             const nextTurnId = advanceTurn(lobby);
-            io.to(socket.lobbyId).emit('turn_update', {
-                currentTurn: nextTurnId,
-                turnOrder: lobby.turnOrder
-            });
+            io.to(socket.lobbyId).emit('turn_update', { currentTurn: nextTurnId, turnOrder: lobby.turnOrder });
         }
     });
 
-    // Синхронизация профиля игрока (монеты, лвл)
     socket.on('player-update', (data) => {
         if (!socket.lobbyId || !socket.playerId) return;
         const lobby = lobbies.get(socket.lobbyId);
         if (lobby && lobby.players[socket.playerId]) {
             Object.assign(lobby.players[socket.playerId], data);
-            
-            if (data.progress) {
-                lobby.playerProgress[socket.playerId] = data.progress;
-            }
+            if (data.progress) lobby.playerProgress[socket.playerId] = data.progress;
         }
     });
 
-    // Обновление прогресса города
     socket.on('update_progress', (data) => {
         if (!socket.lobbyId) return;
         const lobby = lobbies.get(socket.lobbyId);
         if (lobby) {
-            if (!lobby.playerProgress[data.playerId]) {
-                lobby.playerProgress[data.playerId] = {};
-            }
+            if (!lobby.playerProgress[data.playerId]) lobby.playerProgress[data.playerId] = {};
             lobby.playerProgress[data.playerId][data.cityKey] = data.progress;
-            
             io.to(socket.lobbyId).emit('progress_updated', data);
         }
     });
 
-    // Чат
     socket.on('chat_message', (data) => {
         if (!socket.lobbyId || !socket.playerId) return;
         const lobby = lobbies.get(socket.lobbyId);
         if (lobby && lobby.players[socket.playerId]) {
-            const msgObj = {
-                playerName: lobby.players[socket.playerId].name,
-                message: data.message
-            };
-            
+            const msgObj = { playerName: lobby.players[socket.playerId].name, message: data.message };
             lobby.messages.push(msgObj);
             if (lobby.messages.length > 50) lobby.messages.shift();
-            
             io.to(socket.lobbyId).emit('new_chat_message', msgObj);
         }
     });
 
-    // Запрос полного стейта
     socket.on('get_room_state', () => {
         if (!socket.lobbyId) return;
         const lobby = lobbies.get(socket.lobbyId);
-        if (lobby) {
-            socket.emit('room_state', {
-                players: lobby.players,
-                cityProgress: lobby.cityProgress,
-                playerProgress: lobby.playerProgress,
-                currentTurn: lobby.currentTurn,
-                turnOrder: lobby.turnOrder
-            });
-        }
+        if (lobby) socket.emit('room_state', { players: lobby.players, cityProgress: lobby.cityProgress, playerProgress: lobby.playerProgress, currentTurn: lobby.currentTurn, turnOrder: lobby.turnOrder });
     });
 
-    // Выход из комнаты
     socket.on('leave-room', () => {
         handleDisconnect(socket);
         socket.leave(socket.lobbyId);
         socket.lobbyId = null;
     });
 
-    // Отключение от сервера
-    socket.on('disconnect', () => {
-        handleDisconnect(socket);
-    });
+    socket.on('disconnect', () => handleDisconnect(socket));
 });
 
-// Обработка отключения/выхода
 function handleDisconnect(socket) {
     if (!socket.lobbyId || !socket.playerId) return;
     const lobby = lobbies.get(socket.lobbyId);
@@ -382,21 +271,12 @@ function handleDisconnect(socket) {
     if (lobby && lobby.players[socket.playerId]) {
         lobby.players[socket.playerId].connected = false;
         
-        // Передаем ход, если отключился тот, чей сейчас ход
         if (lobby.currentTurn === socket.playerId) {
             advanceTurn(lobby);
-            io.to(socket.lobbyId).emit('turn_update', {
-                currentTurn: lobby.currentTurn,
-                turnOrder: lobby.turnOrder
-            });
+            io.to(socket.lobbyId).emit('turn_update', { currentTurn: lobby.currentTurn, turnOrder: lobby.turnOrder });
         }
 
-        // Сообщаем остальным
-        socket.to(socket.lobbyId).emit('player_left', {
-            playerId: socket.playerId,
-            playerName: lobby.players[socket.playerId].name
-        });
-        
+        socket.to(socket.lobbyId).emit('player_left', { playerId: socket.playerId, playerName: lobby.players[socket.playerId].name });
         console.log(`🚪 ${lobby.players[socket.playerId].name} покинул лобби ${socket.lobbyId}`);
     }
 }
