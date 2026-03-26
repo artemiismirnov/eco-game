@@ -65,7 +65,7 @@ function advanceTurn(lobby) {
     return lobby.currentTurn;
 }
 
-// Генерация случайного цвета
+// Генерация случайного цвета (используется как резерв, пока игрок не выберет свой)
 function getRandomColor(playerId) {
     const colors = ['#4ecdc4', '#ff6b6b', '#1dd1a1', '#54a0ff', '#ff9ff3', '#feca57', '#ff9f43', '#00d2d3', '#5f27cd', '#ff9e1f'];
     let hash = 0;
@@ -190,7 +190,8 @@ io.on('connection', (socket) => {
             buildings: [],
             level: 1,
             completedTasks: 0,
-            color: getRandomColor(socket.id),
+            color: getRandomColor(socket.id), // Резервный цвет
+            hasSelectedColor: false, // Флаг: выбрал ли игрок цвет вручную
             connected: true
         };
 
@@ -233,6 +234,22 @@ io.on('connection', (socket) => {
             playerId: socket.id,
             player: player
         });
+    });
+
+    // Выбор цвета фишки
+    socket.on('select_color', (data) => {
+        if (!socket.lobbyId || !socket.playerId) return;
+        const lobby = lobbies.get(socket.lobbyId);
+        if (lobby && lobby.players[socket.playerId]) {
+            lobby.players[socket.playerId].color = data.color;
+            lobby.players[socket.playerId].hasSelectedColor = true;
+            
+            // Рассылаем всем в комнате информацию об обновлении цвета
+            io.to(socket.lobbyId).emit('player_color_updated', {
+                playerId: socket.playerId,
+                color: data.color
+            });
+        }
     });
 
     // Запрос позиций всех игроков (для карты)
