@@ -30,6 +30,10 @@ const AVAILABLE_COLORS = [
     { name: 'Оранжевый', hex: '#e67e22' }
 ];
 
+// Оригинальные размеры изображения карты
+const ORIGINAL_MAP_WIDTH = 1083;
+const ORIGINAL_MAP_HEIGHT = 976;
+
 // ==================== ЭЛЕМЕНТЫ DOM ====================
 const elements = {
     authSection: document.getElementById('authSection'),
@@ -803,14 +807,15 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, color) {
     // Находим клетку с указанной позицией
     const cell = mapData.cells.find(c => c.number === position);
     if (cell) {
-        // Базовые размеры карты из редактора (для перевода в проценты)
-        const baseWidth = 800;
-        const baseHeight = 800;
-        
-        // Центрируем фишку ровно по центру клетки с помощью процентов!
-        // CSS transform: translate(-50%, -50%) сделает остальную работу
-        marker.style.left = `${((cell.x + cell.width/2) / baseWidth) * 100}%`;
-        marker.style.top = `${((cell.y + cell.height/2) / baseHeight) * 100}%`;
+        // Вычисляем проценты для точного прилипания к клеткам при любом размере экрана
+        const centerX = cell.x + (cell.width / 2);
+        const centerY = cell.y + (cell.height / 2);
+
+        const leftPercent = (centerX / ORIGINAL_MAP_WIDTH) * 100;
+        const topPercent = (centerY / ORIGINAL_MAP_HEIGHT) * 100;
+
+        marker.style.left = `${leftPercent}%`;
+        marker.style.top = `${topPercent}%`;
         
         const tooltip = marker.querySelector('.player-tooltip');
         if (tooltip) {
@@ -1201,17 +1206,14 @@ function loadSavedMap() {
 function createDefaultMap() {
     console.log('📍 Создание стандартной карты городов');
     
-    // Базовый размер поля редактора
-    const baseSize = 800;
-    
-    // Создаем клетки для каждого города (координаты переведены под масштаб 800x800)
+    // Создаем клетки для каждого города (ориентируясь на оригинальный размер картинки)
     const cityPositions = [
-        { city: 'tver', x: 80, y: 240, number: 1, type: 'start' },
-        { city: 'kineshma', x: 240, y: 320, number: 2, type: 'city' },
-        { city: 'naberezhnye_chelny', x: 400, y: 240, number: 3, type: 'city' },
-        { city: 'kazan', x: 560, y: 320, number: 4, type: 'city' },
-        { city: 'volgograd', x: 480, y: 480, number: 5, type: 'city' },
-        { city: 'astrakhan', x: 640, y: 560, number: 6, type: 'finish' }
+        { city: 'tver', x: ORIGINAL_MAP_WIDTH * 0.1, y: ORIGINAL_MAP_HEIGHT * 0.3, number: 1, type: 'start' },
+        { city: 'kineshma', x: ORIGINAL_MAP_WIDTH * 0.3, y: ORIGINAL_MAP_HEIGHT * 0.4, number: 2, type: 'city' },
+        { city: 'naberezhnye_chelny', x: ORIGINAL_MAP_WIDTH * 0.5, y: ORIGINAL_MAP_HEIGHT * 0.3, number: 3, type: 'city' },
+        { city: 'kazan', x: ORIGINAL_MAP_WIDTH * 0.7, y: ORIGINAL_MAP_HEIGHT * 0.4, number: 4, type: 'city' },
+        { city: 'volgograd', x: ORIGINAL_MAP_WIDTH * 0.6, y: ORIGINAL_MAP_HEIGHT * 0.6, number: 5, type: 'city' },
+        { city: 'astrakhan', x: ORIGINAL_MAP_WIDTH * 0.8, y: ORIGINAL_MAP_HEIGHT * 0.7, number: 6, type: 'finish' }
     ];
     
     mapData.cells = cityPositions.map((pos, index) => ({
@@ -1252,15 +1254,17 @@ function createCellElement(cell) {
     cellElement.dataset.cellType = cell.type;
     cellElement.dataset.city = cell.city || '';
     
-    // Базовые размеры карты из редактора
-    const baseWidth = 800;
-    const baseHeight = 800;
+    // Вычисляем проценты относительно оригинального размера картинки
+    const leftPercent = (cell.x / ORIGINAL_MAP_WIDTH) * 100;
+    const topPercent = (cell.y / ORIGINAL_MAP_HEIGHT) * 100;
+    const widthPercent = (cell.width / ORIGINAL_MAP_WIDTH) * 100;
+    const heightPercent = (cell.height / ORIGINAL_MAP_HEIGHT) * 100;
     
-    // Позиционируем клетку в ПРОЦЕНТАХ, чтобы она намертво привязалась к фону
-    cellElement.style.left = `${(cell.x / baseWidth) * 100}%`;
-    cellElement.style.top = `${(cell.y / baseHeight) * 100}%`;
-    cellElement.style.width = `${(cell.width / baseWidth) * 100}%`;
-    cellElement.style.height = `${(cell.height / baseHeight) * 100}%`;
+    // Позиционируем клетку абсолютно в процентах!
+    cellElement.style.left = `${leftPercent}%`;
+    cellElement.style.top = `${topPercent}%`;
+    cellElement.style.width = `${widthPercent}%`;
+    cellElement.style.height = `${heightPercent}%`;
     
     // Добавляем классы в зависимости от типа
     if (cell.type === 'start') {
