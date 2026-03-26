@@ -1,6 +1,10 @@
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 console.log('🎮 Игра "Юный эколог" загружается...');
 
+// Точные размеры оригинального изображения, по которым делался JSON
+const ORIGINAL_MAP_WIDTH = 1083;
+const ORIGINAL_MAP_HEIGHT = 976;
+
 // Автоматическое определение URL сервера
 const serverUrl = window.location.origin;
 
@@ -720,45 +724,35 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, color) {
         marker.className = 'player-marker';
         marker.id = `marker-${playerId}`;
         marker.setAttribute('data-player', playerName);
-        marker.style.background = color || getRandomColor(playerId);
-        marker.style.border = '2px solid white';
-        marker.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.7)';
         marker.innerHTML = '<i class="fas fa-user" style="font-size: 10px; color: white;"></i>';
         
         const tooltip = document.createElement('div');
         tooltip.className = 'player-tooltip';
-        tooltip.textContent = playerName;
-        tooltip.style.cssText = 'position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none;';
+        tooltip.style.cssText = 'position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100;';
         marker.appendChild(tooltip);
         
         marker.addEventListener('mouseenter', () => tooltip.style.opacity = '1');
         marker.addEventListener('mouseleave', () => tooltip.style.opacity = '0');
-        
-        elements.mapOverlay.appendChild(marker);
-    } else {
-        if (color) marker.style.background = color;
     }
     
-    const cell = mapData.cells.find(c => c.number === position);
-    if (cell) {
-        let baseW = mapData.baseWidth || elements.mapImage.naturalWidth || 1200;
-        let baseH = mapData.baseHeight || elements.mapImage.naturalHeight || 800;
-        
-        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ ДЛЯ ФИШЕК: parseFloat предотвращает склеивание строк
-        const cellX = parseFloat(cell.x);
-        const cellY = parseFloat(cell.y);
-        const cellW = parseFloat(cell.width);
-        const cellH = parseFloat(cell.height);
-
-        const leftPct = ((cellX + cellW / 2) / baseW) * 100;
-        const topPct = ((cellY + cellH / 2) / baseH) * 100;
-
-        marker.style.left = `${leftPct}%`;
-        marker.style.top = `${topPct}%`;
-        
-        const tooltip = marker.querySelector('.player-tooltip');
-        if (tooltip) tooltip.textContent = `${playerName} (поз. ${position})`;
+    if (color) marker.style.background = color;
+    marker.style.border = '2px solid white';
+    marker.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.7)';
+    
+    const cellElement = document.querySelector(`.map-cell[data-cell-number="${position}"]`);
+    
+    if (cellElement) {
+        cellElement.appendChild(marker);
+        marker.style.position = 'absolute';
+        marker.style.left = '50%';
+        marker.style.top = '50%';
+        marker.style.transform = 'translate(-50%, -50%)';
+    } else {
+        elements.mapOverlay.appendChild(marker);
     }
+    
+    const tooltip = marker.querySelector('.player-tooltip');
+    if (tooltip) tooltip.textContent = `${playerName} (поз. ${position})`;
     
     updatePlayerInList(playerId, position, playerName);
 }
@@ -987,7 +981,7 @@ function sendChatMessage(message) {
     }
 }
 
-// ==================== ФУНКЦИИ ДЛЯ КАРТЫ (ИСПРАВЛЕНА ЛОГИКА АДАПТИВНОСТИ) ====================
+// ==================== ФУНКЦИИ ДЛЯ КАРТЫ ====================
 function loadMap() {
     if (window.mapData && window.mapData.imageUrl) {
         elements.mapImage.src = window.mapData.imageUrl;
@@ -1016,8 +1010,10 @@ function loadSavedMap() {
             if (savedMap.cells && Array.isArray(savedMap.cells)) {
                 mapData.cells = savedMap.cells;
                 mapData.isDefaultMap = false;
-                mapData.baseWidth = savedMap.baseWidth || mapData.naturalWidth || 1200;
-                mapData.baseHeight = savedMap.baseHeight || mapData.naturalHeight || 800;
+                
+                // ЖЕСТКОЕ ИСПОЛЬЗОВАНИЕ ТОЧНЫХ РАЗМЕРОВ ОРИГИНАЛЬНОГО ИЗОБРАЖЕНИЯ
+                mapData.baseWidth = savedMap.baseWidth || ORIGINAL_MAP_WIDTH;
+                mapData.baseHeight = savedMap.baseHeight || ORIGINAL_MAP_HEIGHT;
                 
                 createMapCells();
                 updatePlayerMarkers();
@@ -1066,10 +1062,10 @@ function createCellElement(cell) {
     cellElement.dataset.cellType = cell.type;
     cellElement.dataset.city = cell.city || '';
     
-    let baseW = mapData.baseWidth || elements.mapImage.naturalWidth || 1200;
-    let baseH = mapData.baseHeight || elements.mapImage.naturalHeight || 800;
+    // ЖЕСТКАЯ ПРИВЯЗКА РАЗМЕРОВ
+    let baseW = mapData.baseWidth || ORIGINAL_MAP_WIDTH;
+    let baseH = mapData.baseHeight || ORIGINAL_MAP_HEIGHT;
     
-    // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: parseFloat
     const cellX = parseFloat(cell.x);
     const cellY = parseFloat(cell.y);
     const cellW = parseFloat(cell.width);
