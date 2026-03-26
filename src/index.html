@@ -41,6 +41,7 @@
             transition: background 0.5s ease;
         }
         
+        /* Светлая тема */
         body.light-theme {
             background: linear-gradient(135deg, #0f2b35, #1a535c);
             color: var(--light);
@@ -211,22 +212,27 @@
         }
         
         /* ==================== НОВАЯ КАРТА НА ОСНОВЕ ИЗОБРАЖЕНИЯ ==================== */
-        /* ИСПРАВЛЕНИЕ ДЛЯ КАРТЫ: Убраны отступы и фиксированная высота */
         .map-image-container {
             position: relative;
             width: 100%;
-            background: transparent;
+            min-height: 600px;
+            background: #e8f5e9;
             border-radius: 12px;
             overflow: hidden;
             border: 3px solid #2E7D32;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
         }
         
         #mapImage {
-            display: block;
-            width: 100%;
-            height: auto; /* Строгое пропорциональное масштабирование */
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
             background-color: #e8f5e9;
         }
         
@@ -577,6 +583,7 @@
             box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
         }
         
+        /* Новые стили для заданий с кликами */
         .clickable-item {
             width: 70px;
             height: 70px;
@@ -1997,47 +2004,17 @@
             visibility: visible;
         }
         
-        /* ИСПРАВЛЕНИЕ: Добавлена прокрутка и крестик */
         .city-modal-content, .choice-modal-content, .invite-modal-content {
             background: rgba(30, 30, 46, 0.95);
             border-radius: 15px;
             padding: 30px;
-            padding-top: 45px; /* Место под крестик */
             max-width: 500px;
             width: 90%;
-            max-height: 85vh; /* Ограничение высоты */
-            overflow-y: auto; /* Скролл */
-            position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.25);
             transform: translateY(20px);
             transition: transform 0.3s;
-        }
-
-        .modal-close-x {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 28px;
-            font-weight: bold;
-            color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 100;
-        }
-
-        .modal-close-x:hover {
-            color: #ff6b6b;
-            transform: scale(1.1);
-        }
-
-        body.light-theme .modal-close-x {
-            color: rgba(0, 0, 0, 0.5);
-        }
-
-        body.light-theme .modal-close-x:hover {
-            color: #e74c3c;
         }
         
         body.light-theme .city-modal-content,
@@ -2423,9 +2400,8 @@
         .color-modal.active { opacity: 1; visibility: visible; }
         .color-modal-content {
             background: rgba(30, 30, 46, 0.95);
-            border-radius: 15px; padding: 30px; padding-top: 45px; max-width: 400px; width: 90%;
+            border-radius: 15px; padding: 30px; max-width: 400px; width: 90%;
             text-align: center; border: 1px solid rgba(255, 255, 255, 0.25);
-            max-height: 85vh; overflow-y: auto; position: relative;
             transform: translateY(20px); transition: transform 0.3s;
         }
         .color-modal.active .color-modal-content { transform: translateY(0); }
@@ -2577,6 +2553,16 @@
                 font-size: 1rem;
             }
             
+            .map-image-container {
+                height: 400px;
+            }
+            
+            #mapImage {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+            
             /* Прокрутка при перетаскивании на мобильных */
             .task-area {
                 overflow-x: auto;
@@ -2685,6 +2671,16 @@
                 height: 55px;
                 font-size: 1.2rem;
             }
+            
+            .map-image-container {
+                height: 300px;
+            }
+            
+            #mapImage {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
         }
         
         /* Стили для прокрутки при перетаскивании */
@@ -2747,6 +2743,7 @@
             font-size: 0.9rem;
         }
         
+        /* Стиль для кнопки приглашения */
         .invite-link-box {
             background: rgba(46, 204, 113, 0.2);
             padding: 15px;
@@ -2755,6 +2752,7 @@
             border: 2px solid rgba(46, 204, 113, 0.5);
         }
         
+        /* Стиль для текста вопроса в задании "найти пару" */
         .match-instruction {
             text-align: center;
             font-size: 1.1rem;
@@ -2767,6 +2765,7 @@
             border-left: 3px solid #ff6b6b;
         }
         
+        /* Новые стили для заданий */
         .task-completion-message {
             text-align: center;
             font-size: 1.1rem;
@@ -2828,6 +2827,7 @@
             <h3>Информация об игре "Юный эколог" <span class="toggle-icon">▼</span></h3>
             <div class="game-info-content">
                 <p><strong>"Юный эколог"</strong> — это увлекательная многопользовательская игра, где вы становитесь защитником природы. Ваша задача — пройти маршрут по городам России, решая экологические проблемы и помогая природе.</p>
+                
                 <p><strong>Основные особенности игры:</strong></p>
                 <ul>
                     <li>Реалистичная карта России в виде изображения</li>
@@ -2838,6 +2838,7 @@
                     <li>Рабочие задания с перетаскиванием, сортировкой, викторинами</li>
                     <li>Загруженная карта городов России</li>
                 </ul>
+                
                 <p><strong>Как начать играть:</strong></p>
                 <ol>
                     <li>Создайте комнату или присоединитесь к существующей</li>
@@ -2848,6 +2849,7 @@
                     <li>Общайтесь с другими игроками в чате</li>
                     <li>Игра считается завершенной, когда один из игроков достигнет финиша и очистит все города на 100%</li>
                 </ol>
+                
                 <p><strong>Основные правила:</strong></p>
                 <ul>
                     <li>Для перехода в следующий город необходимо очистить текущий город на 100%</li>
@@ -2857,6 +2859,7 @@
                     <li>Финиш находится на конечной клетке маршрута</li>
                     <li>Старт находится на начальной клетке маршрута</li>
                 </ul>
+                
                 <p><strong>Управление:</strong></p>
                 <ul>
                     <li>Нажмите "Бросить кубик" для перемещения</li>
@@ -2865,6 +2868,7 @@
                     <li>Используйте быстрые действия (кнопка ⚡) для быстрого доступа к функциям</li>
                     <li>Нажмите на город на карте для подробной информации</li>
                 </ul>
+                
                 <p><strong>Типы заданий:</strong></p>
                 <ul>
                     <li><strong>Викторины:</strong> Ответьте на вопросы об экологии</li>
@@ -2875,7 +2879,9 @@
                     <li><strong>Создание последовательности:</strong> Расставьте элементы в правильном порядке</li>
                     <li><strong>Найди пару:</strong> Найдите одинаковые экологические символы</li>
                 </ul>
+                
                 <p><strong>Присоединяйтесь к игре и станьте настоящим защитником природы!</strong></p>
+                
                 <p style="text-align: center; margin-top: 20px; font-style: italic; color: #8e44ad;">
                     🌱 Сохраним природу вместе! 🌍
                 </p>
@@ -3110,7 +3116,6 @@
 
     <div class="city-modal" id="cityModal">
         <div class="city-modal-content">
-            <span class="modal-close-x" id="cityModalX">&times;</span>
             <div class="city-modal-header">
                 <h2 class="city-modal-title" id="cityModalTitle">Название города</h2>
                 <div class="city-modal-subtitle" id="cityModalSubtitle">Экологическая проблема</div>
@@ -3145,7 +3150,6 @@
 
     <div class="choice-modal" id="choiceModal">
         <div class="choice-modal-content">
-            <span class="modal-close-x" id="choiceModalX">&times;</span>
             <div class="choice-modal-header">
                 <h2 class="choice-modal-title">Вы достигли нового города!</h2>
             </div>
@@ -3172,7 +3176,6 @@
 
     <div class="invite-modal" id="inviteModal">
         <div class="invite-modal-content">
-            <span class="modal-close-x" id="inviteModalX">&times;</span>
             <div class="invite-modal-header">
                 <h2 class="invite-modal-title">🎮 Пригласите друзей!</h2>
             </div>
@@ -3207,7 +3210,6 @@
 
     <div class="color-modal" id="colorModal">
         <div class="color-modal-content">
-            <span class="modal-close-x" id="colorModalX">&times;</span>
             <h2 class="color-modal-title">Выберите цвет вашей фишки</h2>
             <p style="margin-bottom: 20px; color: rgba(255,255,255,0.8);">Этот цвет будет представлять вас на карте.</p>
             <div class="color-grid" id="colorGrid">
