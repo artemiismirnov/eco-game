@@ -220,25 +220,24 @@
             overflow: hidden;
             border: 3px solid #2E7D32;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 10px;
-            box-sizing: border-box;
-            display: block; /* Убрали flex, чтобы не ломать aspect-ratio */
         }
         
-        .map-scale-wrapper {
+        .map-wrapper {
             position: relative;
             width: 100%;
-            aspect-ratio: 1 / 1; /* Соотношение сторон редактора 800x800 */
-            max-width: 800px; /* Защита от огромных мониторов */
+            max-width: 1083px; /* Оригинальная ширина изображения */
             margin: 0 auto;
         }
-        
+
         #mapImage {
             width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background-color: transparent;
-            pointer-events: none;
+            height: auto;
+            display: block;
+            background-color: #e8f5e9;
         }
         
         .map-overlay {
@@ -370,7 +369,7 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%); /* КРАЙНЕ ВАЖНО ДЛЯ ВЫРАВНИВАНИЯ ПО ЦЕНТРУ КЛЕТКИ */
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 30;
             display: flex;
@@ -1279,6 +1278,7 @@
             width: 100%;
             border-radius: 12px;
             position: relative;
+            overflow: hidden;
             margin-bottom: 20px;
         }
         
@@ -2959,10 +2959,9 @@
                     
                     <div class="game-map">
                         <div class="map-image-container" id="mapContainer">
-                            <div class="map-scale-wrapper">
+                            <div class="map-wrapper">
                                 <img id="mapImage" src="" alt="Карта России">
-                                <div class="map-overlay" id="mapOverlay">
-                                    </div>
+                                <div class="map-overlay" id="mapOverlay"></div>
                             </div>
                         </div>
                     </div>
