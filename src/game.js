@@ -30,10 +30,6 @@ const AVAILABLE_COLORS = [
     { name: 'Оранжевый', hex: '#e67e22' }
 ];
 
-// Оригинальные размеры изображения карты из вашего ТЗ
-const ORIGINAL_MAP_WIDTH = 1083;
-const ORIGINAL_MAP_HEIGHT = 976;
-
 // ==================== ЭЛЕМЕНТЫ DOM ====================
 const elements = {
     authSection: document.getElementById('authSection'),
@@ -405,29 +401,6 @@ let mapData = {
     cells: [],
     imageLoaded: false
 };
-
-// ==================== МАСШТАБИРОВАНИЕ КАРТЫ ====================
-// Важнейшая функция, которая подстраивает overlay пиксель в пиксель
-function resizeOverlay() {
-    if (!elements.mapOverlay) return;
-    const wrapper = document.querySelector('.map-wrapper');
-    if (!wrapper) return;
-    
-    // Узнаем, до каких размеров сжалась картинка на экране
-    const currentWidth = wrapper.offsetWidth;
-    const scale = currentWidth / ORIGINAL_MAP_WIDTH;
-    
-    // Жестко фиксируем размер оверлея под оригинальную карту
-    elements.mapOverlay.style.width = `${ORIGINAL_MAP_WIDTH}px`;
-    elements.mapOverlay.style.height = `${ORIGINAL_MAP_HEIGHT}px`;
-    elements.mapOverlay.style.transformOrigin = 'top left';
-    // Масштабируем всё содержимое слоя одним махом
-    elements.mapOverlay.style.transform = `scale(${scale})`;
-}
-
-// Прикрепляем пересчет масштаба к изменению размера окна
-window.addEventListener('resize', resizeOverlay);
-
 
 // ==================== СОСТОЯНИЕ ИГРЫ ====================
 let gameState = {
@@ -821,18 +794,17 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, color) {
         elements.mapOverlay.appendChild(marker);
         console.log(`🆕 Создан маркер для игрока ${playerName}`);
     } else {
-        // Обновляем цвет, если он изменился
+        // Обновляем цвет, если он изменился (например, игрок только что выбрал его)
         if (color) {
             marker.style.background = color;
         }
     }
     
-    // Находим клетку с указанной позицией и жестко выставляем ПИКСЕЛИ
+    // Находим клетку с указанной позицией
     const cell = mapData.cells.find(c => c.number === position);
     if (cell) {
-        // Мы используем px, так как слой mapOverlay сам масштабируется через CSS!
-        marker.style.left = `${cell.x + (cell.width / 2)}px`;
-        marker.style.top = `${cell.y + (cell.height / 2)}px`;
+        marker.style.left = `${cell.x + cell.width/2}px`;
+        marker.style.top = `${cell.y + cell.height/2}px`;
         
         const tooltip = marker.querySelector('.player-tooltip');
         if (tooltip) {
@@ -1163,9 +1135,6 @@ function loadMap() {
             // Загружаем сохраненную карту из файла
             loadSavedMap();
             
-            // Адаптируем холст под размер окна при первом запуске
-            resizeOverlay();
-            
             // Обновляем маркеры игроков
             updatePlayerMarkers();
         };
@@ -1206,6 +1175,9 @@ function loadSavedMap() {
                 // Создаем клетки на карте
                 createMapCells();
                 
+                // Если есть игроки, обновляем их маркеры
+                updatePlayerMarkers();
+                
                 showNotification('Карта городов России успешно загружена!', 'success');
             } else {
                 throw new Error('Некорректный формат файла карты');
@@ -1223,13 +1195,17 @@ function loadSavedMap() {
 function createDefaultMap() {
     console.log('📍 Создание стандартной карты городов');
     
+    const containerWidth = elements.mapContainer.offsetWidth;
+    const containerHeight = elements.mapContainer.offsetHeight;
+    
+    // Создаем клетки для каждого города
     const cityPositions = [
-        { city: 'tver', x: ORIGINAL_MAP_WIDTH * 0.1, y: ORIGINAL_MAP_HEIGHT * 0.3, number: 1, type: 'start' },
-        { city: 'kineshma', x: ORIGINAL_MAP_WIDTH * 0.3, y: ORIGINAL_MAP_HEIGHT * 0.4, number: 2, type: 'city' },
-        { city: 'naberezhnye_chelny', x: ORIGINAL_MAP_WIDTH * 0.5, y: ORIGINAL_MAP_HEIGHT * 0.3, number: 3, type: 'city' },
-        { city: 'kazan', x: ORIGINAL_MAP_WIDTH * 0.7, y: ORIGINAL_MAP_HEIGHT * 0.4, number: 4, type: 'city' },
-        { city: 'volgograd', x: ORIGINAL_MAP_WIDTH * 0.6, y: ORIGINAL_MAP_HEIGHT * 0.6, number: 5, type: 'city' },
-        { city: 'astrakhan', x: ORIGINAL_MAP_WIDTH * 0.8, y: ORIGINAL_MAP_HEIGHT * 0.7, number: 6, type: 'finish' }
+        { city: 'tver', x: containerWidth * 0.1, y: containerHeight * 0.3, number: 1, type: 'start' },
+        { city: 'kineshma', x: containerWidth * 0.3, y: containerHeight * 0.4, number: 2, type: 'city' },
+        { city: 'naberezhnye_chelny', x: containerWidth * 0.5, y: containerHeight * 0.3, number: 3, type: 'city' },
+        { city: 'kazan', x: containerWidth * 0.7, y: containerHeight * 0.4, number: 4, type: 'city' },
+        { city: 'volgograd', x: containerWidth * 0.6, y: containerHeight * 0.6, number: 5, type: 'city' },
+        { city: 'astrakhan', x: containerWidth * 0.8, y: containerHeight * 0.7, number: 6, type: 'finish' }
     ];
     
     mapData.cells = cityPositions.map((pos, index) => ({
@@ -1251,15 +1227,12 @@ function createMapCells() {
     // Очищаем overlay
     elements.mapOverlay.innerHTML = '';
     
-    // Создаем клетки
+    // Создаем клетки (всегда скрытые)
     mapData.cells.forEach(cell => {
         createCellElement(cell);
     });
     
     console.log(`✅ Создано ${mapData.cells.length} клеток на карте`);
-    
-    // Вызываем пересчет размеров, чтобы точки подстроились под текущий экран
-    resizeOverlay();
     
     // Если есть игроки, обновляем их маркеры
     updatePlayerMarkers();
@@ -1273,7 +1246,7 @@ function createCellElement(cell) {
     cellElement.dataset.cellType = cell.type;
     cellElement.dataset.city = cell.city || '';
     
-    // Позиционируем жестко в пикселях - масштабирование берет на себя CSS transform!
+    // Позиционируем клетку
     cellElement.style.left = `${cell.x}px`;
     cellElement.style.top = `${cell.y}px`;
     cellElement.style.width = `${cell.width}px`;
