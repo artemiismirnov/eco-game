@@ -1281,8 +1281,6 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
-        /* Убрана легенда карты */
-        
         .game-info-panel {
             flex: 1;
             min-width: 300px;
@@ -2390,6 +2388,48 @@
         body.light-theme .copy-invite-btn:hover {
             background: linear-gradient(135deg, #3eb4ab, #27ae60);
         }
+
+        /* ==================== МОДАЛЬНОЕ ОКНО ЦВЕТА ==================== */
+        .color-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 2500; opacity: 0; visibility: hidden; transition: all 0.3s;
+        }
+        .color-modal.active { opacity: 1; visibility: visible; }
+        .color-modal-content {
+            background: rgba(30, 30, 46, 0.95);
+            border-radius: 15px; padding: 30px; max-width: 400px; width: 90%;
+            text-align: center; border: 1px solid rgba(255, 255, 255, 0.25);
+            transform: translateY(20px); transition: transform 0.3s;
+        }
+        .color-modal.active .color-modal-content { transform: translateY(0); }
+        body.light-theme .color-modal-content {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+        }
+        .color-modal-title { font-size: 1.5rem; color: #8e44ad; margin-bottom: 10px; font-weight: bold; }
+        body.light-theme .color-modal-title { color: var(--secondary); }
+        
+        .color-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+            margin-top: 20px;
+        }
+        .color-btn {
+            width: 100%; aspect-ratio: 1; border-radius: 50%;
+            border: 4px solid transparent; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .color-btn:hover:not(.disabled) { transform: scale(1.15); border-color: white; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); }
+        .color-btn.disabled {
+            opacity: 0.2; cursor: not-allowed; filter: grayscale(100%); transform: scale(0.9);
+        }
+        .color-btn.disabled::after {
+            content: "🔒"; position: absolute; font-size: 2rem;
+        }
         
         /* ==================== АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ ==================== */
         @media (max-width: 768px) {
@@ -2548,6 +2588,11 @@
                 width: 60px;
                 height: 60px;
                 font-size: 1.4rem;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
             }
         }
         
@@ -2757,13 +2802,11 @@
 </head>
 <body>
     <div class="container">
-        <!-- Шапка -->
         <header>
             <h1>Юный эколог</h1>
             <div class="subtitle">Многопользовательская экологическая игра</div>
         </header>
         
-        <!-- Плейсхолдер ресурсов (монеты и уровень) -->
         <div class="resources-placeholder" id="resourcesPlaceholder" style="display: none;">
             <div class="resource-item">
                 <div class="resource-icon">🪙</div>
@@ -2775,13 +2818,11 @@
             </div>
         </div>
         
-        <!-- Статус подключения (компактный) -->
         <div class="connection-status-compact" id="connectionStatusCompact">
             <div class="connection-dot" id="connectionStatusDot"></div>
             <div class="connection-status-text" id="connectionStatusText">Подключение...</div>
         </div>
         
-        <!-- Информация об игре -->
         <section class="game-info" id="gameInfo">
             <h3>Информация об игре "Юный эколог" <span class="toggle-icon">▼</span></h3>
             <div class="game-info-content">
@@ -2847,14 +2888,12 @@
             </div>
         </section>
         
-        <!-- Авторизация -->
         <section class="auth-section" id="authSection">
             <div class="auth-tabs">
                 <div class="auth-tab active" id="loginTab">Войти в комнату</div>
                 <div class="auth-tab" id="registerTab">Создать комнату</div>
             </div>
             
-            <!-- Форма входа -->
             <form class="auth-form active" id="loginForm">
                 <div class="form-group">
                     <label for="loginUsername">Имя пользователя</label>
@@ -2867,7 +2906,6 @@
                 <button type="submit" class="auth-btn">Войти в комнату</button>
             </form>
             
-            <!-- Форма регистрации -->
             <form class="auth-form" id="registerForm">
                 <div class="form-group">
                     <label for="registerUsername">Имя пользователя</label>
@@ -2881,9 +2919,7 @@
             </form>
         </section>
         
-        <!-- Основное игровое содержимое -->
         <main id="gameContent" style="display: none;">
-            <!-- Информация о комнате -->
             <div class="room-section">
                 <div class="room-info">
                     <div>
@@ -2896,12 +2932,10 @@
                     </div>
                 </div>
                 
-                <!-- Индикатор очереди хода -->
                 <div class="turn-indicator" id="turnIndicator" style="display: none;">
                     <p id="turnMessage">Ожидание хода...</p>
                 </div>
                 
-                <!-- Список игроков -->
                 <div class="players-list">
                     <h4>Игроки в комнате:</h4>
                     <div id="playersContainer">
@@ -2912,7 +2946,6 @@
                     </div>
                 </div>
                 
-                <!-- Чат -->
                 <div class="chat-section">
                     <h4>Чат комнаты</h4>
                     <div class="chat-messages" id="chatMessages">
@@ -2927,57 +2960,45 @@
                             <input type="text" id="chatInput" placeholder="Введите сообщение..." maxlength="200">
                             <button class="emoji-picker-btn" id="emojiPickerBtn">😀</button>
                             <div class="emoji-picker" id="emojiPicker">
-                                <!-- Недавние смайлики будут добавлены здесь -->
                                 <div class="recent-emojis-section" id="recentEmojisSection" style="display: none;">
                                     <div class="recent-emojis-title">Недавние смайлики:</div>
                                     <div class="recent-emojis-container" id="recentEmojisContainer">
-                                        <!-- Недавние смайлики будут добавлены через JS -->
-                                    </div>
+                                        </div>
                                 </div>
-                                <!-- Категории смайликов будут добавлены через JS -->
-                            </div>
+                                </div>
                         </div>
                         <button class="game-btn small" id="sendMessageBtn">Отправить</button>
                     </div>
                 </div>
             </div>
             
-            <!-- Игровой контейнер -->
             <div class="game-container">
-                <!-- Игровая доска (левая часть) -->
                 <div class="game-board">
                     <h2 style="text-align: center;">Игровое поле - Карта России</h2>
                     
-                    <!-- Контейнер для карты -->
                     <div class="game-map">
                         <div class="map-image-container" id="mapContainer">
                             <img id="mapImage" src="" alt="Карта России">
                             <div class="map-overlay" id="mapOverlay">
-                                <!-- Здесь будут создаваться невидимые клетки -->
-                            </div>
+                                </div>
                         </div>
                     </div>
                     
-                    <!-- Сетка городов -->
                     <div class="cities-section">
                         <h4>Города на карте:</h4>
                         <div class="cities-grid" id="citiesGrid">
-                            <!-- Города будут добавлены через JS -->
-                        </div>
+                            </div>
                         <div style="margin-top: 10px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
                             <p>Нажмите на город для подробной информации или для перемещения в уже пройденный город</p>
                         </div>
                     </div>
                     
-                    <!-- Прогресс очищения -->
                     <div class="game-progress">
                         <h3>Прогресс очищения текущего города</h3>
                         <div id="cityProgressContainer">
-                            <!-- Прогресс по текущему городу будет добавлен через JS -->
-                        </div>
+                            </div>
                     </div>
                     
-                    <!-- Журнал игры -->
                     <div class="game-log">
                         <h3>Журнал игры</h3>
                         <div id="logEntries">
@@ -2989,9 +3010,7 @@
                     </div>
                 </div>
                 
-                <!-- Панель информации об игре (правая часть) -->
                 <div class="game-info-panel">
-                    <!-- Информация об игроке -->
                     <div class="player-info">
                         <div class="stats-section">
                             <div class="stat">
@@ -3030,7 +3049,6 @@
                             </div>
                         </div>
                         
-                        <!-- Действия игрока -->
                         <div class="actions-section">
                             <button class="game-btn" id="rollDiceBtn" disabled>🎲 Бросить кубик</button>
                             <button class="game-btn" id="buildBtn" disabled>🏗️ Построить объект</button>
@@ -3038,7 +3056,6 @@
                         </div>
                     </div>
                     
-                    <!-- Кубик -->
                     <div class="dice-container">
                         <h3>Кубик</h3>
                         <div class="dice" id="diceValue">
@@ -3046,7 +3063,6 @@
                         </div>
                     </div>
                     
-                    <!-- Задания -->
                     <div class="task-card">
                         <h3>Задание 📋</h3>
                         <div id="currentTask" class="current-task" style="display: none;">
@@ -3057,8 +3073,7 @@
                         <div id="interactiveTask" class="interactive-task" style="display: none;">
                             <h4>Выполните задание:</h4>
                             <div id="taskArea" class="task-area">
-                                <!-- Интерактивная область для задания -->
-                            </div>
+                                </div>
                             <button class="game-btn" id="checkTaskBtn" style="display: none;">✅ Проверить выполнение</button>
                             <button class="game-btn" id="retryTaskBtn" style="display: none; margin-top: 10px;">🔄 Попробовать снова</button>
                             <p id="taskResult" style="margin-top: 10px; font-weight: bold;"></p>
@@ -3066,7 +3081,6 @@
                         
                         <p id="noTaskMessage">Бросьте кубик, чтобы получить задание</p>
                         
-                        <!-- Выбор сложности -->
                         <div class="difficulty-selector">
                             <div class="difficulty-btn easy active" id="easyBtn">
                                 Легкий
@@ -3082,29 +3096,24 @@
                         <button class="game-btn" id="completeTaskBtn" disabled>▶️ Начать выполнение задания</button>
                     </div>
                     
-                    <!-- Доступные объекты -->
                     <div class="buildings-list" id="buildingsSection">
                         <h3>Доступные объекты 🏗️</h3>
                         <div id="buildingsContainer">
-                            <!-- Здания будут добавлены через JS -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
         </main>
         
-        <!-- Подвал -->
         <div class="copyright">
             © 2025 Юный Эколог - Многопользовательская экологическая игра
         </div>
     </div>
 
-    <!-- Уведомления -->
     <div class="notification" id="notification">
         Уведомление
     </div>
 
-    <!-- Модальное окно города -->
     <div class="city-modal" id="cityModal">
         <div class="city-modal-content">
             <div class="city-modal-header">
@@ -3139,7 +3148,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно выбора -->
     <div class="choice-modal" id="choiceModal">
         <div class="choice-modal-content">
             <div class="choice-modal-header">
@@ -3166,7 +3174,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно приглашения -->
     <div class="invite-modal" id="inviteModal">
         <div class="invite-modal-content">
             <div class="invite-modal-header">
@@ -3201,7 +3208,15 @@
         </div>
     </div>
 
-    <!-- Кнопка быстрых действий -->
+    <div class="color-modal" id="colorModal">
+        <div class="color-modal-content">
+            <h2 class="color-modal-title">Выберите цвет вашей фишки</h2>
+            <p style="margin-bottom: 20px; color: rgba(255,255,255,0.8);">Этот цвет будет представлять вас на карте.</p>
+            <div class="color-grid" id="colorGrid">
+                </div>
+        </div>
+    </div>
+
     <button class="floating-action-btn" id="quickActionsBtn">
         <div class="icon">⚡</div>
     </button>
@@ -3233,7 +3248,6 @@
         </button>
     </div>
 
-    <!-- Подключение Socket.IO, mapData.js и игровая логика -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script src="mapData.js"></script>
     <script src="game.js"></script>
