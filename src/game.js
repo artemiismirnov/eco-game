@@ -450,9 +450,9 @@ function renderColorGrid() {
     if (!elements.colorGrid) return;
     elements.colorGrid.innerHTML = '';
     
-    // Получаем цвета, уже выбранные другими игроками в комнате
+    // ИСПРАВЛЕНИЕ 6: Использовать gameState.currentPlayerId
     const takenColors = Object.values(gameState.players)
-        .filter(p => p.id !== socket.id && p.hasSelectedColor)
+        .filter(p => p.id !== gameState.currentPlayerId && p.hasSelectedColor)
         .map(p => p.color);
 
     AVAILABLE_COLORS.forEach(colorObj => {
@@ -560,7 +560,9 @@ socket.on('join-success', (playerData) => {
     gameState.reconnected = playerData.reconnected || false;
     gameState.currentTurn = playerData.currentTurn;
     gameState.turnOrder = playerData.turnOrder || [];
-    gameState.isMyTurn = playerData.isMyTurn || false;
+    
+    // ИСПРАВЛЕНИЕ 2: Проверяем ход по playerData.id, а не socket.id
+    gameState.isMyTurn = (playerData.id === playerData.currentTurn);
     gameState.hasUnfinishedTask = playerData.hasUnfinishedTask || false;
     
     // Загружаем сохраненный прогресс игрока
@@ -632,7 +634,9 @@ socket.on('room_state', (roomData) => {
     if (roomData.currentTurn) {
         gameState.currentTurn = roomData.currentTurn;
         gameState.turnOrder = roomData.turnOrder || [];
-        gameState.isMyTurn = (socket.id === roomData.currentTurn);
+        
+        // ИСПРАВЛЕНИЕ 3: Используем gameState.currentPlayerId
+        gameState.isMyTurn = (gameState.currentPlayerId === roomData.currentTurn);
         updateTurnIndicator();
     }
 });
@@ -729,7 +733,9 @@ socket.on('turn_update', (data) => {
     console.log('🔄 Получено обновление очереди ходов:', data);
     gameState.currentTurn = data.currentTurn;
     gameState.turnOrder = data.turnOrder || [];
-    gameState.isMyTurn = (socket.id === data.currentTurn);
+    
+    // ИСПРАВЛЕНИЕ 4: Используем gameState.currentPlayerId
+    gameState.isMyTurn = (gameState.currentPlayerId === data.currentTurn);
     
     updateTurnIndicator();
     
@@ -857,7 +863,8 @@ function updatePlayerInList(playerId, position, playerName) {
 socket.on('player_position_update', (data) => {
     const { playerId, playerName, position, city, color } = data;
     
-    if (playerId !== socket.id) {
+    // ИСПРАВЛЕНИЕ 5: Используем gameState.currentPlayerId
+    if (playerId !== gameState.currentPlayerId) {
         console.log(`📍 Получено обновление позиции игрока ${playerName}: ${position}, город: ${city}`);
         updateOtherPlayerMarker(playerId, playerName, position, city, color);
     }
@@ -926,7 +933,9 @@ function joinGame(username, roomId, isNewRoom) {
 
 function initializeGame(playerData) {
     gameState.currentPlayer = playerData;
-    gameState.currentPlayerId = socket.id;
+    
+    // ИСПРАВЛЕНИЕ 1: Сохраняем истинный ID игрока с сервера
+    gameState.currentPlayerId = playerData.id;
     
     // Инициализируем прогресс для текущего игрока
     if (!gameState.playerProgress[gameState.currentPlayerId]) {
