@@ -20,6 +20,9 @@ let currentRoomId = null;
 let hasCurrentTask = false;
 let lightThemeEnabled = false; // По умолчанию выключена (темная тема включена)
 
+// Временное хранилище данных при создании новой комнаты (до выбора карты)
+let pendingRoomData = null;
+
 // Профиль игрока и настройки
 let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
     name: '',
@@ -46,6 +49,12 @@ const elements = {
     registerTab: document.getElementById('registerTab'),
     loginForm: document.getElementById('loginForm'),
     registerForm: document.getElementById('registerForm'),
+    
+    // Новые элементы для выбора карты
+    mapSelectionSection: document.getElementById('mapSelectionSection'),
+    mapCardVolga: document.getElementById('mapCardVolga'),
+    cancelMapSelectionBtn: document.getElementById('cancelMapSelectionBtn'),
+    
     mapContainer: document.getElementById('mapContainer'),
     mapImage: document.getElementById('mapImage'),
     mapOverlay: document.getElementById('mapOverlay'),
@@ -455,7 +464,7 @@ const gameData = {
 let mapData = { cells: [], imageLoaded: false };
 
 let gameState = {
-    currentPlayer: null, currentPlayerId: null, players: {}, roomId: null, cityProgress: {},
+    mapId: 'volga', currentPlayer: null, currentPlayerId: null, players: {}, roomId: null, cityProgress: {},
     currentTask: null, currentDifficulty: "easy", gameOver: false,
     usedTasks: { easy: [], medium: [], hard: [] }, nextCity: null, askedForChoice: {},
     taskInProgress: false, dragItems: [], dropZones: [], sortItems: [], sortBins: [],
@@ -612,6 +621,7 @@ socket.on('room-error', (message) => {
     const errorMsg = typeof message === 'object' ? message.message : message;
     showNotification(errorMsg || 'Комнаты с таким номером не существует', 'error');
     elements.authSection.style.display = 'block';
+    if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
     elements.gameContent.style.display = 'none';
     elements.resourcesPlaceholder.style.display = 'none';
     quickActionsBtn.classList.remove('show');
@@ -625,6 +635,9 @@ socket.on('room_state', (roomData) => {
         gameState.turnOrder = roomData.turnOrder || [];
         gameState.isMyTurn = (socket.id === roomData.currentTurn);
         updateTurnIndicator();
+    }
+    if (roomData.mapId) {
+        gameState.mapId = roomData.mapId;
     }
 });
 
@@ -850,13 +863,18 @@ function showNotification(message, type = 'info') {
     setTimeout(() => { elements.notification.classList.remove('show'); }, 3000);
 }
 
-function joinGame(username, roomId, isNewRoom) {
+function joinGame(username, roomId, isNewRoom, mapId = 'volga') {
     if (!isConnected) {
         showNotification('Нет подключения к серверу. Попробуйте обновить страницу.', 'error');
         return;
     }
     currentRoomId = roomId;
-    socket.emit('join-room', { roomId: roomId, playerName: username, isNewRoom: isNewRoom });
+    socket.emit('join-room', { 
+        roomId: roomId, 
+        playerName: username, 
+        isNewRoom: isNewRoom,
+        mapId: mapId 
+    });
     showNotification('Подключаемся к комнате...', 'info');
 }
 
@@ -872,6 +890,7 @@ function initializeGame(playerData) {
     }
     
     elements.authSection.style.display = 'none';
+    if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
     elements.gameContent.style.display = 'block';
     elements.resourcesPlaceholder.style.display = 'flex';
     updatePlayerUI();
@@ -912,7 +931,7 @@ function initializeGame(playerData) {
 
 function resetGameState() {
     gameState = {
-        currentPlayer: null, currentPlayerId: null, players: {}, roomId: null, cityProgress: {},
+        mapId: 'volga', currentPlayer: null, currentPlayerId: null, players: {}, roomId: null, cityProgress: {},
         currentTask: null, currentDifficulty: "easy", gameOver: false,
         usedTasks: { easy: [], medium: [], hard: [] }, nextCity: null, askedForChoice: {},
         taskInProgress: false, dragItems: [], dropZones: [], sortItems: [], sortBins: [],
@@ -2477,8 +2496,42 @@ elements.registerForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const username = document.getElementById('registerUsername').value.trim();
     const roomId = document.getElementById('registerRoom').value.trim();
-    if (username && roomId) joinGame(username, roomId, true);
+    
+    if (username && roomId) {
+        // Вместо прямого входа сохраняем данные и показываем выбор карты
+        pendingRoomData = { username, roomId };
+        elements.authSection.style.display = 'none';
+        
+        if (elements.mapSelectionSection) {
+            elements.mapSelectionSection.style.display = 'block';
+        } else {
+            // Фолбэк, если секции почему-то нет
+            joinGame(username, roomId, true);
+        }
+    }
 });
+
+// Обработка клика по карте "Волга"
+if (elements.mapCardVolga) {
+    elements.mapCardVolga.addEventListener('click', () => {
+        if (pendingRoomData) {
+            const mapId = elements.mapCardVolga.dataset.mapId || 'volga';
+            elements.mapSelectionSection.style.display = 'none';
+            // Заходим в игру, передавая выбранную карту
+            joinGame(pendingRoomData.username, pendingRoomData.roomId, true, mapId);
+            pendingRoomData = null;
+        }
+    });
+}
+
+// Кнопка отмены выбора карты
+if (elements.cancelMapSelectionBtn) {
+    elements.cancelMapSelectionBtn.addEventListener('click', () => {
+        pendingRoomData = null;
+        elements.mapSelectionSection.style.display = 'none';
+        elements.authSection.style.display = 'block';
+    });
+}
 
 elements.rollDiceBtn.addEventListener('click', () => {
     if (gameState.gameOver || gameState.taskInProgress || hasCurrentTask || !gameState.isMyTurn) return;
@@ -2565,6 +2618,7 @@ elements.leaveRoomBtn.addEventListener('click', () => {
         socket.emit('leave-room');
         resetGameState();
         elements.authSection.style.display = 'block';
+        if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
         elements.gameContent.style.display = 'none';
         elements.resourcesPlaceholder.style.display = 'none';
         quickActionsBtn.classList.remove('show');
