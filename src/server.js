@@ -86,7 +86,8 @@ io.on('connection', (socket) => {
 
     // Присоединение к лобби
     socket.on('join-room', (data) => {
-        const { roomId, playerName, isNewRoom = false } = data;
+        // Добавили прием mapId со значением по умолчанию 'volga'
+        const { roomId, playerName, isNewRoom = false, mapId = 'volga' } = data;
         
         if (!playerName || playerName.trim().length < 2) {
             return socket.emit('room-error', 'Имя должно содержать минимум 2 символа');
@@ -97,6 +98,7 @@ io.on('connection', (socket) => {
         // Создаем лобби, если его нет
         if (isNewRoom && !lobbies.has(roomId)) {
             lobbies.set(roomId, {
+                mapId: mapId, // Сохраняем выбранную карту в объект лобби
                 players: {},
                 turnOrder: [],
                 currentTurn: null,
@@ -106,7 +108,7 @@ io.on('connection', (socket) => {
                 created: new Date().toISOString(),
                 maxPlayers: 6
             });
-            console.log(`🆕 Создано лобби: ${roomId}`);
+            console.log(`🆕 Создано лобби: ${roomId} с картой: ${mapId}`);
         } else if (isNewRoom && lobbies.has(roomId)) {
             return socket.emit('room-error', 'Лобби с таким номером уже существует!');
         } else if (!isNewRoom && !lobbies.has(roomId)) {
@@ -143,17 +145,19 @@ io.on('connection', (socket) => {
             
             console.log(`🔄 ${cleanPlayerName} успешно вернулся в лобби ${roomId}`);
             
-            // Отправляем личные данные игроку
+            // Отправляем личные данные игроку, включая mapId
             socket.emit('join-success', { 
                 ...player,
                 roomId: roomId,
+                mapId: lobby.mapId,
                 currentTurn: lobby.currentTurn,
                 turnOrder: lobby.turnOrder,
                 playerProgress: lobby.playerProgress[playerId]
             });
 
-            // Отправляем актуальное состояние комнаты ВСЕМ
+            // Отправляем актуальное состояние комнаты ВСЕМ, включая mapId
             io.to(roomId).emit('room_state', {
+                mapId: lobby.mapId,
                 players: lobby.players,
                 cityProgress: lobby.cityProgress,
                 roomId: roomId
@@ -216,10 +220,11 @@ io.on('connection', (socket) => {
         
         console.log(`✅ ${cleanPlayerName} присоединился к лобби ${roomId}`);
         
-        // 1. Отправляем успех самому игроку
+        // 1. Отправляем успех самому игроку, включая карту
         socket.emit('join-success', { 
             ...player,
             roomId: roomId,
+            mapId: lobby.mapId,
             currentTurn: lobby.currentTurn,
             turnOrder: lobby.turnOrder,
             playerProgress: lobby.playerProgress[socket.id]
@@ -344,6 +349,7 @@ io.on('connection', (socket) => {
         const lobby = lobbies.get(socket.lobbyId);
         if (lobby) {
             socket.emit('room_state', {
+                mapId: lobby.mapId, // Отдаем mapId при запросе состояния
                 players: lobby.players,
                 cityProgress: lobby.cityProgress,
                 playerProgress: lobby.playerProgress,
