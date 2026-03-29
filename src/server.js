@@ -29,6 +29,12 @@ app.use(express.static(__dirname));
 // Хранилище лобби (комнат)
 const lobbies = new Map();
 
+// === ГЛОБАЛЬНАЯ СТАТИСТИКА (ЗАДЕЛ НА БУДУЩЕЕ ДЛЯ РЕЙТИНГА) ===
+// В будущих обновлениях здесь можно будет подключить базу данных (например, MongoDB, PostgreSQL или Redis),
+// чтобы сохранять очки игроков глобально после каждой игры и передавать их на клиент для вкладки "Рейтинг Экологов".
+// В текущей версии рейтинг на клиенте работает в демо-режиме (предустановленные данные).
+// =========================================================
+
 // Автоматическая очистка пустых лобби каждые 5 минут
 setInterval(() => {
     const now = Date.now();
@@ -86,7 +92,7 @@ io.on('connection', (socket) => {
 
     // Присоединение к лобби
     socket.on('join-room', (data) => {
-        // Добавили прием mapId со значением по умолчанию 'volga'
+        // Прием mapId со значением по умолчанию 'volga'
         const { roomId, playerName, isNewRoom = false, mapId = 'volga' } = data;
         
         if (!playerName || playerName.trim().length < 2) {
@@ -402,7 +408,7 @@ function handleDisconnect(socket) {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log('='.repeat(60));
-    console.log('🎮 ЭКО-ИГРА ЗАПУЩЕНА!');
+    console.log('🎮 ЭКО-ИГРА ЗАПУЩЕНА И ГОТОВА К РАБОТЕ!');
     console.log(`📍 Порт: ${PORT}`);
     console.log('='.repeat(60));
 });
