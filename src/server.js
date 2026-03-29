@@ -19,7 +19,8 @@ const io = socketIo(server, {
     transports: ['websocket', 'polling'],
     allowEIO3: true,
     pingTimeout: 60000,
-    pingInterval: 25000
+    pingInterval: 25000,
+    maxHttpBufferSize: 1e7 // ВАЖНО: Увеличено до 10 МБ для передачи Base64 аватарок
 });
 
 // КРИТИЧНО: Отдаем статические файлы (HTML, CSS, JS, картинки)
@@ -236,7 +237,7 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Выбор цвета фишки
+    // Выбор цвета фишки (или аватарки)
     socket.on('select_color', (data) => {
         if (!socket.lobbyId || !socket.playerId) return;
         const lobby = lobbies.get(socket.lobbyId);
@@ -244,7 +245,7 @@ io.on('connection', (socket) => {
             lobby.players[socket.playerId].color = data.color;
             lobby.players[socket.playerId].hasSelectedColor = true;
             
-            // Рассылаем всем в комнате информацию об обновлении цвета
+            // Рассылаем всем в комнате информацию об обновлении цвета/аватарки
             io.to(socket.lobbyId).emit('player_color_updated', {
                 playerId: socket.playerId,
                 color: data.color
@@ -293,7 +294,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Синхронизация профиля игрока (монеты, лвл)
+    // Синхронизация профиля игрока (монеты, лвл, аватарки)
     socket.on('player-update', (data) => {
         if (!socket.lobbyId || !socket.playerId) return;
         const lobby = lobbies.get(socket.lobbyId);
