@@ -41,8 +41,34 @@ const AVAILABLE_COLORS = [
     { name: 'Оранжевый', hex: '#e67e22' }
 ];
 
+// Фейковые данные для таблицы лидеров
+const fakePlayers = [
+    { name: "EcoMaster99", points: 2150, cities: 6 },
+    { name: "GreenGuardian", points: 1980, cities: 5 },
+    { name: "ЛеснойРейнджер", points: 1750, cities: 5 },
+    { name: "DaryaFox", points: 1540, cities: 4 },
+    { name: "ЧистаяВолга", points: 1320, cities: 3 },
+    { name: "Toxico_Net", points: 1100, cities: 3 },
+    { name: "Панда_Маг", points: 950, cities: 2 },
+    { name: "SuperTree", points: 800, cities: 2 },
+    { name: "AlexRecycle", points: 650, cities: 1 },
+    { name: "Newbie_1", points: 120, cities: 0 }
+];
+
 // ==================== ЭЛЕМЕНТЫ DOM ====================
 const elements = {
+    // Новые элементы главной страницы (Лэндинга)
+    landingPage: document.getElementById('landingPage'),
+    startLandingBtn: document.getElementById('startLandingBtn'),
+    backToLandingBtn: document.getElementById('backToLandingBtn'),
+    headerThemeBtn: document.getElementById('headerThemeBtn'),
+    
+    // Элементы Рейтинга
+    leaderboardModal: document.getElementById('leaderboardModal'),
+    openLeaderboardBtn: document.getElementById('openLeaderboardBtn'),
+    closeLeaderboardBtn: document.getElementById('closeLeaderboardBtn'),
+    leaderboardTableBody: document.getElementById('leaderboardTableBody'),
+
     authSection: document.getElementById('authSection'),
     gameContent: document.getElementById('gameContent'),
     loginTab: document.getElementById('loginTab'),
@@ -50,7 +76,7 @@ const elements = {
     loginForm: document.getElementById('loginForm'),
     registerForm: document.getElementById('registerForm'),
     
-    // Новые элементы для выбора карты
+    // Элементы для выбора карты
     mapSelectionSection: document.getElementById('mapSelectionSection'),
     mapCardVolga: document.getElementById('mapCardVolga'),
     cancelMapSelectionBtn: document.getElementById('cancelMapSelectionBtn'),
@@ -126,7 +152,7 @@ const elements = {
     colorModal: document.getElementById('colorModal'),
     colorGrid: document.getElementById('colorGrid'),
     
-    // Новые элементы для профиля и настроек
+    // Элементы для профиля и настроек
     userProfileBadge: document.getElementById('userProfileBadge'),
     userAvatar: document.getElementById('userAvatar'),
     googleSignInBtn: document.getElementById('googleSignInBtn'),
@@ -151,7 +177,6 @@ const quickBuildBtn = document.getElementById('quickBuildBtn');
 const quickChatBtn = document.getElementById('quickChatBtn');
 const quickTasksBtn = document.getElementById('quickTasksBtn');
 const quickInviteBtn = document.getElementById('quickInviteBtn');
-const quickThemeBtn = document.getElementById('quickThemeBtn');
 
 // ==================== НЕДАВНИЕ СМАЙЛИКИ ====================
 let recentEmojis = JSON.parse(localStorage.getItem('recentEmojis') || '[]');
@@ -201,19 +226,45 @@ function toggleLightTheme() {
     
     if (lightThemeEnabled) {
         document.body.classList.add('light-theme');
-        quickThemeBtn.innerHTML = '🌙<div class="tooltip">Включить темную тему</div>';
+        if (elements.headerThemeBtn) elements.headerThemeBtn.innerHTML = '🌙';
         showNotification('🌞 Светлая тема включена!', 'info');
-        
-        // Сохраняем в localStorage
         localStorage.setItem('lightTheme', 'enabled');
     } else {
         document.body.classList.remove('light-theme');
-        quickThemeBtn.innerHTML = '🌞<div class="tooltip">Включить светлую тему</div>';
+        if (elements.headerThemeBtn) elements.headerThemeBtn.innerHTML = '🌞';
         showNotification('🌙 Темная тема включена', 'info');
-        
-        // Сохраняем в localStorage
         localStorage.setItem('lightTheme', 'disabled');
     }
+}
+
+// ==================== РЕЙТИНГ ЭКОЛОГОВ (ТОП ИГРОКОВ) ====================
+function renderLeaderboard() {
+    if (!elements.leaderboardTableBody) return;
+    elements.leaderboardTableBody.innerHTML = '';
+    
+    fakePlayers.forEach((p, i) => {
+        const rank = i + 1;
+        let rankDisplay = rank;
+        
+        if(rank === 1) rankDisplay = '<i class="fas fa-crown rank-icon" style="color: #FFD700;"></i>';
+        else if(rank === 2) rankDisplay = '<i class="fas fa-medal rank-icon" style="color: #C0C0C0;"></i>';
+        else if(rank === 3) rankDisplay = '<i class="fas fa-award rank-icon" style="color: #cd7f32;"></i>';
+        else rankDisplay = `0${rank}`.slice(-2);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="rank-number">${rankDisplay}</td>
+            <td>
+                <div class="player-row-info">
+                    <div class="player-row-avatar">${p.name.charAt(0).toUpperCase()}</div>
+                    <span>${p.name}</span>
+                </div>
+            </td>
+            <td style="text-align: center; color: #4ecdc4; font-weight: bold;">${p.points}</td>
+            <td style="text-align: center;">${p.cities}</td>
+        `;
+        elements.leaderboardTableBody.appendChild(tr);
+    });
 }
 
 // ==================== НАСТРОЙКИ ПРОФИЛЯ И СТАТИСТИКА ====================
@@ -223,7 +274,7 @@ function updateProfileUI() {
         if(elements.settingsAvatarPreview) elements.settingsAvatarPreview.src = userProfile.avatar;
         if(elements.chipAvatarPreview) elements.chipAvatarPreview.src = userProfile.avatar;
         
-        // Показываем бейдж и скрываем кнопку Google, если аватар установлен (даже без входа)
+        // Показываем бейдж и скрываем кнопку Google, если аватар установлен
         elements.googleSignInBtn.style.display = 'none';
         elements.userProfileBadge.style.display = 'inline-block';
     }
@@ -549,10 +600,8 @@ socket.on('connect', () => {
     console.log('✅ Подключено к серверу');
     isConnected = true;
     
-    // Если мы переподключились, сообщаем серверу
     if (gameState.currentPlayerId && gameState.reconnected) {
         socket.emit('player_reconnected');
-        console.log('🔄 Уведомили сервер о восстановлении соединения');
     }
     
     setTimeout(() => { requestAllPlayersPositions(); }, 2000);
@@ -619,11 +668,12 @@ socket.on('player_color_updated', (data) => {
 
 socket.on('room-error', (message) => {
     const errorMsg = typeof message === 'object' ? message.message : message;
-    showNotification(errorMsg || 'Комнаты с таким номером не существует', 'error');
-    elements.authSection.style.display = 'block';
+    showNotification(errorMsg || 'Произошла ошибка при входе в лобби', 'error');
+    if(elements.landingPage) elements.landingPage.style.display = 'none';
+    if(elements.authSection) elements.authSection.style.display = 'block';
     if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
-    elements.gameContent.style.display = 'none';
-    elements.resourcesPlaceholder.style.display = 'none';
+    if(elements.gameContent) elements.gameContent.style.display = 'none';
+    if(elements.resourcesPlaceholder) elements.resourcesPlaceholder.style.display = 'none';
     quickActionsBtn.classList.remove('show');
     resetGameState();
 });
@@ -856,7 +906,7 @@ function showNotification(message, type = 'info') {
         elements.notification.style.background = 'var(--accent)';
     } else {
         elements.notification.classList.add('info');
-        elements.notification.style.background = 'linear-gradient(135deg, #8e44ad, #3498db)';
+        elements.notification.style.background = 'linear-gradient(135deg, #6c5ce7, #4834d4)';
     }
     
     elements.notification.classList.add('show');
@@ -875,7 +925,7 @@ function joinGame(username, roomId, isNewRoom, mapId = 'volga') {
         isNewRoom: isNewRoom,
         mapId: mapId 
     });
-    showNotification('Подключаемся к комнате...', 'info');
+    showNotification('Подключаемся к лобби...', 'info');
 }
 
 function initializeGame(playerData) {
@@ -889,10 +939,12 @@ function initializeGame(playerData) {
         }
     }
     
-    elements.authSection.style.display = 'none';
+    if(elements.landingPage) elements.landingPage.style.display = 'none';
+    if(elements.authSection) elements.authSection.style.display = 'none';
     if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
-    elements.gameContent.style.display = 'block';
-    elements.resourcesPlaceholder.style.display = 'flex';
+    if(elements.gameContent) elements.gameContent.style.display = 'block';
+    if(elements.resourcesPlaceholder) elements.resourcesPlaceholder.style.display = 'flex';
+    
     updatePlayerUI();
     elements.roomNumber.textContent = currentRoomId || gameState.roomId;
     
@@ -908,16 +960,15 @@ function initializeGame(playerData) {
     
     const savedTheme = localStorage.getItem('lightTheme');
     if (savedTheme === 'enabled') {
+        lightThemeEnabled = false; // устанавливаем false, чтобы toggle включил светлую
         toggleLightTheme(); 
-    } else {
-        quickThemeBtn.innerHTML = '🌞<div class="tooltip">Включить светлую тему</div>';
     }
     
-    addLogEntry(`🎮 Добро пожаловать в игре, ${playerData.name}!`);
+    addLogEntry(`🎮 Добро пожаловать в игру, ${playerData.name}!`);
     updateRollDiceButtonState();
     
     setTimeout(() => {
-        showNotification(`🎮 Добро пожаловать в игре, ${playerData.name}! Начните с броска кубика.`, 'success');
+        showNotification(`🎮 Добро пожаловать в игру, ${playerData.name}! Начните с броска кубика.`, 'success');
     }, 1000);
     
     socket.emit('get_room_state');
@@ -1166,8 +1217,8 @@ function updatePlayerUI() {
         elements.cleaningPoints.textContent = gameState.currentPlayer.cleaningPoints;
         elements.playerLevel.textContent = gameState.currentPlayer.level;
         
-        elements.topCoinsCount.textContent = gameState.currentPlayer.coins;
-        elements.topPlayerLevel.textContent = gameState.currentPlayer.level + ' ур.';
+        if(elements.topCoinsCount) elements.topCoinsCount.textContent = gameState.currentPlayer.coins;
+        if(elements.topPlayerLevel) elements.topPlayerLevel.textContent = gameState.currentPlayer.level + ' ур.';
         updateLevelProgress();
     }
 }
@@ -1501,7 +1552,7 @@ function closeInviteModal() {
 }
 
 function copyInvitation() {
-    const invitationText = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n\n🔢 Номер комнаты: ${currentRoomId || gameState.roomId || '0'}\n\n🌐 Игра доступна по адресу: https://eco-game-dfb0.onrender.com\n\n👥 Ждем вас!`;
+    const invitationText = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n\n🔢 Код лобби: ${currentRoomId || gameState.roomId || '0'}\n\n🌐 Игра доступна по адресу: https://eco-game-dfb0.onrender.com\n\n👥 Ждем вас!`;
     navigator.clipboard.writeText(invitationText).then(() => {
         showNotification('Приглашение скопировано в буфер обмена!', 'success');
     }).catch(err => {
@@ -1652,7 +1703,7 @@ function createInteractiveTask(task) {
     
     elements.completeTaskBtn.style.display = 'none';
     elements.checkTaskBtn.style.display = 'block';
-    elements.checkTaskBtn.textContent = "✅ Проверить выполнение";
+    elements.checkTaskBtn.textContent = "✅ Проверить";
     elements.checkTaskBtn.disabled = false;
     
     updateRollDiceButtonState();
@@ -2361,18 +2412,20 @@ function moveToExistingCity(cityKey) {
 // ==================== КНОПКА БЫСТРЫХ ДЕЙСТВИЙ ====================
 function initializeQuickActions() {
     let quickActionsVisible = false;
-    quickActionsBtn.classList.add('show');
+    if(quickActionsBtn) quickActionsBtn.classList.add('show');
     
-    quickActionsBtn.addEventListener('click', function() {
-        quickActionsVisible = !quickActionsVisible;
-        if (quickActionsVisible) {
-            quickActions.classList.add('show');
-            quickActionsBtn.classList.add('active');
-        } else {
-            quickActions.classList.remove('show');
-            quickActionsBtn.classList.remove('active');
-        }
-    });
+    if(quickActionsBtn) {
+        quickActionsBtn.addEventListener('click', function() {
+            quickActionsVisible = !quickActionsVisible;
+            if (quickActionsVisible) {
+                quickActions.classList.add('show');
+                quickActionsBtn.classList.add('active');
+            } else {
+                quickActions.classList.remove('show');
+                quickActionsBtn.classList.remove('active');
+            }
+        });
+    }
     
     function scrollToElement(elementId) {
         const element = document.getElementById(elementId);
@@ -2384,69 +2437,76 @@ function initializeQuickActions() {
         }
     }
     
-    quickDiceBtn.addEventListener('click', function() {
-        quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
-        scrollToElement('rollDiceBtn');
-        setTimeout(() => {
-            if (!elements.rollDiceBtn.disabled && !gameState.gameOver && !gameState.taskInProgress && !hasCurrentTask) elements.rollDiceBtn.click();
-            else if (gameState.taskInProgress) showNotification('Завершите текущее задание перед броском кубика!', 'warning');
-            else if (gameState.gameOver) showNotification('Игра завершена!', 'warning');
-            else if (hasCurrentTask) showNotification('Сначала выполните текущее задание!', 'warning');
-            else if (!gameState.isMyTurn) showNotification('Сейчас не ваш ход!', 'warning');
-        }, 500);
-    });
+    if(quickDiceBtn) {
+        quickDiceBtn.addEventListener('click', function() {
+            quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
+            scrollToElement('rollDiceBtn');
+            setTimeout(() => {
+                if (!elements.rollDiceBtn.disabled && !gameState.gameOver && !gameState.taskInProgress && !hasCurrentTask) elements.rollDiceBtn.click();
+                else if (gameState.taskInProgress) showNotification('Завершите текущее задание перед броском кубика!', 'warning');
+                else if (gameState.gameOver) showNotification('Игра завершена!', 'warning');
+                else if (hasCurrentTask) showNotification('Сначала выполните текущее задание!', 'warning');
+                else if (!gameState.isMyTurn) showNotification('Сейчас не ваш ход!', 'warning');
+            }, 500);
+        });
+    }
     
-    quickBuildBtn.addEventListener('click', function() {
-        quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
-        if (elements.buildBtn.disabled) { showNotification('Сначала выполните задание, чтобы построить объект!', 'warning'); return; }
-        setTimeout(() => {
-            const buildingsContainer = document.getElementById('buildingsContainer');
-            if (buildingsContainer) {
-                buildingsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                elements.buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
-                elements.buildingsSection.style.transition = 'box-shadow 0.5s';
-                setTimeout(() => { elements.buildingsSection.style.boxShadow = ''; }, 2000);
-            }
-        }, 100);
-    });
+    if(quickBuildBtn) {
+        quickBuildBtn.addEventListener('click', function() {
+            quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
+            if (elements.buildBtn.disabled) { showNotification('Сначала выполните задание, чтобы построить объект!', 'warning'); return; }
+            setTimeout(() => {
+                const buildingsContainer = document.getElementById('buildingsContainer');
+                if (buildingsContainer) {
+                    buildingsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    elements.buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
+                    elements.buildingsSection.style.transition = 'box-shadow 0.5s';
+                    setTimeout(() => { elements.buildingsSection.style.boxShadow = ''; }, 2000);
+                }
+            }, 100);
+        });
+    }
     
-    quickChatBtn.addEventListener('click', function() {
-        quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
-        setTimeout(() => {
-            const chatSection = document.querySelector('.chat-section');
-            if (chatSection) {
-                chatSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setTimeout(() => { elements.chatInput.focus(); }, 300);
-            }
-        }, 100);
-    });
+    if(quickChatBtn) {
+        quickChatBtn.addEventListener('click', function() {
+            quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
+            setTimeout(() => {
+                const chatSection = document.querySelector('.chat-section');
+                if (chatSection) {
+                    chatSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => { elements.chatInput.focus(); }, 300);
+                }
+            }, 100);
+        });
+    }
     
-    quickTasksBtn.addEventListener('click', function() {
-        quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
-        setTimeout(() => {
-            const taskCard = document.querySelector('.task-card');
-            if (taskCard) taskCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
-    });
+    if(quickTasksBtn) {
+        quickTasksBtn.addEventListener('click', function() {
+            quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
+            setTimeout(() => {
+                const taskCard = document.querySelector('.task-card');
+                if (taskCard) taskCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        });
+    }
     
-    quickInviteBtn.addEventListener('click', function() {
-        quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
-        showInviteModal();
-    });
-    
-    quickThemeBtn.addEventListener('click', function() {
-        quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
-        toggleLightTheme();
-    });
+    if(quickInviteBtn) {
+        quickInviteBtn.addEventListener('click', function() {
+            quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
+            showInviteModal();
+        });
+    }
     
     document.addEventListener('click', function(event) {
-        if (quickActionsVisible && !quickActionsBtn.contains(event.target) && !quickActions.contains(event.target)) {
+        if (quickActionsVisible && quickActionsBtn && quickActions && !quickActionsBtn.contains(event.target) && !quickActions.contains(event.target)) {
             quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
         }
     });
     
     function updateQuickButtons() {
         updateRollDiceButtonState();
+        if(!quickDiceBtn || !quickBuildBtn) return;
+
         if (gameState.gameOver) {
             quickDiceBtn.style.opacity = '0.5'; quickDiceBtn.style.cursor = 'not-allowed'; quickDiceBtn.title = 'Игра завершена';
             quickBuildBtn.style.opacity = '0.5'; quickBuildBtn.style.cursor = 'not-allowed'; quickBuildBtn.title = 'Игра завершена';
@@ -2466,50 +2526,95 @@ function initializeQuickActions() {
             }
         }
         
-        if (elements.gameContent.style.display === 'block') quickActionsBtn.style.display = 'flex';
-        else quickActionsBtn.style.display = 'none';
+        if (elements.gameContent && elements.gameContent.style.display === 'block') {
+            if(quickActionsBtn) quickActionsBtn.style.display = 'flex';
+        } else {
+            if(quickActionsBtn) quickActionsBtn.style.display = 'none';
+        }
     }
     
     setInterval(updateQuickButtons, 1000);
     updateQuickButtons();
 }
 
+// ==================== ОБРАБОТЧИКИ СОБЫТИЙ НОВОГО UI ====================
+if (elements.startLandingBtn) {
+    elements.startLandingBtn.addEventListener('click', () => {
+        if (elements.landingPage) elements.landingPage.style.display = 'none';
+        if (elements.authSection) elements.authSection.style.display = 'block';
+        window.scrollTo(0, 0);
+    });
+}
+
+if (elements.backToLandingBtn) {
+    elements.backToLandingBtn.addEventListener('click', () => {
+        if (elements.authSection) elements.authSection.style.display = 'none';
+        if (elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
+        if (elements.landingPage) elements.landingPage.style.display = 'flex';
+    });
+}
+
+if (elements.headerThemeBtn) {
+    elements.headerThemeBtn.addEventListener('click', toggleLightTheme);
+}
+
+if (elements.openLeaderboardBtn) {
+    elements.openLeaderboardBtn.addEventListener('click', () => {
+        renderLeaderboard();
+        if (elements.leaderboardModal) elements.leaderboardModal.classList.add('active');
+    });
+}
+
+if (elements.closeLeaderboardBtn) {
+    elements.closeLeaderboardBtn.addEventListener('click', () => {
+        if (elements.leaderboardModal) elements.leaderboardModal.classList.remove('active');
+    });
+}
+
 // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
-elements.loginTab.addEventListener('click', () => {
-    elements.loginTab.classList.add('active'); elements.registerTab.classList.remove('active');
-    elements.loginForm.classList.add('active'); elements.registerForm.classList.remove('active');
-});
+if(elements.loginTab) {
+    elements.loginTab.addEventListener('click', () => {
+        elements.loginTab.classList.add('active'); elements.registerTab.classList.remove('active');
+        elements.loginForm.classList.add('active'); elements.registerForm.classList.remove('active');
+    });
+}
 
-elements.registerTab.addEventListener('click', () => {
-    elements.registerTab.classList.add('active'); elements.loginTab.classList.remove('active');
-    elements.registerForm.classList.add('active'); elements.loginForm.classList.remove('active');
-});
+if(elements.registerTab) {
+    elements.registerTab.addEventListener('click', () => {
+        elements.registerTab.classList.add('active'); elements.loginTab.classList.remove('active');
+        elements.registerForm.classList.add('active'); elements.loginForm.classList.remove('active');
+    });
+}
 
-elements.loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const username = document.getElementById('loginUsername').value.trim();
-    const roomId = document.getElementById('loginRoom').value.trim();
-    if (username && roomId) joinGame(username, roomId, false);
-});
+if(elements.loginForm) {
+    elements.loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value.trim();
+        const roomId = document.getElementById('loginRoom').value.trim();
+        if (username && roomId) joinGame(username, roomId, false);
+    });
+}
 
-elements.registerForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const username = document.getElementById('registerUsername').value.trim();
-    const roomId = document.getElementById('registerRoom').value.trim();
-    
-    if (username && roomId) {
-        // Вместо прямого входа сохраняем данные и показываем выбор карты
-        pendingRoomData = { username, roomId };
-        elements.authSection.style.display = 'none';
+if(elements.registerForm) {
+    elements.registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('registerUsername').value.trim();
+        const roomId = document.getElementById('registerRoom').value.trim();
         
-        if (elements.mapSelectionSection) {
-            elements.mapSelectionSection.style.display = 'block';
-        } else {
-            // Фолбэк, если секции почему-то нет
-            joinGame(username, roomId, true);
+        if (username && roomId) {
+            // Вместо прямого входа сохраняем данные и показываем выбор карты
+            pendingRoomData = { username, roomId };
+            elements.authSection.style.display = 'none';
+            
+            if (elements.mapSelectionSection) {
+                elements.mapSelectionSection.style.display = 'block';
+            } else {
+                // Фолбэк, если секции почему-то нет
+                joinGame(username, roomId, true);
+            }
         }
-    }
-});
+    });
+}
 
 // Обработка клика по карте "Волга"
 if (elements.mapCardVolga) {
@@ -2533,120 +2638,141 @@ if (elements.cancelMapSelectionBtn) {
     });
 }
 
-elements.rollDiceBtn.addEventListener('click', () => {
-    if (gameState.gameOver || gameState.taskInProgress || hasCurrentTask || !gameState.isMyTurn) return;
-    
-    elements.diceValue.classList.add('rolling');
-    elements.rollDiceBtn.disabled = true;
-    
-    setTimeout(() => {
-        const diceValue = Math.floor(Math.random() * 6) + 1;
-        elements.diceValue.querySelector('.dice-value').textContent = diceValue;
-        elements.diceValue.classList.remove('rolling');
+if(elements.rollDiceBtn) {
+    elements.rollDiceBtn.addEventListener('click', () => {
+        if (gameState.gameOver || gameState.taskInProgress || hasCurrentTask || !gameState.isMyTurn) return;
         
-        const oldPosition = gameState.currentPlayer.position;
-        const newPosition = Math.min(gameState.currentPlayer.position + diceValue, mapData.cells.length);
-        gameState.currentPlayer.position = newPosition;
+        elements.diceValue.classList.add('rolling');
+        elements.rollDiceBtn.disabled = true;
         
-        const currentCell = mapData.cells.find(cell => cell.number === newPosition);
-        if (currentCell && currentCell.type === 'city' && currentCell.city) {
-            gameState.currentPlayer.city = currentCell.city;
-        }
-        
-        updatePlayerUI();
-        updateOtherPlayerMarker(
-            gameState.currentPlayerId, 
-            gameState.currentPlayer.name, 
-            newPosition, 
-            gameState.currentPlayer.city, 
-            gameState.currentPlayer.color || '#8e44ad'
-        );
-        
-        checkForCityTransition(oldPosition, newPosition);
-        sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
-        savePlayerState();
-        
-        addLogEntry(`🎲 Вы бросили кубик и получили ${diceValue}. Новая позиция: ${newPosition}`);
-        
-        gameState.currentTask = getRandomTask(gameState.currentDifficulty);
-        elements.currentTask.style.display = 'block';
-        elements.taskDescription.textContent = gameState.currentTask.description;
-        elements.noTaskMessage.style.display = 'none';
-        elements.completeTaskBtn.disabled = false;
-        hasCurrentTask = true;
-        
-        updateRollDiceButtonState();
-        socket.emit('end_turn');
-        gameState.isMyTurn = false;
-        updateTurnIndicator();
-    }, 1200);
-});
-
-elements.completeTaskBtn.addEventListener('click', () => {
-    if (!gameState.currentTask) return;
-    elements.interactiveTask.style.display = 'block';
-    createInteractiveTask(gameState.currentTask);
-});
-
-elements.checkTaskBtn.addEventListener('click', () => {
-    if (elements.checkTaskBtn.onclick) elements.checkTaskBtn.onclick();
-});
-
-elements.retryTaskBtn.addEventListener('click', () => {
-    if (gameState.currentTask) {
-        elements.taskResult.textContent = '';
-        elements.retryTaskBtn.style.display = 'none';
-        createInteractiveTask(gameState.currentTask);
-    }
-});
-
-elements.sendMessageBtn.addEventListener('click', () => {
-    const message = elements.chatInput.value.trim();
-    if (message) sendChatMessage(message);
-});
-
-elements.chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') elements.sendMessageBtn.click();
-});
-
-elements.inviteBtn.addEventListener('click', () => { showInviteModal(); });
-elements.copyInviteBtn.addEventListener('click', () => { copyInvitation(); });
-elements.closeInviteBtn.addEventListener('click', () => { closeInviteModal(); });
-
-elements.leaveRoomBtn.addEventListener('click', () => {
-    if (confirm('Вы уверены, что хотите покинуть комнату?')) {
-        socket.emit('leave-room');
-        resetGameState();
-        elements.authSection.style.display = 'block';
-        if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
-        elements.gameContent.style.display = 'none';
-        elements.resourcesPlaceholder.style.display = 'none';
-        quickActionsBtn.classList.remove('show');
-        showNotification('Вы покинули комнату', 'info');
-    }
-});
-
-elements.cityModalCloseBtn.addEventListener('click', () => { closeCityModal(); });
-elements.stayBtn.addEventListener('click', () => { closeChoiceModal(); showNotification('Вы остались в текущем городе', 'info'); });
-elements.moveForwardBtn.addEventListener('click', () => {
-    closeChoiceModal();
-    if (gameState.nextCity) moveToExistingCity(gameState.nextCity);
-});
-
-elements.gameInfo.addEventListener('click', () => { elements.gameInfo.classList.toggle('expanded'); });
-
-elements.difficultyBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-        if (this.classList.contains('locked')) {
-            showNotification('Этот уровень сложности заблокирован. Повысьте уровень игрока!', 'warning');
-            return;
-        }
-        elements.difficultyBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        gameState.currentDifficulty = this.id.replace('Btn', '');
-        showNotification(`Сложность изменена на: ${this.textContent.trim()}`, 'info');
+        setTimeout(() => {
+            const diceValue = Math.floor(Math.random() * 6) + 1;
+            elements.diceValue.querySelector('.dice-value').textContent = diceValue;
+            elements.diceValue.classList.remove('rolling');
+            
+            const oldPosition = gameState.currentPlayer.position;
+            const newPosition = Math.min(gameState.currentPlayer.position + diceValue, mapData.cells.length);
+            gameState.currentPlayer.position = newPosition;
+            
+            const currentCell = mapData.cells.find(cell => cell.number === newPosition);
+            if (currentCell && currentCell.type === 'city' && currentCell.city) {
+                gameState.currentPlayer.city = currentCell.city;
+            }
+            
+            updatePlayerUI();
+            updateOtherPlayerMarker(
+                gameState.currentPlayerId, 
+                gameState.currentPlayer.name, 
+                newPosition, 
+                gameState.currentPlayer.city, 
+                gameState.currentPlayer.color || '#8e44ad'
+            );
+            
+            checkForCityTransition(oldPosition, newPosition);
+            sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
+            savePlayerState();
+            
+            addLogEntry(`🎲 Вы бросили кубик и получили ${diceValue}. Новая позиция: ${newPosition}`);
+            
+            gameState.currentTask = getRandomTask(gameState.currentDifficulty);
+            elements.currentTask.style.display = 'block';
+            elements.taskDescription.textContent = gameState.currentTask.description;
+            elements.noTaskMessage.style.display = 'none';
+            elements.completeTaskBtn.disabled = false;
+            hasCurrentTask = true;
+            
+            updateRollDiceButtonState();
+            socket.emit('end_turn');
+            gameState.isMyTurn = false;
+            updateTurnIndicator();
+        }, 1200);
     });
-});
+}
+
+if(elements.completeTaskBtn) {
+    elements.completeTaskBtn.addEventListener('click', () => {
+        if (!gameState.currentTask) return;
+        elements.interactiveTask.style.display = 'block';
+        createInteractiveTask(gameState.currentTask);
+    });
+}
+
+if(elements.checkTaskBtn) {
+    elements.checkTaskBtn.addEventListener('click', () => {
+        if (elements.checkTaskBtn.onclick) elements.checkTaskBtn.onclick();
+    });
+}
+
+if(elements.retryTaskBtn) {
+    elements.retryTaskBtn.addEventListener('click', () => {
+        if (gameState.currentTask) {
+            elements.taskResult.textContent = '';
+            elements.retryTaskBtn.style.display = 'none';
+            createInteractiveTask(gameState.currentTask);
+        }
+    });
+}
+
+if(elements.sendMessageBtn) {
+    elements.sendMessageBtn.addEventListener('click', () => {
+        const message = elements.chatInput.value.trim();
+        if (message) sendChatMessage(message);
+    });
+}
+
+if(elements.chatInput) {
+    elements.chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') elements.sendMessageBtn.click();
+    });
+}
+
+if(elements.inviteBtn) elements.inviteBtn.addEventListener('click', () => { showInviteModal(); });
+if(elements.copyInviteBtn) elements.copyInviteBtn.addEventListener('click', () => { copyInvitation(); });
+if(elements.closeInviteBtn) elements.closeInviteBtn.addEventListener('click', () => { closeInviteModal(); });
+
+if(elements.leaveRoomBtn) {
+    elements.leaveRoomBtn.addEventListener('click', () => {
+        if (confirm('Вы уверены, что хотите покинуть лобби?')) {
+            socket.emit('leave-room');
+            resetGameState();
+            if(elements.landingPage) elements.landingPage.style.display = 'flex';
+            if(elements.authSection) elements.authSection.style.display = 'none';
+            if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
+            if(elements.gameContent) elements.gameContent.style.display = 'none';
+            if(elements.resourcesPlaceholder) elements.resourcesPlaceholder.style.display = 'none';
+            if(quickActionsBtn) quickActionsBtn.classList.remove('show');
+            showNotification('Вы покинули комнату', 'info');
+        }
+    });
+}
+
+if(elements.cityModalCloseBtn) elements.cityModalCloseBtn.addEventListener('click', () => { closeCityModal(); });
+if(elements.stayBtn) elements.stayBtn.addEventListener('click', () => { closeChoiceModal(); showNotification('Вы остались в текущем городе', 'info'); });
+if(elements.moveForwardBtn) {
+    elements.moveForwardBtn.addEventListener('click', () => {
+        closeChoiceModal();
+        if (gameState.nextCity) moveToExistingCity(gameState.nextCity);
+    });
+}
+
+if(elements.gameInfo) {
+    elements.gameInfo.addEventListener('click', () => { elements.gameInfo.classList.toggle('expanded'); });
+}
+
+if(elements.difficultyBtns) {
+    elements.difficultyBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.classList.contains('locked')) {
+                showNotification('Этот уровень сложности заблокирован. Повысьте уровень игрока!', 'warning');
+                return;
+            }
+            elements.difficultyBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            gameState.currentDifficulty = this.id.replace('Btn', '');
+            showNotification(`Сложность изменена на: ${this.textContent.trim()}`, 'info');
+        });
+    });
+}
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
@@ -2697,7 +2823,7 @@ window.onload = function () {
     });
     
     // Если аватар уже установлен, Google кнопку не рендерим (обрабатывается в updateProfileUI)
-    if (!userProfile.avatar) {
+    if (!userProfile.avatar && document.getElementById("googleSignInBtn")) {
         google.accounts.id.renderButton(
             document.getElementById("googleSignInBtn"),
             { theme: "outline", size: "large", shape: "pill" }
@@ -2707,28 +2833,34 @@ window.onload = function () {
 };
 
 // Обработчик выхода перенесен в выпадающее меню
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    google.accounts.id.disableAutoSelect();
-    
-    // Очищаем профиль
-    userProfile = { name: '', avatar: '', birthDate: '', gender: 'not_set' };
-    localStorage.removeItem('userProfile');
-    
-    // Возвращаем UI
-    elements.googleSignInBtn.style.display = 'block';
-    elements.userProfileBadge.style.display = 'none';
-    
-    if(elements.loginUsername) elements.loginUsername.value = '';
-    if(elements.registerUsername) elements.registerUsername.value = '';
-    
-    // Скрываем меню если было открыто
-    document.getElementById('profileDropdown')?.classList.remove('active');
-    
-    // Рендерим кнопку Google заново
-    google.accounts.id.renderButton(
-        document.getElementById("googleSignInBtn"),
-        { theme: "outline", size: "large", shape: "pill" }
-    );
-    
-    showNotification('Вы вышли из профиля', 'info');
-});
+const logoutBtn = document.getElementById('logoutBtn');
+if(logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        google.accounts.id.disableAutoSelect();
+        
+        // Очищаем профиль
+        userProfile = { name: '', avatar: '', birthDate: '', gender: 'not_set' };
+        localStorage.removeItem('userProfile');
+        
+        // Возвращаем UI
+        if(elements.googleSignInBtn) elements.googleSignInBtn.style.display = 'block';
+        if(elements.userProfileBadge) elements.userProfileBadge.style.display = 'none';
+        
+        if(elements.loginUsername) elements.loginUsername.value = '';
+        if(elements.registerUsername) elements.registerUsername.value = '';
+        
+        // Скрываем меню если было открыто
+        const profileDropdown = document.getElementById('profileDropdown');
+        if(profileDropdown) profileDropdown.classList.remove('active');
+        
+        // Рендерим кнопку Google заново
+        if(document.getElementById("googleSignInBtn")) {
+            google.accounts.id.renderButton(
+                document.getElementById("googleSignInBtn"),
+                { theme: "outline", size: "large", shape: "pill" }
+            );
+        }
+        
+        showNotification('Вы вышли из профиля', 'info');
+    });
+}
