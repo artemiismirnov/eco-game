@@ -1170,7 +1170,7 @@ function loadSavedMap() {
         .then(savedMap => {
             if (savedMap.cells && Array.isArray(savedMap.cells)) {
                 mapData.cells = savedMap.cells;
-                console.log(`✅ Загружена карта с ${mapData.cells.length} клетками`);
+                console.log(`✅ Загружена карта с ${mapData.cells.length} клеток`);
                 
                 // Создаем клетки на карте
                 createMapCells();
@@ -3493,4 +3493,73 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Инициализация недавних смайликов
     updateRecentEmojisDisplay();
+});
+
+// ==================== GOOGLE АВТОРИЗАЦИЯ ====================
+
+// Функция для декодирования JWT токена
+function decodeJwtResponse(token) {
+    let base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+}
+
+// Обработчик успешного входа
+function handleCredentialResponse(response) {
+    const responsePayload = decodeJwtResponse(response.credential);
+    
+    // Получаем данные из Google
+    const userName = responsePayload.given_name || responsePayload.name;
+    const userPicture = responsePayload.picture;
+    
+    // Обновляем UI (прячем кнопку, показываем профиль)
+    document.getElementById('googleSignInBtn').style.display = 'none';
+    const profileBadge = document.getElementById('userProfileBadge');
+    profileBadge.style.display = 'flex';
+    
+    document.getElementById('userAvatar').src = userPicture;
+    document.getElementById('userNameDisplay').textContent = userName;
+    
+    // Автоматически заполняем инпуты с именем в формах игры
+    document.getElementById('loginUsername').value = userName;
+    document.getElementById('registerUsername').value = userName;
+    
+    showNotification(`Привет, ${userName}! Вы успешно вошли через Google.`, 'success');
+}
+
+// Инициализация при загрузке страницы
+window.onload = function () {
+    // ВАЖНО: Замените строку ниже на ВАШ Client ID из Google Cloud Console
+    const GOOGLE_CLIENT_ID = "921001738618-bmaal1s4a6e2ubfbrjc3ullvnov0igjn.apps.googleusercontent.com"; 
+    
+    google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse
+    });
+    
+    google.accounts.id.renderButton(
+        document.getElementById("googleSignInBtn"),
+        { theme: "outline", size: "large", shape: "pill" }
+    );
+    
+    // Если пользователь был авторизован ранее
+    google.accounts.id.prompt(); 
+};
+
+// Обработчик выхода
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    google.accounts.id.disableAutoSelect();
+    
+    // Возвращаем UI в исходное состояние
+    document.getElementById('googleSignInBtn').style.display = 'block';
+    document.getElementById('userProfileBadge').style.display = 'none';
+    
+    // Очищаем инпуты
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('registerUsername').value = '';
+    
+    showNotification('Вы вышли из профиля Google', 'info');
 });
