@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Юный эколог - Многопользовательская экологическая игра</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
     <style>
         /* ==================== ОСНОВНЫЕ СТИЛИ ==================== */
         :root {
@@ -90,6 +93,64 @@
         
         body.light-theme .subtitle {
             color: var(--secondary);
+        }
+
+        /* ==================== АВТОРИЗАЦИЯ GOOGLE ==================== */
+        .top-right-auth {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1002;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-profile-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 15px 5px 5px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            color: white;
+            font-weight: 600;
+        }
+
+        body.light-theme .user-profile-badge {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark);
+            border: 1px solid var(--secondary);
+        }
+
+        .user-profile-badge img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #8e44ad;
+        }
+
+        body.light-theme .user-profile-badge img {
+            border-color: var(--secondary);
+        }
+
+        .logout-icon {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+            margin-left: 5px;
+        }
+
+        .logout-icon:hover {
+            transform: scale(1.1);
+            color: #ff6b6b;
         }
         
         /* ==================== СТАТУС ПОДКЛЮЧЕНИЯ ==================== */
@@ -2818,7 +2879,17 @@
             </div>
         </div>
         
-        <div class="connection-status-compact" id="connectionStatusCompact">
+        <div class="top-right-auth">
+            <div id="googleSignInBtn"></div>
+            
+            <div class="user-profile-badge" id="userProfileBadge" style="display: none;">
+                <img id="userAvatar" src="" alt="Аватар">
+                <span id="userNameDisplay">Игрок</span>
+                <button id="logoutBtn" title="Выйти" class="logout-icon"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+        
+        <div class="connection-status-mini" id="connectionStatusCompact" style="top: 80px;">
             <div class="connection-dot" id="connectionStatusDot"></div>
             <div class="connection-status-text" id="connectionStatusText">Подключение...</div>
         </div>
