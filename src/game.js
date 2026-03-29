@@ -674,7 +674,7 @@ socket.on('room-error', (message) => {
     if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
     if(elements.gameContent) elements.gameContent.style.display = 'none';
     if(elements.resourcesPlaceholder) elements.resourcesPlaceholder.style.display = 'none';
-    quickActionsBtn.classList.remove('show');
+    if(quickActionsBtn) quickActionsBtn.classList.remove('show');
     resetGameState();
 });
 
@@ -1017,7 +1017,7 @@ function updateRoomState(roomData) {
     
     updatePlayersList();
     updatePlayerMarkers();
-    elements.onlinePlayers.textContent = Object.keys(gameState.players).filter(id => gameState.players[id].connected).length;
+    if(elements.onlinePlayers) elements.onlinePlayers.textContent = Object.keys(gameState.players).filter(id => gameState.players[id].connected).length;
     
     createCurrentCityProgress();
     
@@ -1036,8 +1036,10 @@ function addChatMessage(sender, message, isLocal = false) {
     const messageElement = document.createElement('div');
     messageElement.className = 'chat-message';
     messageElement.innerHTML = `<span class="chat-sender">${sender}:</span> <span class="chat-text">${message}</span>`;
-    elements.chatMessages.appendChild(messageElement);
-    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    if(elements.chatMessages) {
+        elements.chatMessages.appendChild(messageElement);
+        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    }
     
     const emojiRegex = /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu;
     const emojis = message.match(emojiRegex);
@@ -1067,7 +1069,7 @@ function savePlayerState() {
 }
 
 function sendChatMessage(message) {
-    if (isConnected && gameState.currentPlayer) {
+    if (isConnected && gameState.currentPlayer && elements.chatInput) {
         socket.emit('chat_message', { message: message });
         elements.chatInput.value = '';
     }
@@ -1076,16 +1078,18 @@ function sendChatMessage(message) {
 // ==================== ФУНКЦИИ ДЛЯ КАРТЫ ====================
 function loadMap() {
     if (window.mapData && window.mapData.imageUrl) {
-        elements.mapImage.src = window.mapData.imageUrl;
-        elements.mapImage.onload = function() {
-            mapData.imageLoaded = true;
-            loadSavedMap();
-            updatePlayerMarkers();
-        };
-        elements.mapImage.onerror = function() {
-            mapData.imageLoaded = false;
-            loadSavedMap();
-        };
+        if(elements.mapImage) {
+            elements.mapImage.src = window.mapData.imageUrl;
+            elements.mapImage.onload = function() {
+                mapData.imageLoaded = true;
+                loadSavedMap();
+                updatePlayerMarkers();
+            };
+            elements.mapImage.onerror = function() {
+                mapData.imageLoaded = false;
+                loadSavedMap();
+            };
+        }
     } else {
         loadSavedMap();
     }
@@ -1113,6 +1117,7 @@ function loadSavedMap() {
 }
 
 function createDefaultMap() {
+    if(!elements.mapContainer) return;
     const containerWidth = elements.mapContainer.offsetWidth;
     const containerHeight = elements.mapContainer.offsetHeight;
     
@@ -1133,6 +1138,7 @@ function createDefaultMap() {
 }
 
 function createMapCells() {
+    if(!elements.mapOverlay) return;
     elements.mapOverlay.innerHTML = '';
     mapData.cells.forEach(cell => createCellElement(cell));
     updatePlayerMarkers();
@@ -1162,7 +1168,7 @@ function createCellElement(cell) {
         else if (cell.type === 'finish') showNotification('Это конечная точка игры!', 'info');
     });
     
-    elements.mapOverlay.appendChild(cellElement);
+    if(elements.mapOverlay) elements.mapOverlay.appendChild(cellElement);
     return cellElement;
 }
 
@@ -1173,6 +1179,7 @@ function updatePlayerMarkers() {
 }
 
 function updatePlayersList() {
+    if(!elements.playersContainer) return;
     elements.playersContainer.innerHTML = '';
     
     let playersArray = Object.entries(gameState.players);
@@ -1210,12 +1217,12 @@ function updatePlayersList() {
 
 function updatePlayerUI() {
     if (gameState.currentPlayer) {
-        elements.playerName.textContent = gameState.currentPlayer.name;
-        elements.currentCity.textContent = gameData.cities[gameState.currentPlayer.city]?.name || 'Тверь';
-        elements.currentPosition.textContent = gameState.currentPlayer.position;
-        elements.coinsCount.textContent = gameState.currentPlayer.coins;
-        elements.cleaningPoints.textContent = gameState.currentPlayer.cleaningPoints;
-        elements.playerLevel.textContent = gameState.currentPlayer.level;
+        if(elements.playerName) elements.playerName.textContent = gameState.currentPlayer.name;
+        if(elements.currentCity) elements.currentCity.textContent = gameData.cities[gameState.currentPlayer.city]?.name || 'Тверь';
+        if(elements.currentPosition) elements.currentPosition.textContent = gameState.currentPlayer.position;
+        if(elements.coinsCount) elements.coinsCount.textContent = gameState.currentPlayer.coins;
+        if(elements.cleaningPoints) elements.cleaningPoints.textContent = gameState.currentPlayer.cleaningPoints;
+        if(elements.playerLevel) elements.playerLevel.textContent = gameState.currentPlayer.level;
         
         if(elements.topCoinsCount) elements.topCoinsCount.textContent = gameState.currentPlayer.coins;
         if(elements.topPlayerLevel) elements.topPlayerLevel.textContent = gameState.currentPlayer.level + ' ур.';
@@ -1224,7 +1231,7 @@ function updatePlayerUI() {
 }
 
 function updateLevelProgress() {
-    if (gameState.currentPlayer) {
+    if (gameState.currentPlayer && elements.levelProgressFill) {
         const completedTasks = gameState.currentPlayer.completedTasks || 0;
         const progress = (completedTasks % 3) * 33.33;
         elements.levelProgressFill.style.width = `${progress}%`;
@@ -1232,26 +1239,27 @@ function updateLevelProgress() {
 }
 
 function updateTurnIndicator() {
-    if (gameState.currentTurn) {
+    if (gameState.currentTurn && elements.turnIndicator) {
         elements.turnIndicator.style.display = 'block';
         if (gameState.isMyTurn) {
             elements.turnIndicator.classList.add('your-turn');
             elements.turnIndicator.classList.remove('other-turn');
-            elements.turnMessage.textContent = '🎉 Сейчас ваш ход! Бросайте кубик.';
+            if(elements.turnMessage) elements.turnMessage.textContent = '🎉 Сейчас ваш ход! Бросайте кубик.';
         } else {
             const currentPlayer = gameState.players[gameState.currentTurn];
             if (currentPlayer) {
                 elements.turnIndicator.classList.add('other-turn');
                 elements.turnIndicator.classList.remove('your-turn');
-                elements.turnMessage.textContent = `⏳ Сейчас ходит ${currentPlayer.name}. Ожидайте своей очереди.`;
+                if(elements.turnMessage) elements.turnMessage.textContent = `⏳ Сейчас ходит ${currentPlayer.name}. Ожидайте своей очереди.`;
             }
         }
-    } else {
+    } else if (elements.turnIndicator) {
         elements.turnIndicator.style.display = 'none';
     }
 }
 
 function updateRollDiceButtonState() {
+    if(!elements.rollDiceBtn) return;
     if (gameState.gameOver || gameState.taskInProgress || !gameState.isMyTurn || hasCurrentTask) {
         elements.rollDiceBtn.disabled = true;
         elements.rollDiceBtn.style.opacity = '0.7';
@@ -1262,6 +1270,7 @@ function updateRollDiceButtonState() {
 }
 
 function createCurrentCityProgress() {
+    if(!elements.cityProgressContainer) return;
     elements.cityProgressContainer.innerHTML = '';
     
     if (gameState.currentPlayer && gameState.currentPlayer.city) {
@@ -1286,12 +1295,14 @@ function createCurrentCityProgress() {
         
         elements.cityProgressContainer.appendChild(progressElement);
         
-        if (progress >= 100 && canMoveToNextCity()) {
-            elements.moveBtn.disabled = false;
-            elements.moveBtn.textContent = "🚗 Перейти в следующий город";
-        } else {
-            elements.moveBtn.disabled = true;
-            elements.moveBtn.textContent = "Завершите очищение города";
+        if(elements.moveBtn) {
+            if (progress >= 100 && canMoveToNextCity()) {
+                elements.moveBtn.disabled = false;
+                elements.moveBtn.textContent = "🚗 Перейти в следующий город";
+            } else {
+                elements.moveBtn.disabled = true;
+                elements.moveBtn.textContent = "Завершите очищение города";
+            }
         }
     }
 }
@@ -1313,6 +1324,7 @@ function canMoveToNextCity() {
 }
 
 function createCitiesGrid() {
+    if(!elements.citiesGrid) return;
     elements.citiesGrid.innerHTML = '';
     const currentCityKey = gameState.currentPlayer?.city || 'tver';
     
@@ -1387,6 +1399,7 @@ function canAccessCity(cityKey) {
 }
 
 function createBuildingsList() {
+    if(!elements.buildingsContainer) return;
     elements.buildingsContainer.innerHTML = '';
     
     gameData.buildings.forEach((building, index) => {
@@ -1466,10 +1479,10 @@ function checkGameCompletion() {
         addLogEntry(`🎊 Поздравляем! Вы завершили игру! Все города очищены на 100% и вы достигли финиша!`);
         showNotification(`🎊 Поздравляем! Вы завершили игру!`, 'success');
         
-        elements.rollDiceBtn.disabled = true;
-        elements.buildBtn.disabled = true;
-        elements.moveBtn.disabled = true;
-        elements.completeTaskBtn.disabled = true;
+        if(elements.rollDiceBtn) elements.rollDiceBtn.disabled = true;
+        if(elements.buildBtn) elements.buildBtn.disabled = true;
+        if(elements.moveBtn) elements.moveBtn.disabled = true;
+        if(elements.completeTaskBtn) elements.completeTaskBtn.disabled = true;
 
         // Сохраняем статистику
         let stats = JSON.parse(localStorage.getItem('gameStats')) || [];
@@ -1512,43 +1525,45 @@ function showCityModal(cityKey) {
     const city = gameData.cities[cityKey];
     if (!city) return;
     
-    elements.cityModalTitle.textContent = city.name;
-    elements.cityModalSubtitle.textContent = city.description;
-    elements.cityModalHistory.textContent = city.history;
-    elements.cityModalProblem.textContent = city.problem;
-    elements.cityModalTask.textContent = city.task;
+    if(elements.cityModalTitle) elements.cityModalTitle.textContent = city.name;
+    if(elements.cityModalSubtitle) elements.cityModalSubtitle.textContent = city.description;
+    if(elements.cityModalHistory) elements.cityModalHistory.textContent = city.history;
+    if(elements.cityModalProblem) elements.cityModalProblem.textContent = city.problem;
+    if(elements.cityModalTask) elements.cityModalTask.textContent = city.task;
     
     const progress = gameState.playerProgress[gameState.currentPlayerId]?.[cityKey] || 0;
-    elements.cityModalProgressFill.style.width = `${progress}%`;
-    elements.cityModalProgressText.textContent = `${progress}%`;
+    if(elements.cityModalProgressFill) elements.cityModalProgressFill.style.width = `${progress}%`;
+    if(elements.cityModalProgressText) elements.cityModalProgressText.textContent = `${progress}%`;
     
     const isCurrentCity = cityKey === (gameState.currentPlayer?.city || 'tver');
     const isAccessible = canAccessCity(cityKey);
     
-    if (isAccessible && !isCurrentCity) {
-        elements.cityModalMoveBtn.style.display = 'block';
-        elements.cityModalMoveBtn.onclick = () => {
-            closeCityModal();
-            moveToExistingCity(cityKey);
-        };
-    } else {
-        elements.cityModalMoveBtn.style.display = 'none';
+    if(elements.cityModalMoveBtn) {
+        if (isAccessible && !isCurrentCity) {
+            elements.cityModalMoveBtn.style.display = 'block';
+            elements.cityModalMoveBtn.onclick = () => {
+                closeCityModal();
+                moveToExistingCity(cityKey);
+            };
+        } else {
+            elements.cityModalMoveBtn.style.display = 'none';
+        }
     }
     
-    elements.cityModal.classList.add('active');
+    if(elements.cityModal) elements.cityModal.classList.add('active');
 }
 
 function closeCityModal() {
-    elements.cityModal.classList.remove('active');
+    if(elements.cityModal) elements.cityModal.classList.remove('active');
 }
 
 function showInviteModal() {
-    elements.inviteRoomNumber.textContent = currentRoomId || gameState.roomId || '0';
-    elements.inviteModal.classList.add('active');
+    if(elements.inviteRoomNumber) elements.inviteRoomNumber.textContent = currentRoomId || gameState.roomId || '0';
+    if(elements.inviteModal) elements.inviteModal.classList.add('active');
 }
 
 function closeInviteModal() {
-    elements.inviteModal.classList.remove('active');
+    if(elements.inviteModal) elements.inviteModal.classList.remove('active');
 }
 
 function copyInvitation() {
@@ -1565,28 +1580,33 @@ function showChoiceModal(nextCity) {
     const currentProgress = gameState.playerProgress[gameState.currentPlayerId]?.[currentCityKey] || 0;
     const currentCityName = gameData.cities[currentCityKey]?.name || 'Текущий город';
     
-    elements.choiceCurrentCityName.textContent = currentCityName;
-    elements.choiceCurrentCityProgress.textContent = `${currentProgress}%`;
-    elements.choiceCurrentCityProgressFill.style.width = `${currentProgress}%`;
+    if(elements.choiceCurrentCityName) elements.choiceCurrentCityName.textContent = currentCityName;
+    if(elements.choiceCurrentCityProgress) elements.choiceCurrentCityProgress.textContent = `${currentProgress}%`;
+    if(elements.choiceCurrentCityProgressFill) elements.choiceCurrentCityProgressFill.style.width = `${currentProgress}%`;
     
     gameState.nextCity = nextCity;
-    elements.choiceModal.classList.add('active');
+    if(elements.choiceModal) elements.choiceModal.classList.add('active');
 }
 
 function closeChoiceModal() {
-    elements.choiceModal.classList.remove('active');
+    if(elements.choiceModal) elements.choiceModal.classList.remove('active');
 }
 
 function updateDifficultyButtons() {
     const playerLevel = gameState.currentPlayer?.level || 1;
-    elements.easyBtn.classList.remove('locked');
-    if (playerLevel >= 5) elements.mediumBtn.classList.remove('locked');
-    else elements.mediumBtn.classList.add('locked');
-    if (playerLevel >= 10) elements.hardBtn.classList.remove('locked');
-    else elements.hardBtn.classList.add('locked');
+    if(elements.easyBtn) elements.easyBtn.classList.remove('locked');
+    if(elements.mediumBtn) {
+        if (playerLevel >= 5) elements.mediumBtn.classList.remove('locked');
+        else elements.mediumBtn.classList.add('locked');
+    }
+    if(elements.hardBtn) {
+        if (playerLevel >= 10) elements.hardBtn.classList.remove('locked');
+        else elements.hardBtn.classList.add('locked');
+    }
 }
 
 function addLogEntry(message) {
+    if(!elements.logEntries) return;
     const entry = document.createElement('div');
     entry.className = 'log-entry';
     entry.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
@@ -1673,10 +1693,11 @@ function shuffleArray(array) {
 }
 
 function createInteractiveTask(task) {
+    if(!elements.taskArea) return;
     elements.taskArea.innerHTML = '';
-    elements.taskResult.textContent = '';
-    elements.checkTaskBtn.style.display = 'none';
-    elements.retryTaskBtn.style.display = 'none';
+    if(elements.taskResult) elements.taskResult.textContent = '';
+    if(elements.checkTaskBtn) elements.checkTaskBtn.style.display = 'none';
+    if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'none';
     gameState.taskInProgress = true;
     hasCurrentTask = true;
     
@@ -1701,10 +1722,12 @@ function createInteractiveTask(task) {
     else if (task.type === "match_game") createMatchGameTask(task);
     else createDefaultTask(task);
     
-    elements.completeTaskBtn.style.display = 'none';
-    elements.checkTaskBtn.style.display = 'block';
-    elements.checkTaskBtn.textContent = "✅ Проверить";
-    elements.checkTaskBtn.disabled = false;
+    if(elements.completeTaskBtn) elements.completeTaskBtn.style.display = 'none';
+    if(elements.checkTaskBtn) {
+        elements.checkTaskBtn.style.display = 'block';
+        elements.checkTaskBtn.textContent = "✅ Проверить";
+        elements.checkTaskBtn.disabled = false;
+    }
     
     updateRollDiceButtonState();
     
@@ -1737,50 +1760,60 @@ function createQuizTask(task) {
             if (selectedOption) selectedOption.classList.remove('selected');
             selectedOption = this;
             this.classList.add('selected');
-            elements.checkTaskBtn.disabled = false;
+            if(elements.checkTaskBtn) elements.checkTaskBtn.disabled = false;
         });
     });
     
-    elements.checkTaskBtn.onclick = function() {
-        if (!selectedOption) return;
-        const isCorrect = selectedOption.dataset.correct === 'true';
-        const allOptions = document.querySelectorAll('.quiz-option');
-        canSelect = false;
-        
-        allOptions.forEach(opt => {
-            opt.style.pointerEvents = 'none';
-            if (opt === selectedOption) {
-                if (isCorrect) opt.classList.add('correct');
-                else opt.classList.add('incorrect');
+    if(elements.checkTaskBtn) {
+        elements.checkTaskBtn.onclick = function() {
+            if (!selectedOption) return;
+            const isCorrect = selectedOption.dataset.correct === 'true';
+            const allOptions = document.querySelectorAll('.quiz-option');
+            canSelect = false;
+            
+            allOptions.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                if (opt === selectedOption) {
+                    if (isCorrect) opt.classList.add('correct');
+                    else opt.classList.add('incorrect');
+                }
+            });
+            
+            if (isCorrect) {
+                if(elements.taskResult) {
+                    elements.taskResult.textContent = '✅ Правильно! Задание выполнено.';
+                    elements.taskResult.style.color = '#2ecc71';
+                }
+                elements.checkTaskBtn.style.display = 'none';
+                if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'none';
+                setTimeout(() => { completeInteractiveTask(); }, 1500);
+            } else {
+                if(elements.taskResult) {
+                    elements.taskResult.textContent = '❌ Неправильно. Попробуйте еще раз.';
+                    elements.taskResult.style.color = '#e74c3c';
+                }
+                elements.checkTaskBtn.style.display = 'none';
+                if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'block';
             }
-        });
-        
-        if (isCorrect) {
-            elements.taskResult.textContent = '✅ Правильно! Задание выполнено.';
-            elements.taskResult.style.color = '#2ecc71';
-            elements.checkTaskBtn.style.display = 'none';
-            elements.retryTaskBtn.style.display = 'none';
-            setTimeout(() => { completeInteractiveTask(); }, 1500);
-        } else {
-            elements.taskResult.textContent = '❌ Неправильно. Попробуйте еще раз.';
-            elements.taskResult.style.color = '#e74c3c';
-            elements.checkTaskBtn.style.display = 'none';
-            elements.retryTaskBtn.style.display = 'block';
-        }
-    };
+        };
+    }
     
-    elements.retryTaskBtn.onclick = function() {
-        document.querySelectorAll('.quiz-option').forEach(opt => {
-            opt.classList.remove('correct', 'incorrect', 'selected');
-            opt.style.pointerEvents = 'auto';
-        });
-        elements.taskResult.textContent = '';
-        elements.checkTaskBtn.style.display = 'block';
-        elements.retryTaskBtn.style.display = 'none';
-        elements.checkTaskBtn.disabled = true;
-        selectedOption = null;
-        canSelect = true;
-    };
+    if(elements.retryTaskBtn) {
+        elements.retryTaskBtn.onclick = function() {
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'incorrect', 'selected');
+                opt.style.pointerEvents = 'auto';
+            });
+            if(elements.taskResult) elements.taskResult.textContent = '';
+            if(elements.checkTaskBtn) {
+                elements.checkTaskBtn.style.display = 'block';
+                elements.checkTaskBtn.disabled = true;
+            }
+            elements.retryTaskBtn.style.display = 'none';
+            selectedOption = null;
+            canSelect = true;
+        };
+    }
 }
 
 function createDragClickTask(task) {
@@ -1841,31 +1874,40 @@ function initializeDragClickTask(task) {
                 
                 placedCount++;
                 if (isCorrect) correctPlacedCount++;
-                document.getElementById('dragCount').textContent = correctPlacedCount;
+                const dragCountEl = document.getElementById('dragCount');
+                if(dragCountEl) dragCountEl.textContent = correctPlacedCount;
                 
                 if (placedCount >= task.goal) {
-                    elements.checkTaskBtn.disabled = false;
+                    if(elements.checkTaskBtn) elements.checkTaskBtn.disabled = false;
                     if (correctPlacedCount >= task.goal) {
-                        elements.taskResult.textContent = '✅ Отлично! Все правильные предметы размещены!';
-                        elements.taskResult.style.color = '#2ecc71';
+                        if(elements.taskResult) {
+                            elements.taskResult.textContent = '✅ Отлично! Все правильные предметы размещены!';
+                            elements.taskResult.style.color = '#2ecc71';
+                        }
                     } else {
-                        elements.taskResult.textContent = `❌ Размещены не все правильные предметы! Правильных: ${correctPlacedCount}/${task.goal}`;
-                        elements.taskResult.style.color = '#e74c3c';
+                        if(elements.taskResult) {
+                            elements.taskResult.textContent = `❌ Размещены не все правильные предметы! Правильных: ${correctPlacedCount}/${task.goal}`;
+                            elements.taskResult.style.color = '#e74c3c';
+                        }
                     }
                 }
             }
         });
     });
     
-    elements.checkTaskBtn.onclick = function() {
-        if (correctPlacedCount >= task.goal) completeInteractiveTask();
-        else {
-            elements.taskResult.textContent = `❌ Не все правильные предметы размещены! Правильных: ${correctPlacedCount}/${task.goal}`;
-            elements.taskResult.style.color = '#e74c3c';
-            elements.retryTaskBtn.style.display = 'block';
-        }
-    };
-    elements.retryTaskBtn.onclick = function() { createDragClickTask(task); };
+    if(elements.checkTaskBtn) {
+        elements.checkTaskBtn.onclick = function() {
+            if (correctPlacedCount >= task.goal) completeInteractiveTask();
+            else {
+                if(elements.taskResult) {
+                    elements.taskResult.textContent = `❌ Не все правильные предметы размещены! Правильных: ${correctPlacedCount}/${task.goal}`;
+                    elements.taskResult.style.color = '#e74c3c';
+                }
+                if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'block';
+            }
+        };
+    }
+    if(elements.retryTaskBtn) elements.retryTaskBtn.onclick = function() { createDragClickTask(task); };
 }
 
 function createSortClickTask(task) {
@@ -1938,13 +1980,16 @@ function initializeSortClickTask(task) {
                     selectedItem = null;
                     
                     sortedCount++;
-                    document.getElementById('sortCount').textContent = sortedCount;
+                    const sortCountEl = document.getElementById('sortCount');
+                    if(sortCountEl) sortCountEl.textContent = sortedCount;
                     errorShown = false;
                     
                     if (sortedCount >= task.items.length) {
-                        elements.checkTaskBtn.disabled = false;
-                        elements.taskResult.textContent = '✅ Отлично! Весь мусор отсортирован правильно!';
-                        elements.taskResult.style.color = '#2ecc71';
+                        if(elements.checkTaskBtn) elements.checkTaskBtn.disabled = false;
+                        if(elements.taskResult) {
+                            elements.taskResult.textContent = '✅ Отлично! Весь мусор отсортирован правильно!';
+                            elements.taskResult.style.color = '#2ecc71';
+                        }
                     }
                 } else {
                     if (!errorShown) {
@@ -1960,15 +2005,19 @@ function initializeSortClickTask(task) {
         });
     });
     
-    elements.checkTaskBtn.onclick = function() {
-        if (sortedCount >= task.items.length) completeInteractiveTask();
-        else {
-            elements.taskResult.textContent = `❌ Не весь мусор отсортирован! Осталось: ${task.items.length - sortedCount}`;
-            elements.taskResult.style.color = '#e74c3c';
-            elements.retryTaskBtn.style.display = 'block';
-        }
-    };
-    elements.retryTaskBtn.onclick = function() { createSortClickTask(task); };
+    if(elements.checkTaskBtn) {
+        elements.checkTaskBtn.onclick = function() {
+            if (sortedCount >= task.items.length) completeInteractiveTask();
+            else {
+                if(elements.taskResult) {
+                    elements.taskResult.textContent = `❌ Не весь мусор отсортирован! Осталось: ${task.items.length - sortedCount}`;
+                    elements.taskResult.style.color = '#e74c3c';
+                }
+                if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'block';
+            }
+        };
+    }
+    if(elements.retryTaskBtn) elements.retryTaskBtn.onclick = function() { createSortClickTask(task); };
 }
 
 function createCleanupTask(task) {
@@ -1998,11 +2047,14 @@ function initializeCleanup(task) {
             if (!this.classList.contains('cleaned') && this.dataset.trash === "true") {
                 this.classList.add('cleaned');
                 cleanedCount++;
-                document.getElementById('cleanupCount').textContent = cleanedCount;
+                const cleanupCountEl = document.getElementById('cleanupCount');
+                if(cleanupCountEl) cleanupCountEl.textContent = cleanedCount;
                 if (cleanedCount >= totalTrash) {
-                    elements.checkTaskBtn.disabled = false;
-                    elements.taskResult.textContent = '✅ Отлично! Очистка завершена!';
-                    elements.taskResult.style.color = '#2ecc71';
+                    if(elements.checkTaskBtn) elements.checkTaskBtn.disabled = false;
+                    if(elements.taskResult) {
+                        elements.taskResult.textContent = '✅ Отлично! Очистка завершена!';
+                        elements.taskResult.style.color = '#2ecc71';
+                    }
                 }
             } else if (this.dataset.trash === "false") {
                 showNotification('Это не урна! Кликайте только на урны (🗑️)', 'warning');
@@ -2010,15 +2062,19 @@ function initializeCleanup(task) {
         });
     });
     
-    elements.checkTaskBtn.onclick = function() {
-        if (cleanedCount >= totalTrash) completeInteractiveTask();
-        else {
-            elements.taskResult.textContent = `❌ Не весь мусор очищен! Осталось: ${totalTrash - cleanedCount}`;
-            elements.taskResult.style.color = '#e74c3c';
-            elements.retryTaskBtn.style.display = 'block';
-        }
-    };
-    elements.retryTaskBtn.onclick = function() { createCleanupTask(task); };
+    if(elements.checkTaskBtn) {
+        elements.checkTaskBtn.onclick = function() {
+            if (cleanedCount >= totalTrash) completeInteractiveTask();
+            else {
+                if(elements.taskResult) {
+                    elements.taskResult.textContent = `❌ Не весь мусор очищен! Осталось: ${totalTrash - cleanedCount}`;
+                    elements.taskResult.style.color = '#e74c3c';
+                }
+                if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'block';
+            }
+        };
+    }
+    if(elements.retryTaskBtn) elements.retryTaskBtn.onclick = function() { createCleanupTask(task); };
 }
 
 function createPuzzleClickTask(task) {
@@ -2095,16 +2151,21 @@ function initializePuzzleImage(correctPieces) {
                     selectedPiece = null;
                     
                     placedCount++;
-                    document.getElementById('puzzleCount').textContent = placedCount;
+                    const pCountEl = document.getElementById('puzzleCount');
+                    if(pCountEl) pCountEl.textContent = placedCount;
                     
                     if (placedCount >= correctPieces.length) {
-                        elements.checkTaskBtn.disabled = false;
-                        elements.taskResult.textContent = '✅ Отлично! Пазл собран!';
-                        elements.taskResult.style.color = '#2ecc71';
+                        if(elements.checkTaskBtn) elements.checkTaskBtn.disabled = false;
+                        if(elements.taskResult) {
+                            elements.taskResult.textContent = '✅ Отлично! Пазл собран!';
+                            elements.taskResult.style.color = '#2ecc71';
+                        }
                     }
                 } else {
-                    elements.taskResult.textContent = '❌ Неправильное место! Попробуйте другой слот.';
-                    elements.taskResult.style.color = '#e74c3c';
+                    if(elements.taskResult) {
+                        elements.taskResult.textContent = '❌ Неправильное место! Попробуйте другой слот.';
+                        elements.taskResult.style.color = '#e74c3c';
+                    }
                     selectedPiece.classList.remove('selected');
                     selectedPiece = null;
                     puzzleSlots.forEach(s => s.classList.remove('hover'));
@@ -2113,15 +2174,19 @@ function initializePuzzleImage(correctPieces) {
         });
     });
     
-    elements.checkTaskBtn.onclick = function() {
-        if (placedCount >= correctPieces.length) completeInteractiveTask();
-        else {
-            elements.taskResult.textContent = `❌ Пазл не собран! Осталось: ${correctPieces.length - placedCount}`;
-            elements.taskResult.style.color = '#e74c3c';
-            elements.retryTaskBtn.style.display = 'block';
-        }
-    };
-    elements.retryTaskBtn.onclick = function() { if (gameState.currentTask) createPuzzleImageTask(gameState.currentTask); };
+    if(elements.checkTaskBtn) {
+        elements.checkTaskBtn.onclick = function() {
+            if (placedCount >= correctPieces.length) completeInteractiveTask();
+            else {
+                if(elements.taskResult) {
+                    elements.taskResult.textContent = `❌ Пазл не собран! Осталось: ${correctPieces.length - placedCount}`;
+                    elements.taskResult.style.color = '#e74c3c';
+                }
+                if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'block';
+            }
+        };
+    }
+    if(elements.retryTaskBtn) elements.retryTaskBtn.onclick = function() { if (gameState.currentTask) createPuzzleImageTask(gameState.currentTask); };
 }
 
 function createSequenceClickTask(task) {
@@ -2180,16 +2245,21 @@ function initializeSequenceClick(correctOrder) {
                     selectedPiece = null;
                     
                     placedCount++;
-                    document.getElementById('sequenceCount').textContent = placedCount;
+                    const sCountEl = document.getElementById('sequenceCount');
+                    if(sCountEl) sCountEl.textContent = placedCount;
                     
                     if (placedCount >= correctOrder.length) {
-                        elements.checkTaskBtn.disabled = false;
-                        elements.taskResult.textContent = '✅ Отлично! Последовательность верная!';
-                        elements.taskResult.style.color = '#2ecc71';
+                        if(elements.checkTaskBtn) elements.checkTaskBtn.disabled = false;
+                        if(elements.taskResult) {
+                            elements.taskResult.textContent = '✅ Отлично! Последовательность верная!';
+                            elements.taskResult.style.color = '#2ecc71';
+                        }
                     }
                 } else {
-                    elements.taskResult.textContent = '❌ Неправильная последовательность! Попробуйте другой слот.';
-                    elements.taskResult.style.color = '#e74c3c';
+                    if(elements.taskResult) {
+                        elements.taskResult.textContent = '❌ Неправильная последовательность! Попробуйте другой слот.';
+                        elements.taskResult.style.color = '#e74c3c';
+                    }
                     selectedPiece.classList.remove('selected');
                     selectedPiece = null;
                     sequenceSlots.forEach(s => s.classList.remove('hover'));
@@ -2198,15 +2268,19 @@ function initializeSequenceClick(correctOrder) {
         });
     });
     
-    elements.checkTaskBtn.onclick = function() {
-        if (placedCount >= correctOrder.length) completeInteractiveTask();
-        else {
-            elements.taskResult.textContent = `❌ Последовательность не завершена! Осталось: ${correctOrder.length - placedCount}`;
-            elements.taskResult.style.color = '#e74c3c';
-            elements.retryTaskBtn.style.display = 'block';
-        }
-    };
-    elements.retryTaskBtn.onclick = function() { if (gameState.currentTask) createSequenceClickTask(gameState.currentTask); };
+    if(elements.checkTaskBtn) {
+        elements.checkTaskBtn.onclick = function() {
+            if (placedCount >= correctOrder.length) completeInteractiveTask();
+            else {
+                if(elements.taskResult) {
+                    elements.taskResult.textContent = `❌ Последовательность не завершена! Осталось: ${correctOrder.length - placedCount}`;
+                    elements.taskResult.style.color = '#e74c3c';
+                }
+                if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'block';
+            }
+        };
+    }
+    if(elements.retryTaskBtn) elements.retryTaskBtn.onclick = function() { if (gameState.currentTask) createSequenceClickTask(gameState.currentTask); };
 }
 
 function createMatchGameTask(task) {
@@ -2265,12 +2339,15 @@ function initializeMatchGame(task) {
                         gameState.matchGameState.canFlip = true;
                         
                         gameState.matchGameState.matchedPairs++;
-                        document.getElementById('matchCount').textContent = gameState.matchGameState.matchedPairs;
+                        const mCountEl = document.getElementById('matchCount');
+                        if(mCountEl) mCountEl.textContent = gameState.matchGameState.matchedPairs;
                         
                         if (gameState.matchGameState.matchedPairs >= task.pairs) {
-                            elements.checkTaskBtn.disabled = false;
-                            elements.taskResult.textContent = '✅ Отлично! Все пары найдены!';
-                            elements.taskResult.style.color = '#2ecc71';
+                            if(elements.checkTaskBtn) elements.checkTaskBtn.disabled = false;
+                            if(elements.taskResult) {
+                                elements.taskResult.textContent = '✅ Отлично! Все пары найдены!';
+                                elements.taskResult.style.color = '#2ecc71';
+                            }
                         }
                     }, 500);
                 } else {
@@ -2285,18 +2362,24 @@ function initializeMatchGame(task) {
         });
     });
     
-    elements.checkTaskBtn.onclick = function() {
-        if (gameState.matchGameState.matchedPairs >= task.pairs) completeInteractiveTask();
-        else {
-            elements.taskResult.textContent = `❌ Не все пары найдены! Осталось: ${task.pairs - gameState.matchGameState.matchedPairs}`;
-            elements.taskResult.style.color = '#e74c3c';
-            elements.retryTaskBtn.style.display = 'block';
-        }
-    };
-    elements.retryTaskBtn.onclick = function() {
-        gameState.matchGameState = { cards: [], flippedCards: [], matchedPairs: 0, canFlip: true };
-        createMatchGameTask(task);
-    };
+    if(elements.checkTaskBtn) {
+        elements.checkTaskBtn.onclick = function() {
+            if (gameState.matchGameState.matchedPairs >= task.pairs) completeInteractiveTask();
+            else {
+                if(elements.taskResult) {
+                    elements.taskResult.textContent = `❌ Не все пары найдены! Осталось: ${task.pairs - gameState.matchGameState.matchedPairs}`;
+                    elements.taskResult.style.color = '#e74c3c';
+                }
+                if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'block';
+            }
+        };
+    }
+    if(elements.retryTaskBtn) {
+        elements.retryTaskBtn.onclick = function() {
+            gameState.matchGameState = { cards: [], flippedCards: [], matchedPairs: 0, canFlip: true };
+            createMatchGameTask(task);
+        };
+    }
 }
 
 function createDefaultTask(task) {
@@ -2308,8 +2391,10 @@ function createDefaultTask(task) {
             <p>Здесь будет интерактивная часть задания</p>
         </div>
     `;
-    elements.checkTaskBtn.disabled = false;
-    elements.checkTaskBtn.onclick = function() { completeInteractiveTask(); };
+    if(elements.checkTaskBtn) {
+        elements.checkTaskBtn.disabled = false;
+        elements.checkTaskBtn.onclick = function() { completeInteractiveTask(); };
+    }
 }
 
 function completeInteractiveTask() {
@@ -2340,20 +2425,22 @@ function completeInteractiveTask() {
         showNotification(`Поздравляем! Вы достигли ${gameState.currentPlayer.level}-го уровня!`, 'success');
     }
     
-    elements.interactiveTask.style.display = 'none';
-    elements.currentTask.style.display = 'none';
-    elements.noTaskMessage.style.display = 'block';
-    elements.checkTaskBtn.style.display = 'none';
-    elements.retryTaskBtn.style.display = 'none';
-    elements.completeTaskBtn.disabled = true;
-    elements.completeTaskBtn.style.display = 'block';
-    elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
+    if(elements.interactiveTask) elements.interactiveTask.style.display = 'none';
+    if(elements.currentTask) elements.currentTask.style.display = 'none';
+    if(elements.noTaskMessage) elements.noTaskMessage.style.display = 'block';
+    if(elements.checkTaskBtn) elements.checkTaskBtn.style.display = 'none';
+    if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'none';
+    if(elements.completeTaskBtn) {
+        elements.completeTaskBtn.disabled = true;
+        elements.completeTaskBtn.style.display = 'block';
+        elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
+    }
     gameState.taskInProgress = false;
     hasCurrentTask = false;
     gameState.hasUnfinishedTask = false;
     gameState.currentTask = null;
     
-    elements.buildBtn.disabled = false;
+    if(elements.buildBtn) elements.buildBtn.disabled = false;
     updateRollDiceButtonState();
     
     if (gameState.isMyTurn) {
@@ -2433,7 +2520,7 @@ function initializeQuickActions() {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             element.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
             element.style.transition = 'box-shadow 0.5s';
-            setTimeout(() => { element.style.boxShadow = ''; }, 2000);
+            setTimeout(() => { element.style.boxShadow = 'none'; }, 2000);
         }
     }
     
@@ -2456,12 +2543,12 @@ function initializeQuickActions() {
             quickActions.classList.remove('show'); quickActionsBtn.classList.remove('active'); quickActionsVisible = false;
             if (elements.buildBtn.disabled) { showNotification('Сначала выполните задание, чтобы построить объект!', 'warning'); return; }
             setTimeout(() => {
-                const buildingsContainer = document.getElementById('buildingsContainer');
+                const buildingsContainer = document.getElementById('buildingsSection');
                 if (buildingsContainer) {
                     buildingsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    elements.buildingsSection.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
-                    elements.buildingsSection.style.transition = 'box-shadow 0.5s';
-                    setTimeout(() => { elements.buildingsSection.style.boxShadow = ''; }, 2000);
+                    buildingsContainer.style.boxShadow = '0 0 20px rgba(78, 205, 196, 0.8)';
+                    buildingsContainer.style.transition = 'box-shadow 0.5s';
+                    setTimeout(() => { buildingsContainer.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)'; }, 2000);
                 }
             }, 100);
         });
@@ -2675,10 +2762,10 @@ if(elements.rollDiceBtn) {
             addLogEntry(`🎲 Вы бросили кубик и получили ${diceValue}. Новая позиция: ${newPosition}`);
             
             gameState.currentTask = getRandomTask(gameState.currentDifficulty);
-            elements.currentTask.style.display = 'block';
-            elements.taskDescription.textContent = gameState.currentTask.description;
-            elements.noTaskMessage.style.display = 'none';
-            elements.completeTaskBtn.disabled = false;
+            if(elements.currentTask) elements.currentTask.style.display = 'block';
+            if(elements.taskDescription) elements.taskDescription.textContent = gameState.currentTask.description;
+            if(elements.noTaskMessage) elements.noTaskMessage.style.display = 'none';
+            if(elements.completeTaskBtn) elements.completeTaskBtn.disabled = false;
             hasCurrentTask = true;
             
             updateRollDiceButtonState();
@@ -2692,7 +2779,7 @@ if(elements.rollDiceBtn) {
 if(elements.completeTaskBtn) {
     elements.completeTaskBtn.addEventListener('click', () => {
         if (!gameState.currentTask) return;
-        elements.interactiveTask.style.display = 'block';
+        if(elements.interactiveTask) elements.interactiveTask.style.display = 'block';
         createInteractiveTask(gameState.currentTask);
     });
 }
@@ -2706,7 +2793,7 @@ if(elements.checkTaskBtn) {
 if(elements.retryTaskBtn) {
     elements.retryTaskBtn.addEventListener('click', () => {
         if (gameState.currentTask) {
-            elements.taskResult.textContent = '';
+            if(elements.taskResult) elements.taskResult.textContent = '';
             elements.retryTaskBtn.style.display = 'none';
             createInteractiveTask(gameState.currentTask);
         }
@@ -2715,6 +2802,7 @@ if(elements.retryTaskBtn) {
 
 if(elements.sendMessageBtn) {
     elements.sendMessageBtn.addEventListener('click', () => {
+        if(!elements.chatInput) return;
         const message = elements.chatInput.value.trim();
         if (message) sendChatMessage(message);
     });
@@ -2722,7 +2810,7 @@ if(elements.sendMessageBtn) {
 
 if(elements.chatInput) {
     elements.chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') elements.sendMessageBtn.click();
+        if (e.key === 'Enter' && elements.sendMessageBtn) elements.sendMessageBtn.click();
     });
 }
 
@@ -2741,7 +2829,7 @@ if(elements.leaveRoomBtn) {
             if(elements.gameContent) elements.gameContent.style.display = 'none';
             if(elements.resourcesPlaceholder) elements.resourcesPlaceholder.style.display = 'none';
             if(quickActionsBtn) quickActionsBtn.classList.remove('show');
-            showNotification('Вы покинули комнату', 'info');
+            showNotification('Вы покинули лобби', 'info');
         }
     });
 }
