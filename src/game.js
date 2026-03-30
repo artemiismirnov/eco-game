@@ -467,7 +467,7 @@ function initEmojiPicker() {
     });
 }
 
-// ==================== ИГРОВЫЕ ДАННЫЕ (ОБНОВЛЕНО) ====================
+// ==================== ИГРОВЫЕ ДАННЫЕ ====================
 const gameData = {
     cities: {
         tver: { 
@@ -477,31 +477,31 @@ const gameData = {
             task: "Ваша задача — помочь городу справиться с экологическими проблемами."
         },
         kineshma: { 
-            name: "Кинешма", position: 2, description: "Город на Волге",
+            name: "Кинешма", position: 18, description: "Город на Волге",
             history: "Кинешма — старинный город на Волге, известный с 1504 года.",
             problem: "Главная экологическая проблема Кинешмы — загрязнение Волги.",
             task: "Помогите очистить берега Волги от мусора."
         },
         naberezhnye_chelny: { 
-            name: "Набережные Челны", position: 3, description: "Город автомобилестроителей",
+            name: "Набережные Челны", position: 35, description: "Город автомобилестроителей",
             history: "Набережные Челны — молодой город, основанный в 1930 году.",
             problem: "Основные экологические проблемы — загрязнение воздуха выбросами.",
             task: "Помогите внедрить экологичные технологии на автозаводе."
         },
         kazan: { 
-            name: "Казань", position: 4, description: "Столица Татарстана",
+            name: "Казань", position: 55, description: "Столица Татарстана",
             history: "Казань — тысячелетний город, столица Республики Татарстан.",
             problem: "Основные экологические проблемы Казани — высокий уровень загрязнения воздуха.",
             task: "Ваша задача — помочь внедрить систему переработки мусора."
         },
         volgograd: { 
-            name: "Волгоград", position: 5, description: "Город-герой",
+            name: "Волгоград", position: 75, description: "Город-герой",
             history: "Волгоград — город-герой с богатой историей, известный Сталинградской битвой.",
             problem: "Волгоград страдает от сильного промышленного загрязнения.",
             task: "Помогите снизить промышленное загрязнение."
         },
         astrakhan: { 
-            name: "Астрахань", position: 6, description: "Конечная точка маршрута",
+            name: "Астрахань", position: 94, description: "Конечная точка маршрута",
             history: "Астрахань — древний город в дельте Волги.",
             problem: "Ключевые экологические проблемы Астрахани — снижение биоразнообразия.",
             task: "Ваша финальная задача — помочь сохранить уникальную экосистему."
@@ -519,7 +519,7 @@ const gameData = {
     }
 };
 
-let mapData = { cells: [], imageLoaded: false };
+let mapData = { cells: [], imageLoaded: true }; // imageLoaded теперь true по умолчанию
 
 let gameState = {
     mapId: 'volga', currentPlayer: null, currentPlayerId: null, players: {}, roomId: null, cityProgress: {},
@@ -767,16 +767,13 @@ socket.on('chat_history', (messages) => {
 
 socket.on('player_dice_roll', (data) => {
     if (gameState.players[data.playerId] && data.playerId !== gameState.currentPlayerId) {
+        const oldPosition = gameState.players[data.playerId].position || 1;
         gameState.players[data.playerId].position = data.newPosition;
         gameState.players[data.playerId].currentTask = data.task;
         
-        updateOtherPlayerMarker(
-            data.playerId, 
-            gameState.players[data.playerId].name, 
-            data.newPosition, 
-            '', 
-            gameState.players[data.playerId].color
-        );
+        // Анимируем движение чужой фишки
+        animateTokenAlongPath(data.playerId, oldPosition, data.newPosition);
+        
         addLogEntry(`🎲 Игрок "${gameState.players[data.playerId].name}" бросил кубик: ${data.diceValue}`);
     }
 });
@@ -865,10 +862,22 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAv
         marker.innerHTML = '<i class="fas fa-user" style="font-size: 10px; color: white;"></i>';
     }
     
-    const cell = mapData.cells.find(c => c.number === position);
-    if (cell) {
-        marker.style.left = `${cell.x + cell.width/2}px`;
-        marker.style.top = `${cell.y + cell.height/2}px`;
+    // Ставим фишку на нужную клетку через SVG
+    const routePath = document.getElementById('routePath');
+    const svgRect = document.getElementById('gameMapSvg').getBoundingClientRect();
+    const viewBox = { width: 1000, height: 800 }; 
+    
+    if (routePath && position > 0) {
+        const pathLength = routePath.getTotalLength();
+        const stepLength = pathLength / 93; // 94 клетки (от 0 до 93)
+        const distance = (position - 1) * stepLength;
+        const point = routePath.getPointAtLength(distance);
+        
+        const scaleX = svgRect.width / viewBox.width;
+        const scaleY = svgRect.height / viewBox.height;
+        
+        marker.style.left = `${point.x * scaleX}px`;
+        marker.style.top = `${point.y * scaleY}px`;
         
         const tooltip = marker.querySelector('.player-tooltip');
         if (tooltip) tooltip.textContent = `${playerName} (поз. ${position})`;
@@ -907,7 +916,11 @@ function updatePlayerInList(playerId, position, playerName) {
 socket.on('player_position_update', (data) => {
     const { playerId, playerName, position, city, color } = data;
     if (playerId !== socket.id) {
-        updateOtherPlayerMarker(playerId, playerName, position, city, color);
+        // Мы используем анимацию в player_dice_roll, это событие для синхронизации
+        const marker = document.getElementById(`marker-${playerId}`);
+        if (!marker) {
+            updateOtherPlayerMarker(playerId, playerName, position, city, color);
+        }
     }
 });
 
@@ -918,6 +931,167 @@ socket.on('all_players_positions', (data) => {
         updateOtherPlayerMarker(playerId, player.name, player.position, player.city, player.color);
     }
 });
+
+// ==================== НОВАЯ SVG-КАРТА И АНИМАЦИЯ ====================
+function loadMap() {
+    // Ждем небольшую паузу, чтобы SVG успел отрендериться в DOM
+    setTimeout(generateSmartMap, 100);
+}
+
+function generateSmartMap() {
+    const routePath = document.getElementById('routePath');
+    const cellsGroup = document.getElementById('cellsGroup');
+    
+    if (!routePath || !cellsGroup) return;
+    
+    cellsGroup.innerHTML = '';
+    mapData.cells = [];
+    
+    const totalCells = 94; // 94 клетки как мы договаривались
+    const pathLength = routePath.getTotalLength();
+    const stepLength = pathLength / (totalCells - 1);
+    
+    // Привязка городов к конкретным клеткам (индексы)
+    const cityPositions = {
+        1: 'tver',
+        18: 'kineshma',
+        35: 'naberezhnye_chelny',
+        55: 'kazan',
+        75: 'volgograd',
+        94: 'astrakhan'
+    };
+
+    // Чтобы фишки позиционировались правильно, нам нужны реальные размеры SVG
+    const svgRect = document.getElementById('gameMapSvg').getBoundingClientRect();
+    const viewBox = { width: 1000, height: 800 };
+
+    for (let i = 0; i < totalCells; i++) {
+        const number = i + 1;
+        const point = routePath.getPointAtLength(i * stepLength);
+        
+        // Пересчет координат SVG в реальные пиксели экрана
+        const scaleX = svgRect.width / viewBox.width;
+        const scaleY = svgRect.height / viewBox.height;
+        const realX = point.x * scaleX;
+        const realY = point.y * scaleY;
+
+        const cityKey = cityPositions[number];
+        const type = cityKey ? (number === 1 ? 'start' : number === totalCells ? 'finish' : 'city') : 'normal';
+
+        const cellData = {
+            id: number, number: number,
+            x: realX, y: realY, // Реальные пиксели для HTML фишек
+            svgX: point.x, svgY: point.y, 
+            type: type, city: cityKey || ''
+        };
+        mapData.cells.push(cellData);
+
+        if (cityKey) {
+            // Города (Зеленые узлы)
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            
+            const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            pulse.setAttribute('cx', point.x); pulse.setAttribute('cy', point.y);
+            pulse.setAttribute('r', '14'); pulse.setAttribute('class', 'svg-city-pulse');
+            
+            const node = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            node.setAttribute('cx', point.x); node.setAttribute('cy', point.y);
+            node.setAttribute('r', '14'); node.setAttribute('class', 'svg-city-node');
+            
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', point.x); text.setAttribute('y', point.y - 25);
+            text.setAttribute('text-anchor', 'middle'); text.setAttribute('class', 'svg-city-text');
+            text.textContent = gameData.cities[cityKey].name;
+
+            g.style.cursor = 'pointer';
+            g.addEventListener('click', () => showCityModal(cityKey));
+
+            g.appendChild(pulse); g.appendChild(node); g.appendChild(text);
+            cellsGroup.appendChild(g);
+            
+        } else {
+            // Обычные клетки (точки)
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', point.x); dot.setAttribute('cy', point.y);
+            dot.setAttribute('r', '5'); dot.setAttribute('class', 'svg-cell-normal');
+            
+            dot.addEventListener('click', () => showNotification(`Клетка маршрута (Поз: ${number})`, 'info'));
+            cellsGroup.appendChild(dot);
+        }
+    }
+    
+    updatePlayerMarkers();
+}
+
+// Перерисовка при ресайзе окна для идеальной адаптивности
+window.addEventListener('resize', () => {
+    if (elements.gameContent.style.display !== 'none') {
+        generateSmartMap();
+    }
+});
+
+// Плавная анимация движения фишки по изгибам реки
+function animateTokenAlongPath(playerId, startCellNumber, endCellNumber) {
+    const routePath = document.getElementById('routePath');
+    const token = document.getElementById(`marker-${playerId}`);
+    const svgSvg = document.getElementById('gameMapSvg');
+    
+    if (!routePath || !token || !svgSvg) return;
+
+    const svgRect = svgSvg.getBoundingClientRect();
+    const viewBox = { width: 1000, height: 800 };
+    const pathLength = routePath.getTotalLength();
+    const totalCells = 94;
+    const stepLength = pathLength / (totalCells - 1);
+
+    const startDistance = (startCellNumber - 1) * stepLength;
+    const endDistance = (endCellNumber - 1) * stepLength;
+    
+    const duration = 1200; // 1.2 секунды на анимацию
+    const startTime = performance.now();
+
+    function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing функция (плавный старт и финиш)
+        const easeProgress = progress < 0.5 
+            ? 2 * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        const currentDistance = startDistance + (endDistance - startDistance) * easeProgress;
+        const point = routePath.getPointAtLength(currentDistance);
+        
+        // Постоянно пересчитываем scale на случай ресайза во время движения
+        const currentSvgRect = svgSvg.getBoundingClientRect();
+        const scaleX = currentSvgRect.width / viewBox.width;
+        const scaleY = currentSvgRect.height / viewBox.height;
+        
+        token.style.left = `${point.x * scaleX}px`;
+        token.style.top = `${point.y * scaleY}px`;
+
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            // Анимация завершена.
+            const tooltip = token.querySelector('.player-tooltip');
+            if (tooltip) {
+                const playerName = token.getAttribute('data-player');
+                tooltip.textContent = `${playerName} (поз. ${endCellNumber})`;
+            }
+            
+            // Если это локальный игрок и он пришел в город
+            if (playerId === gameState.currentPlayerId) {
+                const currentCell = mapData.cells.find(c => c.number === endCellNumber);
+                if (currentCell && currentCell.type === 'city' && currentCell.city) {
+                    setTimeout(() => showCityModal(currentCell.city), 300);
+                }
+            }
+        }
+    }
+
+    requestAnimationFrame(animate);
+}
 
 // ==================== ОСНОВНЫЕ ФУНКЦИИ ИГРЫ ====================
 function showNotification(message, type = 'info') {
@@ -990,7 +1164,7 @@ function initializeGame(playerData) {
     updatePlayerUI();
     elements.roomNumber.textContent = currentRoomId || gameState.roomId;
     
-    loadMap();
+    loadMap(); // Вызов генерации умной SVG-карты
     createCitiesGrid();
     createBuildingsList();
     updateDifficultyButtons();
@@ -1117,146 +1291,7 @@ function sendChatMessage(message) {
     }
 }
 
-// ==================== ФУНКЦИИ ДЛЯ КАРТЫ ====================
-function loadMap() {
-    if (window.mapData && window.mapData.imageUrl) {
-        if(elements.mapImage) {
-            elements.mapImage.src = window.mapData.imageUrl;
-            elements.mapImage.onload = function() {
-                mapData.imageLoaded = true;
-                loadSavedMap();
-                updatePlayerMarkers();
-            };
-            elements.mapImage.onerror = function() {
-                mapData.imageLoaded = false;
-                loadSavedMap();
-            };
-        }
-    } else {
-        loadSavedMap();
-    }
-}
-
-function loadSavedMap() {
-    fetch('eco-game-map-2025-12-27.json')
-        .then(response => {
-            if (!response.ok) throw new Error('Файл карты не найден');
-            return response.json();
-        })
-        .then(savedMap => {
-            if (savedMap.cells && Array.isArray(savedMap.cells)) {
-                mapData.cells = savedMap.cells;
-                createMapCells();
-                updatePlayerMarkers();
-            } else {
-                throw new Error('Некорректный формат файла карты');
-            }
-        })
-        .catch(error => {
-            console.error('❌ Ошибка загрузки карты:', error);
-            createDefaultMap();
-        });
-}
-
-function createDefaultMap() {
-    if(!elements.mapContainer) return;
-    const containerWidth = elements.mapContainer.offsetWidth;
-    const containerHeight = elements.mapContainer.offsetHeight;
-    
-    const cityPositions = [
-        { city: 'tver', x: containerWidth * 0.1, y: containerHeight * 0.3, number: 1, type: 'start' },
-        { city: 'kineshma', x: containerWidth * 0.3, y: containerHeight * 0.4, number: 2, type: 'city' },
-        { city: 'naberezhnye_chelny', x: containerWidth * 0.5, y: containerHeight * 0.3, number: 3, type: 'city' },
-        { city: 'kazan', x: containerWidth * 0.7, y: containerHeight * 0.4, number: 4, type: 'city' },
-        { city: 'volgograd', x: containerWidth * 0.6, y: containerHeight * 0.6, number: 5, type: 'city' },
-        { city: 'astrakhan', x: containerWidth * 0.8, y: containerHeight * 0.7, number: 6, type: 'finish' }
-    ];
-    
-    mapData.cells = cityPositions.map((pos, index) => ({
-        id: index + 1, number: pos.number, x: pos.x, y: pos.y, width: 40, height: 40,
-        type: pos.type, city: pos.city, description: `Клетка города ${gameData.cities[pos.city]?.name || 'Неизвестный'}`
-    }));
-    createMapCells();
-}
-
-function createMapCells() {
-    if(!elements.mapOverlay) return;
-    elements.mapOverlay.innerHTML = '';
-    mapData.cells.forEach(cell => createCellElement(cell));
-    updatePlayerMarkers();
-}
-
-function createCellElement(cell) {
-    const cellElement = document.createElement('div');
-    cellElement.className = 'map-cell hidden';
-    cellElement.dataset.cellId = cell.id;
-    cellElement.dataset.cellNumber = cell.number;
-    cellElement.dataset.cellType = cell.type;
-    cellElement.dataset.city = cell.city || '';
-    
-    cellElement.style.left = `${cell.x}px`;
-    cellElement.style.top = `${cell.y}px`;
-    cellElement.style.width = `${cell.width}px`;
-    cellElement.style.height = `${cell.height}px`;
-    
-    if (cell.type === 'start') cellElement.classList.add('start');
-    else if (cell.type === 'finish') cellElement.classList.add('finish');
-    else if (cell.type === 'city') cellElement.classList.add('city');
-    
-    cellElement.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (cell.type === 'city' && cell.city) showCityModal(cell.city);
-        else if (cell.type === 'start') showNotification('Это стартовая точка игры!', 'info');
-        else if (cell.type === 'finish') showNotification('Это конечная точка игры!', 'info');
-    });
-    
-    if(elements.mapOverlay) elements.mapOverlay.appendChild(cellElement);
-    return cellElement;
-}
-
 // ==================== ФУНКЦИИ ИНТЕРФЕЙСА ====================
-function updatePlayerMarkers() {
-    document.querySelectorAll('.player-marker').forEach(marker => marker.remove());
-    requestAllPlayersPositions();
-}
-
-function updatePlayersList() {
-    if(!elements.playersContainer) return;
-    elements.playersContainer.innerHTML = '';
-    
-    let playersArray = Object.entries(gameState.players);
-    if (gameState.turnOrder && gameState.turnOrder.length > 0) {
-        playersArray.sort((a, b) => {
-            const indexA = gameState.turnOrder.indexOf(a[0]);
-            const indexB = gameState.turnOrder.indexOf(b[0]);
-            return (indexA - indexB);
-        });
-    }
-    
-    playersArray.forEach(([playerId, player]) => {
-        const playerItem = document.createElement('div');
-        playerItem.className = 'player-item';
-        playerItem.dataset.playerId = playerId;
-        
-        if (playerId === gameState.currentPlayerId) playerItem.classList.add('current');
-        if (playerId === gameState.currentTurn) playerItem.classList.add('turn');
-        if (!player.connected) playerItem.style.opacity = '0.6';
-        
-        const statusIcon = player.connected ? '🟢' : '🔴';
-        const turnIndicator = playerId === gameState.currentTurn ? ' 👑' : '';
-        
-        playerItem.innerHTML = `
-            <span>${statusIcon} ${player.name}${turnIndicator}
-                ${playerId === gameState.currentPlayerId ? '<span style="color: #8e44ad;">(Вы)</span>' : ''}
-                <span class="player-position-badge">поз. ${player.position || 0}</span>
-            </span>
-            <span><strong>${player.cleaningPoints}</strong> баллов</span>
-        `;
-        
-        elements.playersContainer.appendChild(playerItem);
-    });
-}
-
 function updatePlayerUI() {
     if (gameState.currentPlayer) {
         if(elements.playerName) elements.playerName.textContent = gameState.currentPlayer.name;
@@ -1385,16 +1420,8 @@ function createCitiesGrid() {
         if (isCompleted) cityCard.classList.add('completed');
         if (isAccessible && !isCurrentCity) cityCard.classList.add('accessible');
         
-        let cellRange = '';
-        switch(cityKey) {
-            case 'tver': cellRange = '2-13'; break;
-            case 'kineshma': cellRange = '18-29'; break;
-            case 'naberezhnye_chelny': cellRange = '32-43'; break;
-            case 'kazan': cellRange = '47-58'; break;
-            case 'volgograd': cellRange = '66-77'; break;
-            case 'astrakhan': cellRange = '81-92'; break;
-            default: cellRange = '?';
-        }
+        // Показываем точную позицию города на карте
+        const cellRange = city.position;
         
         cityCard.innerHTML = `
             <div class="city-name">${city.name}</div>
@@ -1513,8 +1540,7 @@ function checkGameCompletion() {
     const playerProgress = gameState.playerProgress[gameState.currentPlayerId];
     const allCitiesCompleted = Object.values(playerProgress).every(progress => progress >= 100);
     
-    const finishCell = mapData.cells.find(cell => cell.type === 'finish');
-    const isAtFinish = finishCell && gameState.currentPlayer.position === finishCell.number;
+    const isAtFinish = gameState.currentPlayer.position === 94; // Финишная клетка
     
     if (allCitiesCompleted && isAtFinish) {
         gameState.gameOver = true;
@@ -1541,15 +1567,17 @@ function checkGameCompletion() {
 
 // ==================== УВЕДОМЛЕНИЕ О ПЕРЕХОДЕ В НОВЫЙ ГОРОД ====================
 function checkForCityTransition(oldPosition, newPosition) {
-    const oldCell = mapData.cells.find(cell => cell.number === oldPosition);
     const newCell = mapData.cells.find(cell => cell.number === newPosition);
     
-    if (!oldCell || !newCell) return;
+    if (!newCell) return;
     
     if (newCell.type === 'city' && newCell.city) {
         const cityKey = newCell.city;
         const city = gameData.cities[cityKey];
-        const wasInCity = oldCell.city === cityKey;
+        
+        // Старый город, из которого мы вышли
+        const oldCell = mapData.cells.find(cell => cell.number === oldPosition);
+        const wasInCity = oldCell && oldCell.city === cityKey;
         
         if (!wasInCity) {
             showNotification(`🏙️ Вы прибыли в ${city.name}! ${city.description}`, 'info');
@@ -2514,13 +2542,9 @@ function moveToExistingCity(cityKey) {
     gameState.currentPlayer.city = cityKey;
     
     updatePlayerUI();
-    updateOtherPlayerMarker(
-        gameState.currentPlayerId, 
-        gameState.currentPlayer.name, 
-        cityCell.number, 
-        cityKey, 
-        gameState.currentPlayer.color || '#8e44ad'
-    );
+    
+    // Анимируем перелет в другой город
+    animateTokenAlongPath(gameState.currentPlayerId, oldPosition, cityCell.number);
     
     checkForCityTransition(oldPosition, cityCell.number);
     sendPlayerPositionToServer(cityCell.number, cityKey);
@@ -2531,11 +2555,6 @@ function moveToExistingCity(cityKey) {
     
     showNotification(`🚗 Вы переместились в ${gameData.cities[cityKey].name}!`, 'success');
     addLogEntry(`🚗 Вы переместились в ${gameData.cities[cityKey].name}`);
-    
-    if (!gameState.visitedCities[cityKey]) {
-        setTimeout(() => { showCityModal(cityKey); }, 500);
-        gameState.visitedCities[cityKey] = true;
-    }
 }
 
 // ==================== КНОПКА БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -2820,8 +2839,8 @@ if(elements.rollDiceBtn) {
             elements.diceValue.querySelector('.dice-value').textContent = diceValue;
             elements.diceValue.classList.remove('rolling');
             
-            const oldPosition = gameState.currentPlayer.position;
-            const newPosition = Math.min(gameState.currentPlayer.position + diceValue, mapData.cells.length);
+            const oldPosition = gameState.currentPlayer.position || 1;
+            const newPosition = Math.min(oldPosition + diceValue, mapData.cells.length);
             gameState.currentPlayer.position = newPosition;
             
             const currentCell = mapData.cells.find(cell => cell.number === newPosition);
@@ -2830,13 +2849,9 @@ if(elements.rollDiceBtn) {
             }
             
             updatePlayerUI();
-            updateOtherPlayerMarker(
-                gameState.currentPlayerId, 
-                gameState.currentPlayer.name, 
-                newPosition, 
-                gameState.currentPlayer.city, 
-                gameState.currentPlayer.color || '#8e44ad'
-            );
+            
+            // Запускаем плавную анимацию по SVG
+            animateTokenAlongPath(gameState.currentPlayerId, oldPosition, newPosition);
             
             checkForCityTransition(oldPosition, newPosition);
             sendPlayerPositionToServer(newPosition, gameState.currentPlayer.city);
