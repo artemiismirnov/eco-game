@@ -43,11 +43,13 @@ const AVAILABLE_COLORS = [
 
 // ==================== ЭЛЕМЕНТЫ DOM ====================
 const elements = {
+    // Новые элементы главной страницы (Лэндинга)
     landingPage: document.getElementById('landingPage'),
     startLandingBtn: document.getElementById('startLandingBtn'),
     backToLandingBtn: document.getElementById('backToLandingBtn'),
     headerThemeBtn: document.getElementById('headerThemeBtn'),
     
+    // Элементы Рейтинга и Списка комнат
     leaderboardModal: document.getElementById('leaderboardModal'),
     openLeaderboardBtn: document.getElementById('openLeaderboardBtn'),
     closeLeaderboardBtn: document.getElementById('closeLeaderboardBtn'),
@@ -63,10 +65,12 @@ const elements = {
     loginForm: document.getElementById('loginForm'),
     registerForm: document.getElementById('registerForm'),
     
+    // Элементы для ввода паролей и приватности
     loginPassword: document.getElementById('loginPassword'),
     registerPassword: document.getElementById('registerPassword'),
     isPrivateRoom: document.getElementById('isPrivateRoom'),
     
+    // Элементы для выбора карты
     mapSelectionSection: document.getElementById('mapSelectionSection'),
     mapCardVolga: document.getElementById('mapCardVolga'),
     cancelMapSelectionBtn: document.getElementById('cancelMapSelectionBtn'),
@@ -142,6 +146,7 @@ const elements = {
     colorModal: document.getElementById('colorModal'),
     colorGrid: document.getElementById('colorGrid'),
     
+    // Элементы для профиля и настроек
     userProfileBadge: document.getElementById('userProfileBadge'),
     userAvatar: document.getElementById('userAvatar'),
     googleSignInBtn: document.getElementById('googleSignInBtn'),
@@ -158,24 +163,26 @@ const elements = {
     statsList: document.getElementById('statsList')
 };
 
-// ==================== АНИМАЦИИ ПЕРЕХОДА (ШАГ 1) ====================
-function switchScreen(hideElem, showElem) {
-    if (hideElem) {
-        hideElem.classList.remove('fade-in');
-        hideElem.classList.add('fade-out');
-        setTimeout(() => {
-            hideElem.style.display = 'none';
-            if (showElem) {
-                showElem.style.display = showElem.id === 'landingPage' ? 'flex' : 'block';
-                showElem.classList.remove('fade-out');
-                showElem.classList.add('fade-in');
-            }
-        }, 400); // 400ms должно совпадать с transition в CSS
-    } else if (showElem) {
-        showElem.style.display = showElem.id === 'landingPage' ? 'flex' : 'block';
-        showElem.classList.remove('fade-out');
-        showElem.classList.add('fade-in');
-    }
+// ==================== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ПЛАВНОГО ПЕРЕХОДА ====================
+function switchSectionWithAnimation(hideElem, showElem) {
+    if (!hideElem || !showElem) return;
+    
+    // Плавное исчезновение
+    hideElem.classList.add('hidden-animated');
+    
+    setTimeout(() => {
+        hideElem.style.display = 'none';
+        
+        // Подготавливаем новый элемент
+        showElem.classList.add('hidden-animated');
+        showElem.style.display = (showElem.id === 'landingPage') ? 'flex' : 'block';
+        
+        // Форсируем перерисовку, чтобы сработала анимация появления
+        void showElem.offsetWidth;
+        
+        // Плавное появление
+        showElem.classList.remove('hidden-animated');
+    }, 300); // Время должно совпадать с CSS transition
 }
 
 // ==================== ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ ДОСТУПНЫХ КОМНАТ ====================
@@ -191,10 +198,20 @@ window.joinPublicRoom = function(roomId) {
     const closeBtn = document.getElementById('closeRoomsListBtn');
     if (closeBtn) closeBtn.click();
     
-    switchScreen(elements.landingPage, elements.authSection);
+    // Плавный переход к авторизации
+    if (elements.landingPage && elements.landingPage.style.display !== 'none') {
+        switchSectionWithAnimation(elements.landingPage, elements.authSection);
+    } else if (elements.mapSelectionSection && elements.mapSelectionSection.style.display !== 'none') {
+        switchSectionWithAnimation(elements.mapSelectionSection, elements.authSection);
+    } else {
+        if(elements.authSection) {
+            elements.authSection.style.display = 'block';
+            elements.authSection.classList.remove('hidden-animated');
+        }
+    }
     
     const loginTab = document.getElementById('loginTab');
-    if (loginTab) loginTab.click();
+    if (loginTab && !loginTab.classList.contains('active')) loginTab.click();
     
     const loginRoomInput = document.getElementById('loginRoom');
     if (loginRoomInput) {
@@ -287,11 +304,8 @@ function updateProfileUI() {
     }
     if (userProfile.name) {
         if(elements.settingsDisplayName) elements.settingsDisplayName.value = userProfile.name;
-        
-        // Только если поля пусты, заполняем их именем из профиля. 
-        // Иначе не трогаем, так как там может быть восстановленная сессия.
-        if(elements.loginUsername && !elements.loginUsername.value) elements.loginUsername.value = userProfile.name;
-        if(elements.registerUsername && !elements.registerUsername.value) elements.registerUsername.value = userProfile.name;
+        if(elements.loginUsername) elements.loginUsername.value = userProfile.name;
+        if(elements.registerUsername) elements.registerUsername.value = userProfile.name;
     }
     if (userProfile.birthDate && elements.settingsBirthDate) elements.settingsBirthDate.value = userProfile.birthDate;
     if (userProfile.gender && elements.settingsGender) elements.settingsGender.value = userProfile.gender;
@@ -453,7 +467,7 @@ function initEmojiPicker() {
     });
 }
 
-// ==================== ИГРОВЫЕ ДАННЫЕ (ОБНОВЛЕННЫЕ ГОРОДА - ШАГ 3) ====================
+// ==================== ИГРОВЫЕ ДАННЫЕ (ОБНОВЛЕНО) ====================
 const gameData = {
     cities: {
         tver: { 
@@ -678,9 +692,18 @@ socket.on('room-error', (message) => {
     const errorMsg = typeof message === 'object' ? message.message : message;
     showNotification(errorMsg || 'Произошла ошибка при входе в лобби', 'error');
     
-    switchScreen(elements.landingPage, elements.authSection);
-    switchScreen(elements.mapSelectionSection, null);
-    switchScreen(elements.gameContent, null);
+    // Плавный возврат к авторизации
+    if (elements.gameContent && elements.gameContent.style.display !== 'none') {
+        switchSectionWithAnimation(elements.gameContent, elements.authSection);
+    } else if (elements.mapSelectionSection && elements.mapSelectionSection.style.display !== 'none') {
+        switchSectionWithAnimation(elements.mapSelectionSection, elements.authSection);
+    } else {
+        if(elements.landingPage) elements.landingPage.style.display = 'none';
+        if(elements.authSection) elements.authSection.style.display = 'block';
+        if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
+        if(elements.gameContent) elements.gameContent.style.display = 'none';
+    }
+    
     if(elements.resourcesPlaceholder) elements.resourcesPlaceholder.style.display = 'none';
     if(quickActionsBtn) quickActionsBtn.classList.remove('show');
     resetGameState();
@@ -924,15 +947,6 @@ function joinGame(username, roomId, isNewRoom, mapId = 'volga', password = '', i
         showNotification('Нет подключения к серверу. Попробуйте обновить страницу.', 'error');
         return;
     }
-    
-    // СОХРАНЕНИЕ СЕССИИ (ШАГ 2)
-    localStorage.setItem('lastGameSession', JSON.stringify({ 
-        username, 
-        roomId, 
-        password,
-        isPrivate 
-    }));
-
     currentRoomId = roomId;
     socket.emit('join-room', { 
         roomId: roomId, 
@@ -956,8 +970,20 @@ function initializeGame(playerData) {
         }
     }
     
-    switchScreen(elements.authSection, elements.gameContent);
-    switchScreen(elements.mapSelectionSection, null);
+    // Плавный переход в игру
+    if(elements.authSection && elements.authSection.style.display !== 'none') {
+        switchSectionWithAnimation(elements.authSection, elements.gameContent);
+    } else if(elements.mapSelectionSection && elements.mapSelectionSection.style.display !== 'none') {
+        switchSectionWithAnimation(elements.mapSelectionSection, elements.gameContent);
+    } else {
+        if(elements.landingPage) elements.landingPage.style.display = 'none';
+        if(elements.authSection) elements.authSection.style.display = 'none';
+        if(elements.mapSelectionSection) elements.mapSelectionSection.style.display = 'none';
+        if(elements.gameContent) {
+            elements.gameContent.style.display = 'block';
+            elements.gameContent.classList.remove('hidden-animated');
+        }
+    }
     
     if(elements.resourcesPlaceholder) elements.resourcesPlaceholder.style.display = 'flex';
     
@@ -1575,21 +1601,6 @@ function closeCityModal() {
 
 function showInviteModal() {
     if(elements.inviteRoomNumber) elements.inviteRoomNumber.textContent = currentRoomId || gameState.roomId || '0';
-    
-    // Показываем пароль, если он есть в сохраненной сессии (ШАГ 5)
-    const pwdArea = document.getElementById('invitePasswordArea');
-    const pwdText = document.getElementById('inviteRoomPassword');
-    const lastSession = JSON.parse(localStorage.getItem('lastGameSession'));
-    
-    if (pwdArea && pwdText) {
-        if (lastSession && lastSession.password) {
-            pwdArea.style.display = 'block';
-            pwdText.textContent = lastSession.password;
-        } else {
-            pwdArea.style.display = 'none';
-        }
-    }
-    
     if(elements.inviteModal) elements.inviteModal.classList.add('active');
 }
 
@@ -1597,16 +1608,8 @@ function closeInviteModal() {
     if(elements.inviteModal) elements.inviteModal.classList.remove('active');
 }
 
-// ОБНОВЛЕНО: Форматирование приглашения (ШАГ 5)
 function copyInvitation() {
-    let passwordText = '';
-    const lastSession = JSON.parse(localStorage.getItem('lastGameSession'));
-    if (lastSession && lastSession.password) {
-        passwordText = `\n🔑 Пароль: ${lastSession.password}`;
-    }
-
-    const invitationText = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n\n🔢 Номер комнаты: ${currentRoomId || gameState.roomId || '0'}${passwordText}\n\n🌐 Игра доступна по адресу: https://eco-game-dfb0.onrender.com\n\n👥 Ждем вас!`;
-    
+    const invitationText = `🎮 Присоединяйтесь к моей комнате в игре "Юный эколог"!\n\n🔢 Код лобби: ${currentRoomId || gameState.roomId || '0'}\n\n🌐 Игра доступна по адресу: https://eco-game-dfb0.onrender.com\n\n👥 Ждем вас!`;
     navigator.clipboard.writeText(invitationText).then(() => {
         showNotification('Приглашение скопировано в буфер обмена!', 'success');
     }).catch(err => {
@@ -2666,15 +2669,15 @@ function initializeQuickActions() {
 // ==================== ОБРАБОТЧИКИ СОБЫТИЙ НОВОГО UI ====================
 if (elements.startLandingBtn) {
     elements.startLandingBtn.addEventListener('click', () => {
-        switchScreen(elements.landingPage, elements.authSection);
-        window.scrollTo(0, 0);
+        switchSectionWithAnimation(elements.landingPage, elements.authSection);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 }
 
 if (elements.backToLandingBtn) {
     elements.backToLandingBtn.addEventListener('click', () => {
-        switchScreen(elements.authSection, elements.landingPage);
-        switchScreen(elements.mapSelectionSection, null);
+        switchSectionWithAnimation(elements.authSection, elements.landingPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 }
 
@@ -2698,19 +2701,53 @@ if (elements.closeLeaderboardBtn) {
 // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
 if(elements.loginTab) {
     elements.loginTab.addEventListener('click', () => {
-        elements.loginTab.classList.add('active'); elements.registerTab.classList.remove('active');
-        elements.loginForm.classList.add('active'); elements.registerForm.classList.remove('active');
+        if (elements.loginTab.classList.contains('active')) return;
+        
+        elements.loginTab.classList.add('active'); 
+        elements.registerTab.classList.remove('active');
+        
+        elements.registerForm.style.opacity = '0';
+        elements.registerForm.style.transition = 'opacity 0.2s';
+        
+        setTimeout(() => {
+            elements.registerForm.classList.remove('active');
+            elements.loginForm.classList.add('active');
+            elements.loginForm.style.opacity = '0';
+            
+            // Форсируем перерисовку
+            void elements.loginForm.offsetWidth;
+            
+            elements.loginForm.style.transition = 'opacity 0.2s';
+            elements.loginForm.style.opacity = '1';
+        }, 200);
     });
 }
 
 if(elements.registerTab) {
     elements.registerTab.addEventListener('click', () => {
-        elements.registerTab.classList.add('active'); elements.loginTab.classList.remove('active');
-        elements.registerForm.classList.add('active'); elements.loginForm.classList.remove('active');
+        if (elements.registerTab.classList.contains('active')) return;
+        
+        elements.registerTab.classList.add('active'); 
+        elements.loginTab.classList.remove('active');
+        
+        elements.loginForm.style.opacity = '0';
+        elements.loginForm.style.transition = 'opacity 0.2s';
+        
+        setTimeout(() => {
+            elements.loginForm.classList.remove('active');
+            elements.registerForm.classList.add('active');
+            elements.registerForm.style.opacity = '0';
+            
+            // Форсируем перерисовку
+            void elements.registerForm.offsetWidth;
+            
+            elements.registerForm.style.transition = 'opacity 0.2s';
+            elements.registerForm.style.opacity = '1';
+        }, 200);
     });
 }
 
-// Отправка формы входа (с паролем)
+// ОБНОВЛЕНО: Отправка формы входа (с паролем)
 if(elements.loginForm) {
     elements.loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -2721,7 +2758,7 @@ if(elements.loginForm) {
     });
 }
 
-// Отправка формы создания (с настройками приватности)
+// ОБНОВЛЕНО: Отправка формы создания (с настройками приватности)
 if(elements.registerForm) {
     elements.registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -2733,7 +2770,12 @@ if(elements.registerForm) {
         if (username && roomId) {
             // Сохраняем данные (включая пароль) и показываем выбор карты
             pendingRoomData = { username, roomId, isPrivate, password };
-            switchScreen(elements.authSection, elements.mapSelectionSection);
+            
+            if (elements.mapSelectionSection) {
+                switchSectionWithAnimation(elements.authSection, elements.mapSelectionSection);
+            } else {
+                joinGame(username, roomId, true, 'volga', password, isPrivate);
+            }
         }
     });
 }
@@ -2743,7 +2785,7 @@ if (elements.mapCardVolga) {
     elements.mapCardVolga.addEventListener('click', () => {
         if (pendingRoomData) {
             const mapId = elements.mapCardVolga.dataset.mapId || 'volga';
-            switchScreen(elements.mapSelectionSection, null);
+            
             // Заходим в игру, передавая выбранную карту и настройки приватности
             joinGame(
                 pendingRoomData.username, 
@@ -2762,7 +2804,7 @@ if (elements.mapCardVolga) {
 if (elements.cancelMapSelectionBtn) {
     elements.cancelMapSelectionBtn.addEventListener('click', () => {
         pendingRoomData = null;
-        switchScreen(elements.mapSelectionSection, elements.authSection);
+        switchSectionWithAnimation(elements.mapSelectionSection, elements.authSection);
     });
 }
 
@@ -2864,11 +2906,7 @@ if(elements.leaveRoomBtn) {
         if (confirm('Вы уверены, что хотите покинуть лобби?')) {
             socket.emit('leave-room');
             resetGameState();
-            
-            // Очищаем сессию (чтобы при рефреше не закинуло обратно в комнату, из которой вышел)
-            localStorage.removeItem('lastGameSession');
-
-            switchScreen(elements.gameContent, elements.landingPage);
+            switchSectionWithAnimation(elements.gameContent, elements.landingPage);
             
             if(elements.resourcesPlaceholder) elements.resourcesPlaceholder.style.display = 'none';
             if(quickActionsBtn) quickActionsBtn.classList.remove('show');
@@ -2911,14 +2949,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateProfileUI(); // Загружаем профиль при старте
     updateStatsUI(); // Подгружаем статистику при старте
     
-    // ВОССТАНОВЛЕНИЕ СЕССИИ (ШАГ 2)
-    const lastSession = JSON.parse(localStorage.getItem('lastGameSession'));
-    if (lastSession && lastSession.username && lastSession.roomId) {
-        if (elements.loginUsername) elements.loginUsername.value = lastSession.username;
-        if (elements.loginRoom) elements.loginRoom.value = lastSession.roomId;
-        if (elements.loginPassword && lastSession.password) elements.loginPassword.value = lastSession.password;
-    }
-
     setTimeout(() => {
         if (!isConnected) showNotification('Не удалось подключиться к серверу. Проверьте интернет-соединение.', 'error');
     }, 5000);
