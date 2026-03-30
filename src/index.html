@@ -57,7 +57,7 @@
                 linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
                 radial-gradient(circle at 15% 50%, rgba(78, 205, 196, 0.2), transparent 40%),
                 radial-gradient(circle at 85% 30%, rgba(255, 107, 107, 0.15), transparent 40%);
-            color: var(--dark-dark);
+            color: var(--dark-dark); 
         }
         
         .container {
@@ -68,22 +68,6 @@
             z-index: 2;
             padding: 90px 20px 20px 20px; 
         }
-
-        /* --- АНИМАЦИИ ПЕРЕХОДА ЭКРАНОВ --- */
-        .fade-transition {
-            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
-        }
-        .fade-out {
-            opacity: 0;
-            transform: scale(0.98);
-            pointer-events: none;
-        }
-        .fade-in {
-            opacity: 1;
-            transform: scale(1);
-            pointer-events: auto;
-        }
-        /* --------------------------------- */
         
         /* ==================== НОВАЯ ШАПКА (HEADER) ==================== */
         .main-header {
@@ -160,7 +144,7 @@
         .dropdown-item.logout:hover { background: rgba(231, 76, 60, 0.2); }
 
         /* ==================== ГЛАВНАЯ СТРАНИЦА (LANDING PAGE) ==================== */
-        .landing-page { display: flex; flex-direction: column; gap: 80px; }
+        .landing-page { display: flex; flex-direction: column; gap: 80px; animation: fadeIn 0.8s ease-out; }
 
         .hero-section { text-align: center; padding: 40px 0; position: relative; }
         .hero-title { font-size: 4.5rem; margin-bottom: 15px; font-weight: 900; letter-spacing: -1px; text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); background: linear-gradient(to right, #8e44ad, #3498db, #2ecc71); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block; }
@@ -175,11 +159,63 @@
         body.light-theme .section-title { color: var(--dark-dark); }
 
         .rules-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: stretch; }
-        .rules-image-box { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; display: flex; align-items: center; justify-content: center; min-height: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); overflow: hidden; position: relative; }
+        
+        /* ГАЛЕРЕЯ СКРИНШОТОВ (ВМЕСТО СТАРОЙ ЗАГЛУШКИ) */
+        .rules-image-box { 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 24px; 
+            padding: 15px;
+            display: flex; 
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
+        }
         body.light-theme .rules-image-box { background: rgba(0, 0, 0, 0.02); border-color: rgba(0, 0, 0, 0.05); }
-        .img-placeholder { text-align: center; color: rgba(255, 255, 255, 0.3); }
-        body.light-theme .img-placeholder { color: rgba(0, 0, 0, 0.5); }
-        .img-placeholder i { font-size: 4rem; margin-bottom: 15px; }
+        
+        .main-screenshot-container {
+            width: 100%;
+            height: 380px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .main-screenshot-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        .thumbnails-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            height: 75px;
+        }
+        .thumb-img {
+            width: 130px;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            opacity: 0.4;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .thumb-img:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        .thumb-img.active {
+            opacity: 1;
+            border-color: #a29bfe;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+        body.light-theme .thumb-img.active { border-color: var(--secondary); box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4); }
 
         .rules-card { background: linear-gradient(145deg, #4834d4, #6c5ce7); border-radius: 24px; padding: 40px; color: white; box-shadow: 0 20px 50px rgba(108, 92, 231, 0.2); display: flex; flex-direction: column; gap: 30px; }
         .rule-item { display: flex; gap: 20px; align-items: flex-start; }
@@ -247,7 +283,7 @@
         .player-row-avatar { width: 35px; height: 35px; border-radius: 50%; background: #2c3e50; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: white;}
 
         /* ==================== АВТОРИЗАЦИЯ И ВЫБОР КАРТЫ ==================== */
-        .auth-section { background: rgba(30, 30, 46, 0.9); border-radius: 20px; padding: 40px; margin: 30px auto; max-width: 500px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .auth-section { background: rgba(30, 30, 46, 0.9); border-radius: 20px; padding: 40px; margin: 30px auto; max-width: 500px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); animation: fadeIn 0.5s ease-out; }
         body.light-theme .auth-section { background: rgba(255, 255, 255, 0.9); border: 1px solid var(--card-border); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1); }
         
         #mapSelectionSection { max-width: 800px; }
@@ -292,18 +328,16 @@
         /* ==================== ОСНОВНОЙ ИГРОВОЙ ИНТЕРФЕЙС ==================== */
         .game-container { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }
         
-        .game-board { flex: 2; min-width: 300px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .game-board { flex: 2; min-width: 300px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); animation: fadeInUp 0.8s ease-out 0.2s both; }
         body.light-theme .game-board { background: #fff; border: 1px solid rgba(0,0,0,0.05); color: var(--dark-dark); }
         
-        .game-info-panel { flex: 1; min-width: 300px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .game-info-panel { flex: 1; min-width: 300px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); animation: fadeInUp 0.8s ease-out 0.4s both; }
         body.light-theme .game-info-panel { background: #fff; border: 1px solid rgba(0,0,0,0.05); color: var(--dark-dark); }
         
-        /* КАРТА НА ОСНОВЕ ИЗОБРАЖЕНИЯ */
         .map-image-container { position: relative; width: 100%; min-height: 600px; background: #e8f5e9; border-radius: 12px; overflow: hidden; border: 3px solid #2E7D32; display: flex; align-items: center; justify-content: center; padding: 10px; }
         #mapImage { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
         .map-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
-        /* НЕВИДИМЫЕ КЛЕТКИ НА КАРТЕ */
         .map-cell { position: absolute; border: 2px solid rgba(255, 0, 0, 0.5); background: rgba(0, 255, 0, 0.2); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 14px; cursor: pointer; transition: all 0.3s ease; box-sizing: border-box; z-index: 10; pointer-events: auto; user-select: none; }
         .map-cell:hover { background: rgba(255, 255, 0, 0.4); border-color: rgba(255, 0, 0, 0.8); transform: scale(1.05); z-index: 15; }
         .map-cell.selected { background: rgba(255, 165, 0, 0.6); border-color: #ff4500; box-shadow: 0 0 10px rgba(255, 69, 0, 0.8); z-index: 20; }
@@ -314,7 +348,6 @@
         .map-cell.hidden { background: transparent; border-color: transparent; }
         .map-cell.hidden .map-cell-number { display: none; }
 
-        /* ИНФОРМАЦИЯ ОБ ИГРОКЕ */
         .player-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 16px; }
         body.light-theme .player-info { background: rgba(0,0,0,0.03); color: var(--dark-dark); }
         .stats-section { display: flex; flex-direction: column; gap: 12px; }
@@ -329,7 +362,6 @@
         body.light-theme .level-progress-bar { background: rgba(0,0,0,0.1); }
         .level-progress-fill { height: 100%; background: linear-gradient(to right, var(--success), #27ae60); width: 0%; transition: width 0.5s; border-radius: 4px; }
 
-        /* КНОПКИ ИГРЫ */
         .actions-section { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
         .game-btn { padding: 14px 16px; border: none; border-radius: 12px; background: linear-gradient(135deg, #6c5ce7, #4834d4); color: white; font-weight: bold; cursor: pointer; transition: all 0.3s; width: 100%; font-size: 1rem; box-shadow: 0 4px 0 rgba(72, 52, 212, 0.8); display: inline-flex; justify-content: center; align-items: center; gap: 8px;}
         .game-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(72, 52, 212, 0.8); background: linear-gradient(135deg, #5b4bc4, #3a2ab3); }
@@ -342,14 +374,12 @@
         body.light-theme .game-btn:hover:not(:disabled) { background: linear-gradient(135deg, #3eb4ab, #0f2b35); box-shadow: 0 6px 0 rgba(26, 83, 92, 0.8); }
         body.light-theme .game-btn:disabled { background: #ccc; box-shadow: 0 4px 0 #aaa; color: #666; }
 
-        /* КУБИК */
         .dice-container { text-align: center; margin: 20px 0; }
         .dice { width: 80px; height: 80px; margin: 0 auto; background: white; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 2rem; font-weight: bold; color: var(--dark-dark); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); transition: all 0.5s; position: relative; overflow: hidden; }
         .dice.rolling { animation: rollDice 1.2s ease-out; }
         @keyframes rollDice { 0% { transform: rotateX(0deg) rotateY(0deg) scale(1); } 25% { transform: rotateX(180deg) rotateY(180deg) scale(1.05); } 50% { transform: rotateX(360deg) rotateY(360deg) scale(1); } 75% { transform: rotateX(540deg) rotateY(540deg) scale(1.05); } 100% { transform: rotateX(720deg) rotateY(720deg) scale(1); } }
         .dice-value { font-size: 2.5rem; font-weight: bold; color: #333; }
 
-        /* ЗАДАНИЯ */
         .task-card { background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 20px; margin-top: 20px; position: relative; }
         body.light-theme .task-card { background: rgba(0,0,0,0.03); color: var(--dark-dark); }
         .current-task { background: rgba(46, 204, 113, 0.3); padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid var(--success); }
@@ -370,7 +400,6 @@
         .difficulty-btn.locked { background: rgba(149, 165, 166, 0.1) !important; cursor: not-allowed; opacity: 0.5; border: none; }
         .difficulty-btn.locked::after { content: "🔒"; position: absolute; top: 5px; right: 5px; font-size: 12px; }
 
-        /* ГОРОДА */
         .cities-section { margin-top: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; }
         body.light-theme .cities-section { background: rgba(0,0,0,0.03); }
         .cities-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
@@ -389,7 +418,6 @@
         .city-action-btn { margin-top: 8px; padding: 6px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #6c5ce7, #4834d4); color: white; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s; display: none; }
         .city-card:hover .city-action-btn { display: inline-block; }
         
-        /* ПРОГРЕСС И ОБЪЕКТЫ */
         .game-progress { margin-top: 20px; }
         .city-progress { margin-bottom: 15px; }
         .city-progress-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
@@ -397,7 +425,6 @@
         body.light-theme .progress-bar { background: rgba(0,0,0,0.1); }
         .progress-fill { height: 100%; background: linear-gradient(to right, var(--success), #27ae60); width: 0%; transition: width 0.5s; border-radius: 10px; }
         
-        /* МАГАЗИН ОБЪЕКТОВ С МАТОВЫМ ФОНОМ */
         .buildings-list { margin-top: 20px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 16px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.05); }
         body.light-theme .buildings-list { background: #fff; border-color: rgba(0,0,0,0.05); color: var(--dark-dark); }
         .building-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0, 0, 0, 0.2); margin-bottom: 12px; border-radius: 12px; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.03);}
@@ -406,7 +433,6 @@
         body.light-theme .building-item:hover { background: #f1f3f5; }
         .buy-btn { padding: 10px 20px; font-size: 0.95rem; width: auto; }
 
-        /* СПИСОК ИГРОКОВ */
         .players-list { margin-top: 20px; }
         .player-item { display: flex; justify-content: space-between; padding: 12px 15px; background: rgba(0, 0, 0, 0.2); margin-bottom: 8px; border-radius: 10px; transition: all 0.3s; align-items: center; }
         body.light-theme .player-item { background: rgba(0,0,0,0.03); color: var(--dark-dark); }
@@ -414,37 +440,22 @@
         body.light-theme .player-item:hover { background: rgba(0,0,0,0.06); }
         .player-item.current { background: rgba(52, 152, 219, 0.2); border-left: 4px solid #3498db; }
         
-        /* УВЕДОМЛЕНИЕ О ХОДЕ В ЛОББИ */
         .turn-indicator { padding: 12px; border-radius: 10px; margin: 15px 0; text-align: center; border: 2px solid transparent; transition: all 0.3s; font-weight: bold; }
-        .turn-indicator.your-turn { 
-            background: rgba(46, 204, 113, 0.2); 
-            border-color: #FFD700; 
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 215, 0, 0.3); 
-            animation: pulse-turn-glow 2s infinite; 
-            color: white;
-        }
+        .turn-indicator.your-turn { background: rgba(46, 204, 113, 0.2); border-color: #FFD700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 215, 0, 0.3); animation: pulse-turn-glow 2s infinite; color: white;}
         body.light-theme .turn-indicator.your-turn { color: var(--dark-dark); }
-        
         .turn-indicator.other-turn { background: rgba(243, 156, 18, 0.1); border-color: rgba(243, 156, 18, 0.5); color: rgba(255,255,255,0.8); }
         body.light-theme .turn-indicator.other-turn { color: var(--dark-dark); }
-        
         .player-item.turn { background: rgba(46, 204, 113, 0.1); border-left: 4px solid #FFD700; animation: pulse-turn-glow 2s infinite; }
         .player-position-badge { background: var(--primary); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; margin-left: 8px; font-weight: normal;}
 
-        @keyframes pulse-turn-glow {
-            0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5), inset 0 0 5px rgba(255, 215, 0, 0.2); }
-            50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.9), inset 0 0 15px rgba(255, 215, 0, 0.5); }
-            100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5), inset 0 0 5px rgba(255, 215, 0, 0.2); }
-        }
+        @keyframes pulse-turn-glow { 0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5), inset 0 0 5px rgba(255, 215, 0, 0.2); } 50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.9), inset 0 0 15px rgba(255, 215, 0, 0.5); } 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5), inset 0 0 5px rgba(255, 215, 0, 0.2); } }
 
-        /* МАРКЕРЫ ИГРОКОВ */
         .player-marker { position: absolute; width: 32px; height: 32px; border-radius: 50%; transform: translate(-50%, -50%); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 30; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; animation: float 3s ease-in-out infinite; border: 3px solid white; box-shadow: 0 0 15px rgba(0, 0, 0, 0.8); pointer-events: none; background-size: cover; background-position: center; background-repeat: no-repeat; }
         .player-marker.current { border: 3px solid #FFD700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.7); animation: float-gold 2s ease-in-out infinite; }
         
         @keyframes float { 0% { transform: translate(-50%, -50%) translateY(0px); } 50% { transform: translate(-50%, -50%) translateY(-5px); } 100% { transform: translate(-50%, -50%) translateY(0px); } }
         @keyframes float-gold { 0% { transform: translate(-50%, -50%) translateY(0px); box-shadow: 0 0 20px rgba(255, 215, 0, 0.7); } 50% { transform: translate(-50%, -50%) translateY(-7px); box-shadow: 0 0 25px rgba(255, 215, 0, 0.9); } 100% { transform: translate(-50%, -50%) translateY(0px); box-shadow: 0 0 20px rgba(255, 215, 0, 0.7); } }
 
-        /* ЖУРНАЛ ИГРЫ */
         .game-log { margin-top: 20px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; max-height: 250px; overflow-y: auto; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); }
         body.light-theme .game-log { background: #fff; border-color: rgba(0,0,0,0.05); color: var(--dark-dark); }
         .log-entry { margin-bottom: 8px; padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; transition: all 0.3s; font-size: 0.95rem; }
@@ -452,8 +463,7 @@
         .log-entry:hover { background: rgba(0, 0, 0, 0.2); }
         body.light-theme .log-entry:hover { background: rgba(0,0,0,0.03); }
 
-        /* КОМНАТА И ЧАТ */
-        .room-section { background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .room-section { background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); animation: fadeInUp 0.8s ease-out 0.1s both; }
         body.light-theme .room-section { background: #fff; border-color: rgba(0,0,0,0.05); color: var(--dark-dark);}
         .room-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         
@@ -472,13 +482,7 @@
         .chat-input input { flex: 1; padding: 0 15px; border-radius: 12px; border: none; background: rgba(0,0,0,0.4); color: white; font-size: 1rem;}
         body.light-theme .chat-input input { background: #fff; border: 1px solid rgba(0,0,0,0.1); color: var(--dark-dark); }
         
-        .emoji-picker-btn, .chat-send-btn { 
-            background: linear-gradient(135deg, #6c5ce7, #4834d4); color: white; border: none; 
-            border-radius: 12px; width: 50px; height: 50px; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; font-size: 1.4rem; 
-            transition: all 0.3s; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
-            flex-shrink: 0;
-        }
+        .emoji-picker-btn, .chat-send-btn { background: linear-gradient(135deg, #6c5ce7, #4834d4); color: white; border: none; border-radius: 12px; width: 50px; height: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; transition: all 0.3s; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); flex-shrink: 0;}
         .emoji-picker-btn:hover, .chat-send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(108, 92, 231, 0.5); background: linear-gradient(135deg, #5b4bc4, #3a2ab3); }
         body.light-theme .emoji-picker-btn, body.light-theme .chat-send-btn { background: linear-gradient(135deg, var(--secondary), var(--primary)); }
 
@@ -498,7 +502,6 @@
         .recent-emoji-item { font-size: 1.8rem; cursor: pointer; padding: 6px; border-radius: 8px; transition: all 0.2s; background: rgba(255, 255, 255, 0.05); }
         body.light-theme .recent-emoji-item { background: #fff; border: 1px solid rgba(0,0,0,0.05); }
 
-        /* ==================== ИНТЕРАКТИВНЫЕ ЗАДАНИЯ ==================== */
         .draggable-item { width: 65px; height: 65px; background: linear-gradient(135deg, #3498db, #2980b9); border-radius: 15px; display: inline-flex; align-items: center; justify-content: center; margin: 8px; cursor: pointer; user-select: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: white; font-weight: bold; font-size: 2.2rem; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); touch-action: manipulation; position: relative; overflow: hidden; }
         .draggable-item::before { content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent); transform: translateX(-100%); transition: transform 0.6s; }
         .draggable-item:hover::before { transform: translateX(100%); }
@@ -516,7 +519,7 @@
         .drop-zone.filled { border: 4px solid #2ecc71; background: rgba(46, 204, 113, 0.3); display: flex; align-items: center; justify-content: center; animation: zone-success 0.5s forwards; }
         @keyframes zone-success { 0% { transform: scale(1); box-shadow: 0 0 0 rgba(46,204,113,0); } 50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(46,204,113,0.6); } 100% { transform: scale(1); box-shadow: 0 0 10px rgba(46,204,113,0.3); } }
 
-        .quiz-option { padding: 18px 25px; margin: 15px 0; background: linear-gradient(135deg, rgba(108, 92, 231, 0.1), rgba(72, 52, 212, 0.2)); border-radius: 14px; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 2px solid rgba(108, 92, 231, 0.3); font-size: 1.1rem; position: relative; overflow: hidden; font-weight: 500;}
+        .quiz-option { padding: 18px 25px; margin: 15px 0; background: linear-gradient(135deg, rgba(108, 92, 231, 0.1), rgba(72, 52, 212, 0.2)); border-radius: 14px; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 2px solid rgba(108, 92, 231, 0.3); font-size: 1.1rem; touch-action: manipulation; position: relative; overflow: hidden; font-weight: 500;}
         body.light-theme .quiz-option { background: #fff; border-color: rgba(0,0,0,0.1); color: var(--dark-dark); }
         .quiz-option::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1), transparent); transform: translateX(-100%); transition: transform 0.6s; }
         .quiz-option:hover::before { transform: translateX(100%); }
@@ -564,48 +567,20 @@
         .puzzle-target-slot.hover, .sequence-slot.hover { background: rgba(253, 121, 168, 0.2); border-color: #fd79a8; transform: scale(1.1); box-shadow: 0 0 25px rgba(253, 121, 168, 0.4); }
         .puzzle-target-slot.filled, .sequence-slot.filled { border: 3px solid #00b894; background: rgba(0, 184, 148, 0.15); animation: zone-success 0.5s forwards; }
 
-        /* ИСПРАВЛЕННАЯ СЕТКА ПАРНЫХ СИМВОЛОВ (ФОТО 7) */
-        .match-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(65px, 1fr)); 
-            gap: 10px; 
-            margin: 20px auto; 
-            max-width: 100%; 
-            perspective: 1000px;
-            justify-content: center;
-        }
-        .match-card { 
-            width: auto; 
-            height: auto; 
-            aspect-ratio: 1 / 1;
-            max-width: 80px; 
-            background: linear-gradient(135deg, #0984e3, #74b9ff); 
-            border-radius: 12px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            font-size: 2rem; 
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); 
-            position: relative; 
-            transform-style: preserve-3d; 
-            border: 2px solid rgba(255,255,255,0.1);
-        }
-        .match-card:hover:not(.flipped):not(.matched) { transform: translateY(-5px) rotateX(10deg) rotateY(10deg); box-shadow: 0 10px 20px rgba(9, 132, 227, 0.5); }
+        .match-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 30px auto; max-width: 550px; perspective: 1000px;}
+        .match-card { width: 80px; height: 80px; background: linear-gradient(135deg, #0984e3, #74b9ff); border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 2.2rem; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); position: relative; transform-style: preserve-3d; border: 2px solid rgba(255,255,255,0.1);}
+        .match-card:hover:not(.flipped):not(.matched) { transform: translateY(-10px) rotateX(10deg) rotateY(10deg); box-shadow: 0 15px 30px rgba(9, 132, 227, 0.5); }
         .match-card.flipped { transform: rotateY(180deg); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .match-card.matched { transform: rotateY(180deg) scale(0.95); background: linear-gradient(135deg, #00b894, #55efc4); border-color: white; animation: match-glow 2s infinite; cursor: default;}
-        @keyframes match-glow { 0%, 100% { box-shadow: 0 0 10px rgba(0, 184, 148, 0.5); } 50% { box-shadow: 0 0 25px rgba(0, 184, 148, 0.9); } }
         
-        .match-card .card-content, .match-card .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 10px;}
+        .match-card .card-content, .match-card .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 14px;}
         .match-card .card-content { transform: rotateY(180deg); background: linear-gradient(135deg, #1a1a2e, #2c3e50); border: 2px solid #74b9ff;}
         body.light-theme .match-card .card-content { background: #fff; }
-        .match-card .card-back { background: linear-gradient(135deg, #0984e3, #74b9ff); color: white; font-size: 2rem; font-weight: bold; text-shadow: 0 2px 5px rgba(0,0,0,0.3);}
+        .match-card .card-back { background: linear-gradient(135deg, #0984e3, #74b9ff); color: white; font-size: 2.5rem; font-weight: bold; text-shadow: 0 2px 5px rgba(0,0,0,0.3);}
         
         .task-container, .drag-container, .sorting-area, .puzzle-area, .sequence-area { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 20px 0; min-height: 180px; padding: 25px; background: rgba(0, 0, 0, 0.2); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);}
         body.light-theme .task-container, body.light-theme .drag-container, body.light-theme .sorting-area, body.light-theme .puzzle-area, body.light-theme .sequence-area { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.05); box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
 
-        /* ПЛЕЙСХОЛДЕР РЕСУРСОВ */
         .resources-placeholder { position: fixed; top: 90px; left: 20px; z-index: 1002; background: rgba(26, 26, 46, 0.9); padding: 10px 20px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); display: flex; gap: 15px; align-items: center; }
         body.light-theme .resources-placeholder { background: rgba(255, 255, 255, 0.9); border-color: rgba(0,0,0,0.1); }
         .resource-item { display: flex; align-items: center; gap: 8px; }
@@ -613,7 +588,6 @@
         .resource-value { font-weight: bold; color: #8e44ad; font-size: 1.1rem; }
         body.light-theme .resource-value { color: var(--secondary); }
 
-        /* ПОДВАЛ */
         .copyright { text-align: center; margin-top: 30px; padding: 20px; color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; border-top: 1px solid rgba(255, 255, 255, 0.05); }
         body.light-theme .copyright { color: rgba(0,0,0,0.5); border-top: 1px solid rgba(0,0,0,0.05); }
         
@@ -622,7 +596,6 @@
         .invite-room-number { font-weight: 900; font-size: 2.5rem; color: #FFD700; text-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); text-align: center; margin: 20px 0; letter-spacing: 2px;}
         body.light-theme .invite-room-number { text-shadow: 0 4px 10px rgba(255, 215, 0, 0.2); }
 
-        /* КНОПКА БЫСТРЫХ ДЕЙСТВИЙ */
         .floating-action-btn { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #6c5ce7, #4834d4); color: white; border: none; font-size: 1.8rem; cursor: pointer; box-shadow: 0 10px 25px rgba(108, 92, 231, 0.5); z-index: 9999; display: none; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .floating-action-btn.show { display: flex; }
         .floating-action-btn:hover { transform: scale(1.1) rotate(15deg); box-shadow: 0 15px 35px rgba(108, 92, 231, 0.7); }
@@ -638,7 +611,6 @@
         .quick-action-btn .tooltip { position: absolute; right: 75px; top: 50%; transform: translateY(-50%) translateX(10px); background: rgba(0, 0, 0, 0.9); color: white; padding: 10px 15px; border-radius: 8px; font-size: 0.95rem; font-weight: bold; white-space: nowrap; opacity: 0; visibility: hidden; transition: all 0.3s ease; pointer-events: none; box-shadow: 0 5px 15px rgba(0,0,0,0.3);}
         .quick-action-btn:hover .tooltip { opacity: 1; visibility: visible; transform: translateY(-50%) translateX(0); }
 
-        /* МОДАЛЬНЫЕ ОКНА */
         .modal, .city-modal, .choice-modal, .invite-modal, .color-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 3000; opacity: 0; visibility: hidden; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); backdrop-filter: blur(8px); }
         .modal.active, .city-modal.active, .choice-modal.active, .invite-modal.active, .color-modal.active { opacity: 1; visibility: visible; }
         
@@ -646,17 +618,7 @@
         body.light-theme .modal-content, body.light-theme .city-modal-content, body.light-theme .choice-modal-content, body.light-theme .invite-modal-content, body.light-theme .color-modal-content { background: #fff; border-color: rgba(0,0,0,0.1); color: var(--dark-dark); box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);}
         .modal.active .modal-content, .city-modal.active .city-modal-content, .choice-modal.active .choice-modal-content, .invite-modal.active .invite-modal-content, .color-modal.active .color-modal-content { transform: scale(1) translateY(0); }
         
-        /* ОКНО ГОРОДА (ИСПРАВЛЕНО ДЛЯ ДЛИННЫХ ТЕКСТОВ) */
-        .city-modal-content { 
-            max-width: 450px; 
-            background: #171822; 
-            border: none; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
-            border-radius: 16px; 
-            padding: 30px;
-            max-height: 90vh; /* Ограничение по высоте для адаптивности */
-            overflow-y: auto; /* Скролл для большого объема текста */
-        }
+        .city-modal-content { max-width: 450px; background: #171822; border: none; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 16px; padding: 30px;}
         body.light-theme .city-modal-content { background: #fff; border: 1px solid rgba(0,0,0,0.1); }
         .city-modal-header { margin-bottom: 25px; text-align: center; }
         .city-modal-title { font-size: 2rem; margin-bottom: 5px; color: #a29bfe; font-weight: 800;}
@@ -681,21 +643,81 @@
         .color-btn.disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(100%); transform: scale(0.9); }
         .color-btn.disabled::after { content: "🔒"; position: absolute; font-size: 2rem; }
 
-        /* УВЕДОМЛЕНИЯ */
         .notification { position: fixed; top: 90px; right: 20px; background: linear-gradient(135deg, #6c5ce7, #4834d4); color: white; padding: 18px 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); z-index: 5000; transform: translateX(150%); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-weight: bold; max-width: 350px; word-wrap: break-word; display: flex; align-items: center; gap: 15px; font-size: 1.05rem;}
         .notification.show { transform: translateX(0); }
         .notification.warning { background: linear-gradient(135deg, #e17055, #d63031); }
         .notification.error { background: linear-gradient(135deg, #ff7675, #d63031); }
         .notification.success { background: linear-gradient(135deg, #00b894, #00a884); }
 
-        /* Улучшенные задания */
         .spot-difference-hint { font-size: 0.95rem; color: rgba(255, 255, 255, 0.5); margin-top: 15px; text-align: center; font-style: italic;}
         body.light-theme .spot-difference-hint { color: rgba(0, 0, 0, 0.5); }
         .puzzle-image-container { display: flex; justify-content: center; align-items: center; margin: 15px 0; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px;}
         body.light-theme .puzzle-image-container { background: rgba(0,0,0,0.03); }
         .cleanup-counter { position: absolute; top: 15px; left: 15px; background: rgba(0, 0, 0, 0.8); color: white; padding: 8px 15px; border-radius: 20px; font-size: 1rem; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);}
         .task-result-text { margin-top: 20px; font-weight: 800; text-align: center; font-size: 1.2rem; animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+        
         @keyframes pop-in { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* НОВЫЕ СТИЛИ ДЛЯ ГАЛЕРЕИ ИЗ СКРИНШОТА */
+        .gallery-wrapper {
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 24px; 
+            padding: 15px;
+            display: flex; 
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
+        }
+        body.light-theme .gallery-wrapper { background: rgba(0, 0, 0, 0.02); border-color: rgba(0, 0, 0, 0.05); }
+        
+        .main-screenshot-container {
+            width: 100%;
+            height: 350px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .main-screenshot-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .thumbnails-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            height: 75px;
+        }
+        .thumb-img {
+            width: 130px;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            opacity: 0.4;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .thumb-img:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        .thumb-img.active {
+            opacity: 1;
+            border-color: #a29bfe;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+            z-index: 2;
+        }
+        body.light-theme .thumb-img.active { border-color: var(--secondary); box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4); }
 
         @media (max-width: 768px) {
             .main-header { padding: 0 15px; }
@@ -720,7 +742,14 @@
             .task-area { overflow-x: auto; -webkit-overflow-scrolling: touch; }
             .drag-container, .sorting-area, .puzzle-area, .sequence-area { overflow-x: auto; padding-bottom: 10px; flex-wrap: nowrap; justify-content: flex-start;}
             .cities-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+            .match-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .match-card { width: 65px; height: 65px; font-size: 1.6rem; }
             .color-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            
+            /* Адаптивность для галереи */
+            .thumbnails-container { height: 55px; overflow-x: auto; justify-content: flex-start; padding-bottom: 5px; }
+            .thumb-img { width: 85px; flex-shrink: 0; }
+            .main-screenshot-container { height: 220px; }
         }
         
         @media (max-width: 480px) {
@@ -732,6 +761,8 @@
             .difficulty-selector { flex-direction: column; }
             .cities-grid { grid-template-columns: repeat(2, 1fr); }
             .resources-placeholder { top: 80px; left: 5px; padding: 6px 12px; gap: 8px; font-size: 0.8rem; }
+            .match-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .match-card { width: 70px; height: 70px; font-size: 1.8rem; }
             .map-image-container { min-height: 300px; }
             .socials-grid { grid-template-columns: 1fr; }
             .rules-card { padding: 25px 20px; }
@@ -784,7 +815,7 @@
 
     <div class="container">
         
-        <div id="landingPage" class="landing-page fade-transition">
+        <div id="landingPage" class="landing-page">
             <section class="hero-section">
                 <h1 class="hero-title">Юный Эколог</h1>
                 <p class="hero-subtitle">Многопользовательская игра, где ты спасаешь города России от загрязнений, решаешь эко-задачи и соревнуешься с друзьями.</p>
@@ -794,12 +825,19 @@
             <section class="rules-section">
                 <h2 class="section-title"><i class="fas fa-layer-group" style="color: #e74c3c;"></i> Правила игры</h2>
                 <div class="rules-layout">
-                    <div class="rules-image-box">
-                        <div class="img-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Скриншот геймплея<br><span style="font-size: 0.8rem;">(Скоро появится)</span></p>
+                    
+                    <div class="gallery-wrapper">
+                        <div class="main-screenshot-container">
+                            <img id="mainGameplayImg" src="gameplay1.png" alt="Скриншот геймплея" onerror="this.src='https://via.placeholder.com/800x450/1a1a2e/ffffff?text=Загрузите+gameplay1.png'">
+                        </div>
+                        <div class="thumbnails-container">
+                            <img class="thumb-img active" src="gameplay1.png" data-src="gameplay1.png" alt="Скриншот 1" onerror="this.src='https://via.placeholder.com/130x75/1a1a2e/ffffff?text=1'">
+                            <img class="thumb-img" src="gameplay2.png" data-src="gameplay2.png" alt="Скриншот 2" onerror="this.src='https://via.placeholder.com/130x75/1a1a2e/ffffff?text=2'">
+                            <img class="thumb-img" src="gameplay3.png" data-src="gameplay3.png" alt="Скриншот 3" onerror="this.src='https://via.placeholder.com/130x75/1a1a2e/ffffff?text=3'">
+                            <img class="thumb-img" src="gameplay4.png" data-src="gameplay4.png" alt="Скриншот 4" onerror="this.src='https://via.placeholder.com/130x75/1a1a2e/ffffff?text=4'">
                         </div>
                     </div>
+
                     <div class="rules-card">
                         <div class="rule-item">
                             <div class="rule-number">1</div>
@@ -851,7 +889,8 @@
             </section>
         </div>
 
-        <div class="resources-placeholder fade-transition" id="resourcesPlaceholder" style="display: none;">
+
+        <div class="resources-placeholder" id="resourcesPlaceholder" style="display: none;">
             <div class="resource-item">
                 <div class="resource-icon">🪙</div>
                 <div class="resource-value" id="topCoinsCount">100</div>
@@ -862,7 +901,7 @@
             </div>
         </div>
         
-        <section class="auth-section fade-transition" id="authSection" style="display: none;">
+        <section class="auth-section" id="authSection" style="display: none;">
             <div class="auth-tabs">
                 <div class="auth-tab active" id="loginTab">Войти в лобби</div>
                 <div class="auth-tab" id="registerTab">Создать лобби</div>
@@ -906,7 +945,7 @@
             <button class="game-btn red" id="backToLandingBtn" style="margin-top: 15px; background: transparent; border: 1px solid rgba(255,255,255,0.2); box-shadow: none;">⬅ Назад</button>
         </section>
         
-        <section class="auth-section fade-transition" id="mapSelectionSection" style="display: none; max-width: 900px;">
+        <section class="auth-section" id="mapSelectionSection" style="display: none; max-width: 900px;">
             <h2 style="text-align: center; color: white; margin-bottom: 10px;">Выберите регион для спасения</h2>
             <p style="text-align: center; margin-bottom: 30px; color: rgba(255,255,255,0.6);">Эта карта определит маршрут и экологические проблемы.</p>
             
@@ -936,7 +975,7 @@
             <button class="game-btn red" id="cancelMapSelectionBtn" style="margin-top: 30px; background: transparent; border: 1px solid rgba(255,255,255,0.2); box-shadow: none;">⬅ Отмена</button>
         </section>
 
-        <main id="gameContent" class="fade-transition" style="display: none; padding-top: 20px;">
+        <main id="gameContent" style="display: none; padding-top: 20px;">
             <div class="room-section">
                 <div class="room-info">
                     <div>
@@ -1278,13 +1317,8 @@
         <div class="modal-content" style="max-width: 450px; text-align: center;">
             <h2 style="color: #a29bfe; font-size: 2rem; margin-bottom: 25px;"><i class="fas fa-gamepad" style="margin-right: 10px;"></i> Приглашение</h2>
             
-            <div style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 25px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 5px 15px rgba(0,0,0,0.5);">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 25px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 5px 15px rgba(0,0,0,0.5);">
                 <div class="invite-room-number" id="inviteRoomNumber" style="font-size: 3rem; margin: 0;">0</div>
-            </div>
-            
-            <div id="invitePasswordArea" style="display: none; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-bottom: 25px; border: 1px dashed rgba(255,255,255,0.2);">
-                <p style="color: rgba(255,255,255,0.6); margin-bottom: 5px; font-size: 0.9rem;">Пароль от комнаты:</p>
-                <div id="inviteRoomPassword" style="font-weight: bold; font-size: 1.5rem; color: #ff6b6b; letter-spacing: 2px;"></div>
             </div>
             
             <p style="color: rgba(255,255,255,0.6); margin-bottom: 25px;">Отправь этот код друзьям</p>
@@ -1304,38 +1338,50 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            
+            // === ЛОГИКА ИНТЕРАКТИВНОЙ ГАЛЕРЕИ ===
+            const mainGameplayImg = document.getElementById('mainGameplayImg');
+            const thumbImgs = document.querySelectorAll('.thumb-img');
+            
+            if (mainGameplayImg && thumbImgs.length > 0) {
+                thumbImgs.forEach(thumb => {
+                    thumb.addEventListener('click', function() {
+                        // Плавное исчезновение
+                        mainGameplayImg.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            // Меняем источник картинки
+                            mainGameplayImg.src = this.dataset.src;
+                            // Плавное появление
+                            mainGameplayImg.style.opacity = '1';
+                        }, 200);
+
+                        // Убираем активный класс у всех
+                        thumbImgs.forEach(t => t.classList.remove('active'));
+                        // Устанавливаем активный класс нажатой миниатюре
+                        this.classList.add('active');
+                    });
+                });
+            }
+
             const landingPage = document.getElementById('landingPage');
             const authSection = document.getElementById('authSection');
             const startLandingBtn = document.getElementById('startLandingBtn');
             const backToLandingBtn = document.getElementById('backToLandingBtn');
             const headerThemeBtn = document.getElementById('headerThemeBtn');
             
-            // Замена жесткого переключения на плавную анимацию для кнопок возврата/входа
-            // Полная логика будет в game.js, здесь мы оставляем заглушки на случай, если скрипт не загрузится
             if(startLandingBtn) {
                 startLandingBtn.addEventListener('click', () => {
-                    landingPage.classList.remove('fade-in');
-                    landingPage.classList.add('fade-out');
-                    setTimeout(() => {
-                        landingPage.style.display = 'none';
-                        authSection.style.display = 'block';
-                        authSection.classList.remove('fade-out');
-                        authSection.classList.add('fade-in');
-                        window.scrollTo(0, 0);
-                    }, 400); // 400ms = время транзиции CSS
+                    landingPage.style.display = 'none';
+                    authSection.style.display = 'block';
+                    window.scrollTo(0, 0);
                 });
             }
             
             if(backToLandingBtn) {
                 backToLandingBtn.addEventListener('click', () => {
-                    authSection.classList.remove('fade-in');
-                    authSection.classList.add('fade-out');
-                    setTimeout(() => {
-                        authSection.style.display = 'none';
-                        landingPage.style.display = 'flex';
-                        landingPage.classList.remove('fade-out');
-                        landingPage.classList.add('fade-in');
-                    }, 400);
+                    authSection.style.display = 'none';
+                    landingPage.style.display = 'flex';
                 });
             }
 
@@ -1466,6 +1512,7 @@
                     roomsListModal.classList.remove('active');
                 });
             }
+
 
             const avatarMenuBtn = document.getElementById('avatarMenuBtn');
             const profileDropdown = document.getElementById('profileDropdown');
