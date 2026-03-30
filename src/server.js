@@ -90,10 +90,27 @@ io.on('connection', (socket) => {
         socketId: socket.id
     });
 
+    // Запрос списка публичных комнат
+    socket.on('request_public_rooms', () => {
+        const publicRooms = [];
+        for (const [roomId, lobby] of lobbies.entries()) {
+            if (!lobby.isPrivate) {
+                const activePlayers = Object.values(lobby.players).filter(p => p.connected).length;
+                publicRooms.push({
+                    id: roomId,
+                    mapId: lobby.mapId,
+                    playersCount: activePlayers,
+                    maxPlayers: lobby.maxPlayers
+                });
+            }
+        }
+        socket.emit('public_rooms_list', publicRooms);
+    });
+
     // Присоединение к лобби
     socket.on('join-room', (data) => {
-        // Прием mapId со значением по умолчанию 'volga'
-        const { roomId, playerName, isNewRoom = false, mapId = 'volga' } = data;
+        // Прием дополнительных параметров пароля и приватности
+        const { roomId, playerName, isNewRoom = false, mapId = 'volga', password = '', isPrivate = false } = data;
         
         if (!playerName || playerName.trim().length < 2) {
             return socket.emit('room-error', 'Имя должно содержать минимум 2 символа');
@@ -104,7 +121,9 @@ io.on('connection', (socket) => {
         // Создаем лобби, если его нет
         if (isNewRoom && !lobbies.has(roomId)) {
             lobbies.set(roomId, {
-                mapId: mapId, // Сохраняем выбранную карту в объект лобби
+                mapId: mapId, // Сохраняем выбранную карту
+                password: password, // Сохраняем пароль
+                isPrivate: isPrivate, // Устанавливаем статус приватности
                 players: {},
                 turnOrder: [],
                 currentTurn: null,
@@ -114,7 +133,7 @@ io.on('connection', (socket) => {
                 created: new Date().toISOString(),
                 maxPlayers: 6
             });
-            console.log(`🆕 Создано лобби: ${roomId} с картой: ${mapId}`);
+            console.log(`🆕 Создано лобби: ${roomId} (Приватное: ${isPrivate})`);
         } else if (isNewRoom && lobbies.has(roomId)) {
             return socket.emit('room-error', 'Лобби с таким номером уже существует!');
         } else if (!isNewRoom && !lobbies.has(roomId)) {
@@ -122,6 +141,11 @@ io.on('connection', (socket) => {
         }
 
         const lobby = lobbies.get(roomId);
+
+        // ПРОВЕРКА ПАРОЛЯ (если игрок подключается к уже созданной комнате, и у нее есть пароль)
+        if (!isNewRoom && lobby.password && lobby.password !== password) {
+            return socket.emit('room-error', 'Неверный пароль от комнаты!');
+        }
 
         // === УМНАЯ ПРОВЕРКА ИГРОКА (ВОССТАНОВЛЕНИЕ СЕССИИ) ===
         const existingActivePlayer = Object.values(lobby.players).find(p => 
@@ -161,7 +185,7 @@ io.on('connection', (socket) => {
                 playerProgress: lobby.playerProgress[playerId]
             });
 
-            // Отправляем актуальное состояние комнаты ВСЕМ, включая mapId
+            // Отправляем актуальное состояние комнаты ВСЕМ
             io.to(roomId).emit('room_state', {
                 mapId: lobby.mapId,
                 players: lobby.players,
@@ -226,7 +250,7 @@ io.on('connection', (socket) => {
         
         console.log(`✅ ${cleanPlayerName} присоединился к лобби ${roomId}`);
         
-        // 1. Отправляем успех самому игроку, включая карту
+        // 1. Отправляем успех самому игроку
         socket.emit('join-success', { 
             ...player,
             roomId: roomId,
