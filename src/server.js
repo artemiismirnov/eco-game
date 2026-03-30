@@ -147,35 +147,38 @@ io.on('connection', (socket) => {
             return socket.emit('room-error', 'Неверный пароль от комнаты!');
         }
 
-        // === УМНАЯ ПРОВЕРКА ИГРОКА (ВОССТАНОВЛЕНИЕ СЕССИИ) ===
-        const existingActivePlayer = Object.values(lobby.players).find(p => 
-            p.name.toLowerCase() === cleanPlayerName.toLowerCase() && p.connected
-        );
-        const existingDisconnectedPlayer = Object.values(lobby.players).find(p => 
-            p.name.toLowerCase() === cleanPlayerName.toLowerCase() && !p.connected
+        // === ИСПРАВЛЕНО: УМНАЯ ПРОВЕРКА ИГРОКА И ЗАЩИТА ОТ ЗОМБИ-СОКЕТОВ ПРИ F5 ===
+        const existingPlayer = Object.values(lobby.players).find(p => 
+            p.name.toLowerCase() === cleanPlayerName.toLowerCase()
         );
 
-        // Если игрок с таким именем прямо сейчас в игре
-        if (existingActivePlayer) {
-            socket.emit('room-error', 'Игрок с таким именем уже играет в этой комнате');
-            return;
-        }
+        if (existingPlayer) {
+            const oldSocketId = existingPlayer.id;
 
-        // Если игрок вылетел/вышел и пытается вернуться
-        if (existingDisconnectedPlayer) {
-            const playerId = existingDisconnectedPlayer.id;
+            // Если сервер все еще считает старый сокет активным (например, страница только что обновилась)
+            if (existingPlayer.connected) {
+                const oldSocket = io.sockets.sockets.get(oldSocketId);
+                if (oldSocket && oldSocket.id !== socket.id) {
+                    console.log(`⚠️ Отключение зависшего (zombie) сокета для игрока ${cleanPlayerName}`);
+                    oldSocket.leave(roomId);
+                    oldSocket.disconnect(true);
+                }
+            }
+
+            // Бесшовно перехватываем старую сессию
+            const playerId = oldSocketId; 
             const player = lobby.players[playerId];
             player.connected = true; // Возвращаем в строй
             
-            // Привязываем новый сокет к старому ID игрока
+            // Привязываем новый физический сокет к старому логическому ID игрока
             socket.playerId = playerId;
             socket.lobbyId = roomId;
             socket.playerName = cleanPlayerName;
             socket.join(roomId);
             
-            console.log(`🔄 ${cleanPlayerName} успешно вернулся в лобби ${roomId}`);
+            console.log(`🔄 ${cleanPlayerName} успешно восстановил сессию в лобби ${roomId}`);
             
-            // Отправляем личные данные игроку, включая mapId
+            // Отправляем личные данные игроку (чтобы он продолжил игру)
             socket.emit('join-success', { 
                 ...player,
                 roomId: roomId,
@@ -202,7 +205,7 @@ io.on('connection', (socket) => {
             if (lobby.messages) {
                 socket.emit('chat_history', lobby.messages.slice(-50));
             }
-            return; // Прерываем выполнение, чтобы не создать нового игрока
+            return; // Прерываем выполнение, чтобы не создать дубликат игрока
         }
         // === КОНЕЦ УМНОЙ ПРОВЕРКИ ===
         
@@ -214,7 +217,7 @@ io.on('connection', (socket) => {
 
         const isFirstPlayer = Object.keys(lobby.players).length === 0;
 
-        // Создаем или обновляем игрока
+        // Создаем нового игрока
         const player = {
             id: socket.id,
             name: cleanPlayerName,
