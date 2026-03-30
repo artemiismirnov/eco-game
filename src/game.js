@@ -41,20 +41,6 @@ const AVAILABLE_COLORS = [
     { name: 'Оранжевый', hex: '#e67e22' }
 ];
 
-// Фейковые данные для таблицы лидеров
-const fakePlayers = [
-    { name: "EcoMaster99", points: 2150, cities: 6 },
-    { name: "GreenGuardian", points: 1980, cities: 5 },
-    { name: "ЛеснойРейнджер", points: 1750, cities: 5 },
-    { name: "DaryaFox", points: 1540, cities: 4 },
-    { name: "ЧистаяВолга", points: 1320, cities: 3 },
-    { name: "Toxico_Net", points: 1100, cities: 3 },
-    { name: "Панда_Маг", points: 950, cities: 2 },
-    { name: "SuperTree", points: 800, cities: 2 },
-    { name: "AlexRecycle", points: 650, cities: 1 },
-    { name: "Newbie_1", points: 120, cities: 0 }
-];
-
 // ==================== ЭЛЕМЕНТЫ DOM ====================
 const elements = {
     // Новые элементы главной страницы (Лэндинга)
@@ -63,11 +49,14 @@ const elements = {
     backToLandingBtn: document.getElementById('backToLandingBtn'),
     headerThemeBtn: document.getElementById('headerThemeBtn'),
     
-    // Элементы Рейтинга
+    // Элементы Рейтинга и Списка комнат
     leaderboardModal: document.getElementById('leaderboardModal'),
     openLeaderboardBtn: document.getElementById('openLeaderboardBtn'),
     closeLeaderboardBtn: document.getElementById('closeLeaderboardBtn'),
     leaderboardTableBody: document.getElementById('leaderboardTableBody'),
+    
+    roomsListModal: document.getElementById('roomsListModal'),
+    roomsListTableBody: document.getElementById('roomsListTableBody'),
 
     authSection: document.getElementById('authSection'),
     gameContent: document.getElementById('gameContent'),
@@ -75,6 +64,11 @@ const elements = {
     registerTab: document.getElementById('registerTab'),
     loginForm: document.getElementById('loginForm'),
     registerForm: document.getElementById('registerForm'),
+    
+    // Элементы для ввода паролей и приватности
+    loginPassword: document.getElementById('loginPassword'),
+    registerPassword: document.getElementById('registerPassword'),
+    isPrivateRoom: document.getElementById('isPrivateRoom'),
     
     // Элементы для выбора карты
     mapSelectionSection: document.getElementById('mapSelectionSection'),
@@ -169,6 +163,37 @@ const elements = {
     statsList: document.getElementById('statsList')
 };
 
+// ==================== ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ ДОСТУПНЫХ КОМНАТ ====================
+window.requestPublicRooms = function() {
+    if(socket && socket.connected) {
+        socket.emit('request_public_rooms');
+    } else {
+        showNotification('Нет подключения к серверу. Обновите страницу.', 'error');
+    }
+};
+
+window.joinPublicRoom = function(roomId) {
+    const closeBtn = document.getElementById('closeRoomsListBtn');
+    if (closeBtn) closeBtn.click();
+    
+    // Показываем секцию авторизации, если мы на лэндинге
+    if(elements.landingPage) elements.landingPage.style.display = 'none';
+    if(elements.authSection) elements.authSection.style.display = 'block';
+    
+    const loginTab = document.getElementById('loginTab');
+    if (loginTab) loginTab.click();
+    
+    const loginRoomInput = document.getElementById('loginRoom');
+    if (loginRoomInput) {
+        loginRoomInput.value = roomId;
+    }
+    
+    const loginUsernameInput = document.getElementById('loginUsername');
+    if (loginUsernameInput && !loginUsernameInput.value) {
+        loginUsernameInput.focus();
+    }
+};
+
 // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
 const quickActionsBtn = document.getElementById('quickActionsBtn');
 const quickActions = document.getElementById('quickActions');
@@ -237,36 +262,6 @@ function toggleLightTheme() {
     }
 }
 
-// ==================== РЕЙТИНГ ЭКОЛОГОВ (ТОП ИГРОКОВ) ====================
-function renderLeaderboard() {
-    if (!elements.leaderboardTableBody) return;
-    elements.leaderboardTableBody.innerHTML = '';
-    
-    fakePlayers.forEach((p, i) => {
-        const rank = i + 1;
-        let rankDisplay = rank;
-        
-        if(rank === 1) rankDisplay = '<i class="fas fa-crown rank-icon" style="color: #FFD700;"></i>';
-        else if(rank === 2) rankDisplay = '<i class="fas fa-medal rank-icon" style="color: #C0C0C0;"></i>';
-        else if(rank === 3) rankDisplay = '<i class="fas fa-award rank-icon" style="color: #cd7f32;"></i>';
-        else rankDisplay = `0${rank}`.slice(-2);
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="rank-number">${rankDisplay}</td>
-            <td>
-                <div class="player-row-info">
-                    <div class="player-row-avatar">${p.name.charAt(0).toUpperCase()}</div>
-                    <span>${p.name}</span>
-                </div>
-            </td>
-            <td style="text-align: center; color: #4ecdc4; font-weight: bold;">${p.points}</td>
-            <td style="text-align: center;">${p.cities}</td>
-        `;
-        elements.leaderboardTableBody.appendChild(tr);
-    });
-}
-
 // ==================== НАСТРОЙКИ ПРОФИЛЯ И СТАТИСТИКА ====================
 function updateProfileUI() {
     if (userProfile.avatar) {
@@ -274,7 +269,6 @@ function updateProfileUI() {
         if(elements.settingsAvatarPreview) elements.settingsAvatarPreview.src = userProfile.avatar;
         if(elements.chipAvatarPreview) elements.chipAvatarPreview.src = userProfile.avatar;
         
-        // Показываем бейдж и скрываем кнопку Google, если аватар установлен
         elements.googleSignInBtn.style.display = 'none';
         elements.userProfileBadge.style.display = 'inline-block';
     }
@@ -287,7 +281,6 @@ function updateProfileUI() {
     if (userProfile.gender && elements.settingsGender) elements.settingsGender.value = userProfile.gender;
 }
 
-// Обработка загрузки картинки (аватарки)
 if (elements.avatarUpload) {
     elements.avatarUpload.addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -296,12 +289,11 @@ if (elements.avatarUpload) {
             reader.onload = function(event) {
                 elements.settingsAvatarPreview.src = event.target.result;
             };
-            reader.readAsDataURL(file); // Конвертация в Base64
+            reader.readAsDataURL(file);
         }
     });
 }
 
-// Сохранение настроек
 if (elements.settingsForm) {
     elements.settingsForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -318,7 +310,6 @@ if (elements.settingsForm) {
     });
 }
 
-// Обновление окна со статистикой игр
 function updateStatsUI() {
     let stats = JSON.parse(localStorage.getItem('gameStats')) || [];
     if (stats.length === 0) {
@@ -354,11 +345,8 @@ function initEmojiPicker() {
     };
     
     let emojiPickerVisible = false;
-    
-    // Очищаем пикер
     elements.emojiPicker.innerHTML = '';
     
-    // Добавляем секцию недавних смайликов в пикер
     const recentSection = document.createElement('div');
     recentSection.className = 'recent-emojis-section';
     recentSection.id = 'emojiPickerRecentSection';
@@ -375,34 +363,27 @@ function initEmojiPicker() {
     
     elements.emojiPicker.appendChild(recentSection);
     
-    // Обновляем отображение недавних смайликов в пикере
     function updateEmojiPickerRecent() {
         recentContainer.innerHTML = '';
-        
         if (recentEmojis.length === 0) {
             recentSection.style.display = 'none';
             return;
         }
-        
         recentSection.style.display = 'block';
-        
         recentEmojis.forEach(emoji => {
             const emojiItem = document.createElement('div');
             emojiItem.className = 'emoji-item';
             emojiItem.textContent = emoji;
             emojiItem.title = emoji;
-            
             emojiItem.addEventListener('click', () => {
                 elements.chatInput.value += emoji;
                 elements.chatInput.focus();
                 addRecentEmoji(emoji);
             });
-            
             recentContainer.appendChild(emojiItem);
         });
     }
     
-    // Добавляем категории смайликов
     for (const category in emojiCategories) {
         const categoryDiv = document.createElement('div');
         categoryDiv.className = 'emoji-category';
@@ -435,23 +416,19 @@ function initEmojiPicker() {
         elements.emojiPicker.appendChild(categoryDiv);
     }
     
-    // Инициализируем отображение недавних смайликов в пикере
     updateEmojiPickerRecent();
     
-    // Обработчик кнопки смайликов
     elements.emojiPickerBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         emojiPickerVisible = !emojiPickerVisible;
-        
         if (emojiPickerVisible) {
             elements.emojiPicker.classList.add('show');
-            updateEmojiPickerRecent(); // Обновляем при открытии
+            updateEmojiPickerRecent();
         } else {
             elements.emojiPicker.classList.remove('show');
         }
     });
     
-    // Закрытие пикера при клике вне его
     document.addEventListener('click', (e) => {
         if (!elements.emojiPicker.contains(e.target) && !elements.emojiPickerBtn.contains(e.target)) {
             elements.emojiPicker.classList.remove('show');
@@ -465,9 +442,9 @@ const gameData = {
     cities: {
         tver: { 
             name: "Тверь", position: 1, description: "Стартовый город",
-            history: "Тверь — один из древнейших городов России, основанный в 1135 году.",
-            problem: "Основные экологические проблемы Твери — загрязнение воздуха.",
-            task: "Ваша задача — помочь городу справиться с экологическими проблемами."
+            history: "Тверь — один из древнейших городов России, основанный в 1135 году. Расположена на берегах рек Волга, Тверца и Тьмака.",
+            problem: "Основные экологические проблемы Твери — загрязнение воздуха промышленными предприятиями и транспортными выбросами.",
+            task: "Ваша задача — помочь городу справиться с экологическими проблемами путем посадки деревьев и внедрения чистых технологий."
         },
         kineshma: { 
             name: "Кинешма", position: 2, description: "Город на Волге",
@@ -532,11 +509,10 @@ function showColorModal() {
     elements.colorModal.classList.add('active');
 }
 
-// Обработка клика по кнопке "Использовать аватар"
 if(elements.avatarChipOption) {
     elements.avatarChipOption.addEventListener('click', () => {
         if (userProfile.avatar) {
-            selectColor(userProfile.avatar); // Передаем URL/Base64 аватарки как "цвет"
+            selectColor(userProfile.avatar); 
         } else {
             showNotification('Сначала загрузите фото в настройках профиля или войдите через Google!', 'warning');
         }
@@ -547,7 +523,6 @@ function renderColorGrid() {
     if (!elements.colorGrid) return;
     elements.colorGrid.innerHTML = '';
     
-    // Получаем цвета/аватары, уже выбранные другими игроками в комнате
     const takenColors = Object.values(gameState.players)
         .filter(p => p.id !== socket.id && p.hasSelectedColor)
         .map(p => p.color);
@@ -558,7 +533,6 @@ function renderColorGrid() {
         btn.style.backgroundColor = colorObj.hex;
         btn.title = colorObj.name;
 
-        // Если цвет занят, блокируем кнопку
         if (takenColors.includes(colorObj.hex)) {
             btn.classList.add('disabled');
         } else {
@@ -566,7 +540,6 @@ function renderColorGrid() {
                 selectColor(colorObj.hex);
             });
         }
-
         elements.colorGrid.appendChild(btn);
     });
 }
@@ -578,10 +551,7 @@ function selectColor(colorOrAvatar) {
         gameState.currentPlayer.color = colorOrAvatar;
         gameState.currentPlayer.hasSelectedColor = true;
         
-        // Отправляем выбранный цвет (или base64/URL картинки) на сервер
         socket.emit('select_color', { color: colorOrAvatar });
-
-        // Обновляем свою фишку на карте
         updateOtherPlayerMarker(
             gameState.currentPlayerId,
             gameState.currentPlayer.name,
@@ -617,6 +587,28 @@ socket.on('disconnect', () => {
 socket.on('connect_error', (error) => {
     console.log('❌ Ошибка подключения:', error);
     isConnected = false;
+});
+
+socket.on('public_rooms_list', (rooms) => {
+    if (!elements.roomsListTableBody) return;
+    elements.roomsListTableBody.innerHTML = '';
+    
+    if (rooms.length === 0) {
+        elements.roomsListTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Нет доступных открытых комнат. Создайте свою!</td></tr>';
+        return;
+    }
+    
+    rooms.forEach(room => {
+        const tr = document.createElement('tr');
+        let mapName = room.mapId === 'volga' ? 'Волга' : room.mapId;
+        tr.innerHTML = `
+            <td style="font-weight: bold; color: #a29bfe;">${room.id}</td>
+            <td>${mapName}</td>
+            <td style="text-align: center; color: #4ecdc4; font-weight: bold;">${room.playersCount}/${room.maxPlayers}</td>
+            <td style="text-align: right;"><button class="game-btn small" onclick="window.joinPublicRoom('${room.id}')">Войти</button></td>
+        `;
+        elements.roomsListTableBody.appendChild(tr);
+    });
 });
 
 socket.on('join-success', (playerData) => {
@@ -797,7 +789,6 @@ function requestAllPlayersPositions() {
 function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAvatar) {
     let marker = document.getElementById(`marker-${playerId}`);
     
-    // Проверяем, является ли строка с цветом Base64 картинкой или URL
     let isAvatar = colorOrAvatar && (colorOrAvatar.startsWith('data:image') || colorOrAvatar.startsWith('http'));
     
     if (!marker) {
@@ -820,12 +811,11 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAv
         elements.mapOverlay.appendChild(marker);
     } 
     
-    // Применяем заливку цветом или устанавливаем картинку как фон
     if (colorOrAvatar) {
         if (isAvatar) {
             marker.style.backgroundImage = `url(${colorOrAvatar})`;
             marker.style.backgroundColor = 'transparent';
-            marker.innerHTML = ''; // Убираем иконку по умолчанию
+            marker.innerHTML = '';
         } else {
             marker.style.backgroundImage = 'none';
             marker.style.backgroundColor = colorOrAvatar;
@@ -913,7 +903,7 @@ function showNotification(message, type = 'info') {
     setTimeout(() => { elements.notification.classList.remove('show'); }, 3000);
 }
 
-function joinGame(username, roomId, isNewRoom, mapId = 'volga') {
+function joinGame(username, roomId, isNewRoom, mapId = 'volga', password = '', isPrivate = false) {
     if (!isConnected) {
         showNotification('Нет подключения к серверу. Попробуйте обновить страницу.', 'error');
         return;
@@ -923,7 +913,9 @@ function joinGame(username, roomId, isNewRoom, mapId = 'volga') {
         roomId: roomId, 
         playerName: username, 
         isNewRoom: isNewRoom,
-        mapId: mapId 
+        mapId: mapId,
+        password: password,
+        isPrivate: isPrivate
     });
     showNotification('Подключаемся к лобби...', 'info');
 }
@@ -960,7 +952,7 @@ function initializeGame(playerData) {
     
     const savedTheme = localStorage.getItem('lightTheme');
     if (savedTheme === 'enabled') {
-        lightThemeEnabled = false; // устанавливаем false, чтобы toggle включил светлую
+        lightThemeEnabled = false; 
         toggleLightTheme(); 
     }
     
@@ -2673,31 +2665,35 @@ if(elements.registerTab) {
     });
 }
 
+// ОБНОВЛЕНО: Отправка формы входа (с паролем)
 if(elements.loginForm) {
     elements.loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const username = document.getElementById('loginUsername').value.trim();
         const roomId = document.getElementById('loginRoom').value.trim();
-        if (username && roomId) joinGame(username, roomId, false);
+        const password = document.getElementById('loginPassword') ? document.getElementById('loginPassword').value : '';
+        if (username && roomId) joinGame(username, roomId, false, 'volga', password);
     });
 }
 
+// ОБНОВЛЕНО: Отправка формы создания (с настройками приватности)
 if(elements.registerForm) {
     elements.registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const username = document.getElementById('registerUsername').value.trim();
         const roomId = document.getElementById('registerRoom').value.trim();
+        const isPrivate = document.getElementById('isPrivateRoom') ? document.getElementById('isPrivateRoom').checked : false;
+        const password = (isPrivate && document.getElementById('registerPassword')) ? document.getElementById('registerPassword').value : '';
         
         if (username && roomId) {
-            // Вместо прямого входа сохраняем данные и показываем выбор карты
-            pendingRoomData = { username, roomId };
+            // Сохраняем данные (включая пароль) и показываем выбор карты
+            pendingRoomData = { username, roomId, isPrivate, password };
             elements.authSection.style.display = 'none';
             
             if (elements.mapSelectionSection) {
                 elements.mapSelectionSection.style.display = 'block';
             } else {
-                // Фолбэк, если секции почему-то нет
-                joinGame(username, roomId, true);
+                joinGame(username, roomId, true, 'volga', password, isPrivate);
             }
         }
     });
@@ -2709,8 +2705,15 @@ if (elements.mapCardVolga) {
         if (pendingRoomData) {
             const mapId = elements.mapCardVolga.dataset.mapId || 'volga';
             elements.mapSelectionSection.style.display = 'none';
-            // Заходим в игру, передавая выбранную карту
-            joinGame(pendingRoomData.username, pendingRoomData.roomId, true, mapId);
+            // Заходим в игру, передавая выбранную карту и настройки приватности
+            joinGame(
+                pendingRoomData.username, 
+                pendingRoomData.roomId, 
+                true, 
+                mapId, 
+                pendingRoomData.password, 
+                pendingRoomData.isPrivate
+            );
             pendingRoomData = null;
         }
     });
