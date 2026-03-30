@@ -59,6 +59,18 @@
                 radial-gradient(circle at 85% 30%, rgba(255, 107, 107, 0.15), transparent 40%);
             color: var(--dark-dark); 
         }
+
+        /* --- Плавные переходы для секций --- */
+        .fade-section {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .fade-section.hidden-animated {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+        }
         
         .container {
             max-width: 1400px;
@@ -392,11 +404,27 @@
         .difficulty-selector { display: flex; gap: 10px; margin: 15px 0; }
         .difficulty-btn { flex: 1; padding: 12px; text-align: center; border-radius: 8px; cursor: pointer; transition: all 0.3s; position: relative; font-weight: 600; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2); background: rgba(255,255,255,0.05); color: white;}
         body.light-theme .difficulty-btn { color: var(--dark-dark); background: rgba(0,0,0,0.05); }
-        .difficulty-btn.easy { background: rgba(46, 204, 113, 0.2); }
-        .difficulty-btn.medium { background: rgba(243, 156, 18, 0.2); }
-        .difficulty-btn.hard { background: rgba(231, 76, 60, 0.2); }
-        .difficulty-btn.active { border: 2px solid white; transform: scale(1.05); box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2); background: rgba(255,255,255,0.15);}
-        body.light-theme .difficulty-btn.active { border-color: var(--primary); background: rgba(0,0,0,0.1); }
+        
+        /* --- Цвета кнопок сложности --- */
+        .difficulty-btn.easy { 
+            background: rgba(46, 204, 113, 0.15); 
+            border-bottom: 3px solid #2ecc71;
+        }
+        .difficulty-btn.medium { 
+            background: rgba(243, 156, 18, 0.15); 
+            border-bottom: 3px solid #f39c12;
+        }
+        .difficulty-btn.hard { 
+            background: rgba(231, 76, 60, 0.15); 
+            border-bottom: 3px solid #e74c3c;
+        }
+        .difficulty-btn.active { 
+            border: 2px solid white; 
+            border-bottom: 3px solid white; 
+            transform: scale(1.05); 
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); 
+        }
+        
         .difficulty-btn.locked { background: rgba(149, 165, 166, 0.1) !important; cursor: not-allowed; opacity: 0.5; border: none; }
         .difficulty-btn.locked::after { content: "🔒"; position: absolute; top: 5px; right: 5px; font-size: 12px; }
 
@@ -815,7 +843,7 @@
 
     <div class="container">
         
-        <div id="landingPage" class="landing-page">
+        <div id="landingPage" class="landing-page fade-section">
             <section class="hero-section">
                 <h1 class="hero-title">Юный Эколог</h1>
                 <p class="hero-subtitle">Многопользовательская игра, где ты спасаешь города России от загрязнений, решаешь эко-задачи и соревнуешься с друзьями.</p>
@@ -901,7 +929,7 @@
             </div>
         </div>
         
-        <section class="auth-section" id="authSection" style="display: none;">
+        <section class="auth-section fade-section" id="authSection" style="display: none;">
             <div class="auth-tabs">
                 <div class="auth-tab active" id="loginTab">Войти в лобби</div>
                 <div class="auth-tab" id="registerTab">Создать лобби</div>
@@ -945,7 +973,7 @@
             <button class="game-btn red" id="backToLandingBtn" style="margin-top: 15px; background: transparent; border: 1px solid rgba(255,255,255,0.2); box-shadow: none;">⬅ Назад</button>
         </section>
         
-        <section class="auth-section" id="mapSelectionSection" style="display: none; max-width: 900px;">
+        <section class="auth-section fade-section" id="mapSelectionSection" style="display: none; max-width: 900px;">
             <h2 style="text-align: center; color: white; margin-bottom: 10px;">Выберите регион для спасения</h2>
             <p style="text-align: center; margin-bottom: 30px; color: rgba(255,255,255,0.6);">Эта карта определит маршрут и экологические проблемы.</p>
             
@@ -975,7 +1003,7 @@
             <button class="game-btn red" id="cancelMapSelectionBtn" style="margin-top: 30px; background: transparent; border: 1px solid rgba(255,255,255,0.2); box-shadow: none;">⬅ Отмена</button>
         </section>
 
-        <main id="gameContent" style="display: none; padding-top: 20px;">
+        <main id="gameContent" class="fade-section" style="display: none; padding-top: 20px;">
             <div class="room-section">
                 <div class="room-info">
                     <div>
@@ -1337,6 +1365,24 @@
     <script src="game.js"></script>
 
     <script>
+        // Функция для плавной анимации переходов между экранами
+        function switchSectionWithAnimation(hideElem, showElem) {
+            if (!hideElem || !showElem) return;
+            
+            hideElem.classList.add('hidden-animated');
+            
+            setTimeout(() => {
+                hideElem.style.display = 'none';
+                
+                showElem.classList.add('hidden-animated');
+                showElem.style.display = (showElem.id === 'landingPage') ? 'flex' : 'block';
+                
+                void showElem.offsetWidth; // Форсируем перерисовку
+                
+                showElem.classList.remove('hidden-animated');
+            }, 300);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             
             // === ЛОГИКА ИНТЕРАКТИВНОЙ ГАЛЕРЕИ ===
@@ -1346,19 +1392,14 @@
             if (mainGameplayImg && thumbImgs.length > 0) {
                 thumbImgs.forEach(thumb => {
                     thumb.addEventListener('click', function() {
-                        // Плавное исчезновение
                         mainGameplayImg.style.opacity = '0';
                         
                         setTimeout(() => {
-                            // Меняем источник картинки
                             mainGameplayImg.src = this.dataset.src;
-                            // Плавное появление
                             mainGameplayImg.style.opacity = '1';
                         }, 200);
 
-                        // Убираем активный класс у всех
                         thumbImgs.forEach(t => t.classList.remove('active'));
-                        // Устанавливаем активный класс нажатой миниатюре
                         this.classList.add('active');
                     });
                 });
@@ -1372,16 +1413,15 @@
             
             if(startLandingBtn) {
                 startLandingBtn.addEventListener('click', () => {
-                    landingPage.style.display = 'none';
-                    authSection.style.display = 'block';
-                    window.scrollTo(0, 0);
+                    switchSectionWithAnimation(landingPage, authSection);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             }
             
             if(backToLandingBtn) {
                 backToLandingBtn.addEventListener('click', () => {
-                    authSection.style.display = 'none';
-                    landingPage.style.display = 'flex';
+                    switchSectionWithAnimation(authSection, landingPage);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             }
 
