@@ -172,7 +172,8 @@
 
         .rules-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: stretch; }
         
-        .gallery-wrapper {
+        /* ГАЛЕРЕЯ СКРИНШОТОВ (ВМЕСТО СТАРОЙ ЗАГЛУШКИ) */
+        .rules-image-box { 
             background: rgba(255, 255, 255, 0.03); 
             border: 1px solid rgba(255, 255, 255, 0.05); 
             border-radius: 24px; 
@@ -182,7 +183,7 @@
             gap: 15px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
         }
-        body.light-theme .gallery-wrapper { background: rgba(0, 0, 0, 0.02); border-color: rgba(0, 0, 0, 0.05); }
+        body.light-theme .rules-image-box { background: rgba(0, 0, 0, 0.02); border-color: rgba(0, 0, 0, 0.05); }
         
         .main-screenshot-container {
             width: 100%;
@@ -192,9 +193,6 @@
             background: #000;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .main-screenshot-container img {
             width: 100%;
@@ -228,7 +226,6 @@
             border-color: #a29bfe;
             transform: scale(1.05);
             box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
-            z-index: 2;
         }
         body.light-theme .thumb-img.active { border-color: var(--secondary); box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4); }
 
@@ -349,81 +346,19 @@
         .game-info-panel { flex: 1; min-width: 300px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); animation: fadeInUp 0.8s ease-out 0.4s both; }
         body.light-theme .game-info-panel { background: #fff; border: 1px solid rgba(0,0,0,0.05); color: var(--dark-dark); }
         
-        /* ================= НОВЫЕ СТИЛИ ДЛЯ УМНОЙ КАРТЫ ================= */
-        .map-image-container { 
-            position: relative; 
-            width: 100%; 
-            min-height: 600px; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background-color: #1a1a2e; /* Резервный цвет */
-            /* СЮДА ВСТАВЬ URL СВОЕЙ КАРТИНКИ ФОНА: */
-            /* background-image: url('ТВОЯ_КАРТИНКА.jpg'); */
-            background-size: cover;
-            background-position: center;
-            border: 2px solid rgba(78, 205, 196, 0.3); 
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
-            padding: 0; 
-        }
+        .map-image-container { position: relative; width: 100%; min-height: 600px; background: #e8f5e9; border-radius: 12px; overflow: hidden; border: 3px solid #2E7D32; display: flex; align-items: center; justify-content: center; padding: 10px; }
+        #mapImage { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+        .map-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
-        .animated-route {
-            animation: dashMove 30s linear infinite;
-        }
-        @keyframes dashMove {
-            from { stroke-dashoffset: 1000; }
-            to { stroke-dashoffset: 0; }
-        }
-
-        .svg-cell-normal {
-            fill: rgba(255, 255, 255, 0.3);
-            stroke: rgba(255, 255, 255, 0.6);
-            stroke-width: 2;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        .svg-cell-normal:hover {
-            fill: #f1c40f;
-            r: 8;
-        }
-
-        .svg-city-node {
-            fill: #1a1a2e;
-            stroke: #2ecc71; /* Зеленый эко-цвет для городов */
-            stroke-width: 4;
-            cursor: pointer;
-            filter: drop-shadow(0 0 10px #2ecc71);
-            transition: all 0.3s;
-        }
-        .svg-city-node:hover {
-            stroke: #ff9e1f;
-            filter: drop-shadow(0 0 15px #ff9e1f);
-            transform: scale(1.1);
-        }
-
-        .svg-city-pulse {
-            fill: none;
-            stroke: #2ecc71;
-            stroke-width: 2;
-            animation: cityPulse 2s infinite;
-        }
-        @keyframes cityPulse {
-            0% { r: 14; opacity: 1; stroke-width: 3; }
-            100% { r: 35; opacity: 0; stroke-width: 0; }
-        }
-
-        .svg-city-text {
-            fill: white;
-            font-size: 16px;
-            font-weight: bold;
-            font-family: sans-serif;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.9);
-            pointer-events: none;
-            user-select: none;
-        }
-        /* ================================================================ */
+        .map-cell { position: absolute; border: 2px solid rgba(255, 0, 0, 0.5); background: rgba(0, 255, 0, 0.2); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 14px; cursor: pointer; transition: all 0.3s ease; box-sizing: border-box; z-index: 10; pointer-events: auto; user-select: none; }
+        .map-cell:hover { background: rgba(255, 255, 0, 0.4); border-color: rgba(255, 0, 0, 0.8); transform: scale(1.05); z-index: 15; }
+        .map-cell.selected { background: rgba(255, 165, 0, 0.6); border-color: #ff4500; box-shadow: 0 0 10px rgba(255, 69, 0, 0.8); z-index: 20; }
+        .map-cell.start { background: rgba(41, 128, 185, 0.6); border-color: #2980b9; color: white; }
+        .map-cell.finish { background: rgba(231, 76, 60, 0.6); border-color: #e74c3c; color: white; }
+        .map-cell.city { background: rgba(241, 196, 15, 0.6); border-color: #f1c40f; color: #000; }
+        .map-cell-number { position: absolute; top: 2px; left: 2px; font-size: 10px; font-weight: bold; color: #000; background: rgba(255, 255, 255, 0.8); padding: 1px 3px; border-radius: 2px; z-index: 1; }
+        .map-cell.hidden { background: transparent; border-color: transparent; }
+        .map-cell.hidden .map-cell-number { display: none; }
 
         .player-info { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 16px; }
         body.light-theme .player-info { background: rgba(0,0,0,0.03); color: var(--dark-dark); }
@@ -1101,56 +1036,11 @@
                     <h2 style="text-align: center; margin-bottom: 20px;">Карта маршрута</h2>
                     
                     <div class="game-map">
-                        
                         <div class="map-image-container" id="mapContainer">
-                            <svg id="gameMapSvg" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; display: block;">
-                                <defs>
-                                    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
-                                        <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur1" />
-                                        <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur2" />
-                                        <feMerge>
-                                            <feMergeNode in="blur1" />
-                                            <feMergeNode in="blur2" />
-                                            <feMergeNode in="SourceGraphic" />
-                                        </feMerge>
-                                    </filter>
-                                    <linearGradient id="riverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#4ecdc4" />
-                                        <stop offset="50%" stop-color="#3498db" />
-                                        <stop offset="100%" stop-color="#8e44ad" />
-                                    </linearGradient>
-                                </defs>
-
-                                <path d="M0,100 L1000,100 M0,200 L1000,200 M0,300 L1000,300 M0,400 L1000,400 M0,500 L1000,500 M0,600 L1000,600 M0,700 L1000,700" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
-                                <path d="M100,0 L100,800 M200,0 L200,800 M300,0 L300,800 M400,0 L400,800 M500,0 L500,800 M600,0 L600,800 M700,0 L700,800 M800,0 L800,800 M900,0 L900,800" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
-
-                                <path id="routePath" 
-                                      d="M 80 100 C 300 20, 400 350, 200 450 C 0 550, 250 750, 450 750 C 650 750, 750 550, 500 400 C 250 250, 500 50, 750 80 C 1000 110, 900 400, 800 550 C 700 700, 900 780, 950 750" 
-                                      fill="none" 
-                                      stroke="url(#riverGradient)" 
-                                      stroke-width="12" 
-                                      stroke-linecap="round" 
-                                      filter="url(#neonGlow)" />
-                                      
-                                <path d="M 80 100 C 300 20, 400 350, 200 450 C 0 550, 250 750, 450 750 C 650 750, 750 550, 500 400 C 250 250, 500 50, 750 80 C 1000 110, 900 400, 800 550 C 700 700, 900 780, 950 750" 
-                                      fill="none" 
-                                      stroke="rgba(255, 255, 255, 0.5)" 
-                                      stroke-width="2" 
-                                      stroke-dasharray="10 15" 
-                                      class="animated-route" />
-
-                                <g id="boatGroup">
-                                    <path d="M -15 -10 L 15 -10 L 10 10 L -10 10 Z M 0 -10 L 0 -25 L 12 -15 Z" fill="#ff4757" stroke="white" stroke-width="1.5" />
-                                    <animateMotion dur="40s" repeatCount="indefinite" rotate="auto">
-                                        <mpath href="#routePath"/>
-                                    </animateMotion>
-                                </g>
-
-                                <g id="cellsGroup"></g>
-                            </svg>
-                            <div class="map-overlay" id="mapOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+                            <img id="mapImage" src="" alt="Карта России">
+                            <div class="map-overlay" id="mapOverlay"></div>
                         </div>
-                        </div>
+                    </div>
                     
                     <div class="cities-section">
                         <h4>Города на карте:</h4>
@@ -1471,6 +1361,7 @@
     <button id="quickThemeBtn" style="display:none;"></button>
 
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="mapData.js"></script>
     <script src="game.js"></script>
 
     <script>
