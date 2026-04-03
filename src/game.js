@@ -3004,6 +3004,7 @@ function handleCredentialResponse(response) {
 }
 
 window.onload = function () {
+    // === АВТОРИЗАЦИЯ GOOGLE ===
     const GOOGLE_CLIENT_ID = "921001738618-bmaal1s4a6e2ubfbrjc3ullvnov0igjn.apps.googleusercontent.com"; 
     
     google.accounts.id.initialize({
@@ -3011,13 +3012,54 @@ window.onload = function () {
         callback: handleCredentialResponse
     });
     
-    // Если аватар уже установлен, Google кнопку не рендерим (обрабатывается в updateProfileUI)
     if (!userProfile.avatar && elements.googleSignInWrapper) {
         google.accounts.id.renderButton(
             elements.googleSignInWrapper,
             { theme: "outline", size: "large", shape: "pill", width: "100%" }
         );
         google.accounts.id.prompt(); 
+    }
+
+    // === АВТОРИЗАЦИЯ ВКОНТАКТЕ ===
+    const VK_APP_ID = 52712345; // ⚠️ ЗАМЕНИТЕ ЭТИ ЦИФРЫ НА СВОЙ ID ПРИЛОЖЕНИЯ!
+
+    if (typeof VK !== 'undefined') {
+        VK.init({ apiId: VK_APP_ID });
+        
+        const vkBtn = document.getElementById('vkSignInBtn');
+        if (vkBtn) {
+            vkBtn.addEventListener('click', () => {
+                // Вызываем всплывающее окно авторизации ВК
+                VK.Auth.login(function(response) {
+                    if (response.session) {
+                        // Если вход успешен, делаем запрос на получение имени и аватарки
+                        VK.Api.call('users.get', {fields: 'photo_100', v: '5.131'}, function(r) {
+                            if(r.response && r.response.length > 0) {
+                                const vkUser = r.response[0];
+                                
+                                // Если профиль пустой, сохраняем данные ВК
+                                if (!userProfile.name) {
+                                    userProfile.name = vkUser.first_name + ' ' + vkUser.last_name;
+                                    userProfile.avatar = vkUser.photo_100;
+                                    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                                }
+                                
+                                // Обновляем картинку в шапке
+                                updateProfileUI();
+                                showNotification(`Привет, ${vkUser.first_name}! Вход через ВК выполнен.`, 'success');
+                                
+                                // Закрываем модальное окно выбора входа
+                                if (elements.globalAuthModal) {
+                                    elements.globalAuthModal.classList.remove('active');
+                                }
+                            }
+                        });
+                    } else {
+                        showNotification('Авторизация ВКонтакте отменена', 'warning');
+                    }
+                });
+            });
+        }
     }
 };
 
