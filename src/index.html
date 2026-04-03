@@ -1177,7 +1177,7 @@
                 <div id="googleSignInBtn"></div>
                 
                 <div id="VkIdContainer" style="display: flex; justify-content: center; width: 100%; margin-top: 15px;">
-                    <script src="https://unpkg.com/@vkid/sdk@3.0.0/dist-sdk/umd/index.js"></script>
+                    <script src="https://unpkg.com/@vkid/sdk@2.6.5/dist-sdk/umd/index.js"></script>
                     <script type="text/javascript">
                         // Ждем загрузки страницы
                         document.addEventListener('DOMContentLoaded', function() {
@@ -1214,6 +1214,8 @@
                                             .catch(function(err) { console.error('Ошибка обмена токена:', err); });
                                     });
                                 }
+                            } else {
+                                console.error('VKIDSDK не загрузился!');
                             }
                         });
                     </script>
