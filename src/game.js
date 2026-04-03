@@ -146,7 +146,7 @@ const elements = {
     colorModal: document.getElementById('colorModal'),
     colorGrid: document.getElementById('colorGrid'),
     
-    // Элементы для профиля и настроек (ОБНОВЛЕНО для модального окна входа)
+    // Элементы для профиля и настроек
     userProfileBadge: document.getElementById('userProfileBadge'),
     userAvatar: document.getElementById('userAvatar'),
     openAuthModalBtn: document.getElementById('openAuthModalBtn'),
@@ -470,7 +470,7 @@ function initEmojiPicker() {
     });
 }
 
-// ==================== ИГРОВЫЕ ДАННЫЕ (ОБНОВЛЕНО) ====================
+// ==================== ИГРОВЫЕ ДАННЫЕ ====================
 const gameData = {
     cities: {
         tver: { 
@@ -547,7 +547,7 @@ if(elements.avatarChipOption) {
         if (userProfile.avatar) {
             selectColor(userProfile.avatar); 
         } else {
-            showNotification('Сначала загрузите фото в настройках профиля или войдите через Google!', 'warning');
+            showNotification('Сначала загрузите фото в настройках профиля или войдите через Google/ВК!', 'warning');
         }
     });
 }
@@ -3020,8 +3020,8 @@ window.onload = function () {
         google.accounts.id.prompt(); 
     }
 
-    // === АВТОРИЗАЦИЯ ВКОНТАКТЕ (Прямой OAuth 2.0) ===
-    const VK_APP_ID = 54524225; // Твой ID приложения
+    // === АВТОРИЗАЦИЯ ВКОНТАКТЕ ===
+    const VK_APP_ID = 54524225; // Твой ID приложения ВК
     const REDIRECT_URI = "https://eco-game-dfb0.onrender.com/"; // Точный адрес твоего сайта
 
     // 1. Проверяем, вернулся ли игрок от ВК с токеном в адресной строке
