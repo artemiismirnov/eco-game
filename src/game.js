@@ -3022,7 +3022,7 @@ window.onload = function () {
 
     // === АВТОРИЗАЦИЯ ВКОНТАКТЕ (Прямой OAuth 2.0) ===
     const VK_APP_ID = 54524225; // Твой ID приложения
-    const REDIRECT_URI = "https://eco-game-dfb0.onrender.com"; // Точный адрес твоего сайта
+    const REDIRECT_URI = "https://eco-game-dfb0.onrender.com/"; // Точный адрес твоего сайта
 
     // 1. Проверяем, вернулся ли игрок от ВК с токеном в адресной строке
     if (window.location.hash && window.location.hash.includes('access_token=')) {
