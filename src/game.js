@@ -149,10 +149,7 @@ const elements = {
     // Элементы для профиля и настроек
     userProfileBadge: document.getElementById('userProfileBadge'),
     userAvatar: document.getElementById('userAvatar'),
-    openAuthModalBtn: document.getElementById('openAuthModalBtn'),
-    globalAuthModal: document.getElementById('globalAuthModal'),
-    closeAuthModalBtn: document.getElementById('closeAuthModalBtn'),
-    googleSignInWrapper: document.getElementById('googleSignInWrapper'),
+    googleSignInBtn: document.getElementById('googleSignInBtn'),
     loginUsername: document.getElementById('loginUsername'),
     registerUsername: document.getElementById('registerUsername'),
     settingsForm: document.getElementById('settingsForm'),
@@ -163,7 +160,12 @@ const elements = {
     settingsGender: document.getElementById('settingsGender'),
     avatarChipOption: document.getElementById('avatarChipOption'),
     chipAvatarPreview: document.getElementById('chipAvatarPreview'),
-    statsList: document.getElementById('statsList')
+    statsList: document.getElementById('statsList'),
+
+    // Новые элементы для входа ВК и модалки
+    headerLoginBtn: document.getElementById('headerLoginBtn'),
+    loginMethodModal: document.getElementById('loginMethodModal'),
+    vkSignInBtn: document.getElementById('vkSignInBtn')
 };
 
 // ==================== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ПЛАВНОГО ПЕРЕХОДА ====================
@@ -297,19 +299,29 @@ function toggleLightTheme() {
 
 // ==================== НАСТРОЙКИ ПРОФИЛЯ И СТАТИСТИКА ====================
 function updateProfileUI() {
-    if (userProfile.avatar) {
-        elements.userAvatar.src = userProfile.avatar;
-        if(elements.settingsAvatarPreview) elements.settingsAvatarPreview.src = userProfile.avatar;
-        if(elements.chipAvatarPreview) elements.chipAvatarPreview.src = userProfile.avatar;
+    const isUserLoggedIn = userProfile.avatar || userProfile.name;
+    
+    if (isUserLoggedIn) {
+        if (userProfile.avatar) {
+            elements.userAvatar.src = userProfile.avatar;
+            if(elements.settingsAvatarPreview) elements.settingsAvatarPreview.src = userProfile.avatar;
+            if(elements.chipAvatarPreview) elements.chipAvatarPreview.src = userProfile.avatar;
+        }
         
-        if (elements.openAuthModalBtn) elements.openAuthModalBtn.style.display = 'none';
+        // Скрываем старую кнопку Google, новую кнопку Войти и закрываем модалку
+        if(elements.googleSignInBtn) elements.googleSignInBtn.style.display = 'none';
+        if(elements.headerLoginBtn) elements.headerLoginBtn.style.display = 'none';
+        if(elements.loginMethodModal) elements.loginMethodModal.classList.remove('active');
+        
         elements.userProfileBadge.style.display = 'inline-block';
     }
+    
     if (userProfile.name) {
         if(elements.settingsDisplayName) elements.settingsDisplayName.value = userProfile.name;
         if(elements.loginUsername) elements.loginUsername.value = userProfile.name;
         if(elements.registerUsername) elements.registerUsername.value = userProfile.name;
     }
+    
     if (userProfile.birthDate && elements.settingsBirthDate) elements.settingsBirthDate.value = userProfile.birthDate;
     if (userProfile.gender && elements.settingsGender) elements.settingsGender.value = userProfile.gender;
 }
@@ -470,7 +482,7 @@ function initEmojiPicker() {
     });
 }
 
-// ==================== ИГРОВЫЕ ДАННЫЕ ====================
+// ==================== ИГРОВЫЕ ДАННЫЕ (ОБНОВЛЕНО) ====================
 const gameData = {
     cities: {
         tver: { 
@@ -547,7 +559,7 @@ if(elements.avatarChipOption) {
         if (userProfile.avatar) {
             selectColor(userProfile.avatar); 
         } else {
-            showNotification('Сначала загрузите фото в настройках профиля или войдите через Google/ВК!', 'warning');
+            showNotification('Сначала загрузите фото в настройках профиля или войдите через соцсети!', 'warning');
         }
     });
 }
@@ -1040,19 +1052,21 @@ function resetGameState() {
     hasCurrentTask = false;
     currentRoomId = null;
     
-    elements.interactiveTask.style.display = 'none';
-    elements.currentTask.style.display = 'none';
-    elements.noTaskMessage.style.display = 'block';
-    elements.checkTaskBtn.style.display = 'none';
-    elements.retryTaskBtn.style.display = 'none';
-    elements.completeTaskBtn.style.display = 'block';
-    elements.completeTaskBtn.disabled = true;
-    elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
-    elements.rollDiceBtn.disabled = true;
-    elements.buildBtn.disabled = true;
-    elements.moveBtn.disabled = true;
-    elements.taskResult.textContent = '';
-    elements.taskArea.innerHTML = '';
+    if(elements.interactiveTask) elements.interactiveTask.style.display = 'none';
+    if(elements.currentTask) elements.currentTask.style.display = 'none';
+    if(elements.noTaskMessage) elements.noTaskMessage.style.display = 'block';
+    if(elements.checkTaskBtn) elements.checkTaskBtn.style.display = 'none';
+    if(elements.retryTaskBtn) elements.retryTaskBtn.style.display = 'none';
+    if(elements.completeTaskBtn) {
+        elements.completeTaskBtn.style.display = 'block';
+        elements.completeTaskBtn.disabled = true;
+        elements.completeTaskBtn.textContent = "▶️ Начать выполнение задания";
+    }
+    if(elements.rollDiceBtn) elements.rollDiceBtn.disabled = true;
+    if(elements.buildBtn) elements.buildBtn.disabled = true;
+    if(elements.moveBtn) elements.moveBtn.disabled = true;
+    if(elements.taskResult) elements.taskResult.textContent = '';
+    if(elements.taskArea) elements.taskArea.innerHTML = '';
 }
 
 function updateRoomState(roomData) {
@@ -2701,7 +2715,7 @@ if (elements.closeLeaderboardBtn) {
     });
 }
 
-// ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+// ==================== ОБРАБОТЧИКИ СОБЫТИЙ АВТОРИЗАЦИИ И ЛОББИ ====================
 if(elements.loginTab) {
     elements.loginTab.addEventListener('click', () => {
         if (elements.loginTab.classList.contains('active')) return;
@@ -2750,7 +2764,6 @@ if(elements.registerTab) {
     });
 }
 
-// ОБНОВЛЕНО: Отправка формы входа (с паролем)
 if(elements.loginForm) {
     elements.loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -2761,7 +2774,6 @@ if(elements.loginForm) {
     });
 }
 
-// ОБНОВЛЕНО: Отправка формы создания (с настройками приватности)
 if(elements.registerForm) {
     elements.registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -2946,18 +2958,6 @@ if(elements.difficultyBtns) {
     });
 }
 
-// Слушатели для модального окна входа
-if (elements.openAuthModalBtn) {
-    elements.openAuthModalBtn.addEventListener('click', () => {
-        if (elements.globalAuthModal) elements.globalAuthModal.classList.add('active');
-    });
-}
-if (elements.closeAuthModalBtn) {
-    elements.closeAuthModalBtn.addEventListener('click', () => {
-        if (elements.globalAuthModal) elements.globalAuthModal.classList.remove('active');
-    });
-}
-
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Игра "Юный эколог" запущена!');
@@ -2971,7 +2971,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateRecentEmojisDisplay();
 });
 
-// ==================== GOOGLE АВТОРИЗАЦИЯ ====================
+// ==================== АВТОРИЗАЦИЯ GOOGLE И ВКОНТАКТЕ ====================
+
+// === Google Авторизация ===
 function decodeJwtResponse(token) {
     let base64Url = token.split('.')[1];
     let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -2996,15 +2998,10 @@ function handleCredentialResponse(response) {
     
     updateProfileUI();
     showNotification(`Привет, ${userName}! Вы успешно вошли через Google.`, 'success');
-    
-    // Закрываем модальное окно после успешного входа
-    if (elements.globalAuthModal) {
-        elements.globalAuthModal.classList.remove('active');
-    }
 }
 
 window.onload = function () {
-    // === АВТОРИЗАЦИЯ GOOGLE ===
+    // --- Инициализация Google ---
     const GOOGLE_CLIENT_ID = "921001738618-bmaal1s4a6e2ubfbrjc3ullvnov0igjn.apps.googleusercontent.com"; 
     
     google.accounts.id.initialize({
@@ -3012,67 +3009,52 @@ window.onload = function () {
         callback: handleCredentialResponse
     });
     
-    if (!userProfile.avatar && elements.googleSignInWrapper) {
+    // Если аватар уже установлен, Google кнопку не рендерим (обрабатывается в updateProfileUI)
+    if (!userProfile.avatar && document.getElementById("googleSignInBtn")) {
         google.accounts.id.renderButton(
-            elements.googleSignInWrapper,
-            { theme: "outline", size: "large", shape: "pill", width: "100%" }
+            document.getElementById("googleSignInBtn"),
+            { theme: "outline", size: "large", shape: "pill", width: "250" }
         );
         google.accounts.id.prompt(); 
     }
 
-    // === АВТОРИЗАЦИЯ ВКОНТАКТЕ ===
-    const VK_APP_ID = 54524225; // Твой ID приложения ВК
-    const REDIRECT_URI = "https://eco-game-dfb0.onrender.com/"; // Точный адрес твоего сайта
-
-    // 1. Проверяем, вернулся ли игрок от ВК с токеном в адресной строке
-    if (window.location.hash && window.location.hash.includes('access_token=')) {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const userId = hashParams.get('user_id');
-
-        if (accessToken && userId) {
-            // Очищаем адресную строку от длинного токена, чтобы было красиво
-            window.history.replaceState(null, null, window.location.pathname);
-
-            // Запрашиваем данные пользователя (имя и аватарку) у сервера ВК
-            const script = document.createElement('script');
-            script.src = `https://api.vk.com/method/users.get?user_ids=${userId}&fields=photo_100&access_token=${accessToken}&v=5.131&callback=vkAuthCallback`;
-            document.head.appendChild(script);
-        }
-    }
-
-    // Глобальная функция, которая получит ответ от ВК
-    window.vkAuthCallback = function(r) {
-        if (r.response && r.response.length > 0) {
-            const vkUser = r.response[0];
-            
-            // Сохраняем данные профиля
-            if (!userProfile.name) {
-                userProfile.name = vkUser.first_name + ' ' + vkUser.last_name;
-                userProfile.avatar = vkUser.photo_100;
-                localStorage.setItem('userProfile', JSON.stringify(userProfile));
-            }
-            
-            // Обновляем шапку сайта
-            updateProfileUI();
-            showNotification(`Привет, ${vkUser.first_name}! Вход через ВК выполнен.`, 'success');
-            
-            if (elements.globalAuthModal) {
-                elements.globalAuthModal.classList.remove('active');
-            }
-        }
-    };
-
-    // 2. Вешаем клик на синюю кнопку ВК для старта авторизации
-    const vkBtn = document.getElementById('vkSignInBtn');
-    if (vkBtn) {
-        vkBtn.addEventListener('click', () => {
-            // Формируем правильную, абсолютную ссылку, на которую ВК точно не будет ругаться
-            const vkAuthUrl = `https://oauth.vk.com/authorize?client_id=${VK_APP_ID}&display=page&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&v=5.131`;
-            window.location.href = vkAuthUrl;
-        });
+    // --- Инициализация ВКонтакте ---
+    if (typeof VK !== 'undefined') {
+        // ВАЖНО: Замени 12345678 на свой реальный ID приложения ВКонтакте!
+        VK.init({ apiId: 12345678 }); 
+    } else {
+        console.warn('VK SDK не загружен. Проверьте подключение к интернету или блокировщики рекламы.');
     }
 };
+
+// Обработчик входа через ВК
+if (elements.vkSignInBtn) {
+    elements.vkSignInBtn.addEventListener('click', () => {
+        if (typeof VK === 'undefined') {
+            showNotification('VK SDK не загружен. Отключите блокировщик рекламы.', 'error');
+            return;
+        }
+
+        VK.Auth.login(function(response) {
+            if (response.session) {
+                // Запрашиваем данные пользователя (имя и аватарку)
+                VK.Api.call('users.get', { fields: 'photo_100', v: "5.131" }, function(r) {
+                    if (r.response && r.response.length > 0) {
+                        const user = r.response[0];
+                        userProfile.name = user.first_name + ' ' + user.last_name;
+                        userProfile.avatar = user.photo_100;
+                        
+                        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                        updateProfileUI();
+                        showNotification(`Привет, ${user.first_name}! Вы успешно вошли через ВКонтакте.`, 'success');
+                    }
+                });
+            } else {
+                showNotification('Авторизация ВКонтакте отменена', 'warning');
+            }
+        });
+    });
+}
 
 // Обработчик выхода перенесен в выпадающее меню
 const logoutBtn = document.getElementById('logoutBtn');
@@ -3084,8 +3066,9 @@ if(logoutBtn) {
         userProfile = { name: '', avatar: '', birthDate: '', gender: 'not_set' };
         localStorage.removeItem('userProfile');
         
-        // Возвращаем UI
-        if(elements.openAuthModalBtn) elements.openAuthModalBtn.style.display = 'flex';
+        // Возвращаем UI для входа
+        if(elements.googleSignInBtn) elements.googleSignInBtn.style.display = 'block';
+        if(elements.headerLoginBtn) elements.headerLoginBtn.style.display = 'flex';
         if(elements.userProfileBadge) elements.userProfileBadge.style.display = 'none';
         
         if(elements.loginUsername) elements.loginUsername.value = '';
@@ -3096,10 +3079,10 @@ if(logoutBtn) {
         if(profileDropdown) profileDropdown.classList.remove('active');
         
         // Рендерим кнопку Google заново
-        if(elements.googleSignInWrapper) {
+        if(document.getElementById("googleSignInBtn")) {
             google.accounts.id.renderButton(
-                elements.googleSignInWrapper,
-                { theme: "outline", size: "large", shape: "pill", width: "100%" }
+                document.getElementById("googleSignInBtn"),
+                { theme: "outline", size: "large", shape: "pill", width: "250" }
             );
         }
         
