@@ -3020,46 +3020,57 @@ window.onload = function () {
         google.accounts.id.prompt(); 
     }
 
-    // === АВТОРИЗАЦИЯ ВКОНТАКТЕ ===
-    const VK_APP_ID = 54524225; // ⚠️ ЗАМЕНИТЕ ЭТИ ЦИФРЫ НА СВОЙ ID ПРИЛОЖЕНИЯ!
+    // === АВТОРИЗАЦИЯ ВКОНТАКТЕ (Прямой OAuth 2.0) ===
+    const VK_APP_ID = 54524225; // Твой ID приложения
+    const REDIRECT_URI = "https://eco-game-dfb0.onrender.com/"; // Точный адрес твоего сайта
 
-    if (typeof VK !== 'undefined') {
-        VK.init({ apiId: VK_APP_ID });
-        
-        const vkBtn = document.getElementById('vkSignInBtn');
-        if (vkBtn) {
-            vkBtn.addEventListener('click', () => {
-                // Вызываем всплывающее окно авторизации ВК
-                VK.Auth.login(function(response) {
-                    if (response.session) {
-                        // Если вход успешен, делаем запрос на получение имени и аватарки
-                        VK.Api.call('users.get', {fields: 'photo_100', v: '5.131'}, function(r) {
-                            if(r.response && r.response.length > 0) {
-                                const vkUser = r.response[0];
-                                
-                                // Если профиль пустой, сохраняем данные ВК
-                                if (!userProfile.name) {
-                                    userProfile.name = vkUser.first_name + ' ' + vkUser.last_name;
-                                    userProfile.avatar = vkUser.photo_100;
-                                    localStorage.setItem('userProfile', JSON.stringify(userProfile));
-                                }
-                                
-                                // Обновляем картинку в шапке
-                                updateProfileUI();
-                                showNotification(`Привет, ${vkUser.first_name}! Вход через ВК выполнен.`, 'success');
-                                
-                                // Закрываем модальное окно выбора входа
-                                if (elements.globalAuthModal) {
-                                    elements.globalAuthModal.classList.remove('active');
-                                }
-                            }
-                        });
-                    } else {
-                        showNotification('Авторизация ВКонтакте отменена', 'warning');
-                    }
-                });
-            });
+    // 1. Проверяем, вернулся ли игрок от ВК с токеном в адресной строке
+    if (window.location.hash && window.location.hash.includes('access_token=')) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const userId = hashParams.get('user_id');
+
+        if (accessToken && userId) {
+            // Очищаем адресную строку от длинного токена, чтобы было красиво
+            window.history.replaceState(null, null, window.location.pathname);
+
+            // Запрашиваем данные пользователя (имя и аватарку) у сервера ВК
+            const script = document.createElement('script');
+            script.src = `https://api.vk.com/method/users.get?user_ids=${userId}&fields=photo_100&access_token=${accessToken}&v=5.131&callback=vkAuthCallback`;
+            document.head.appendChild(script);
         }
+    }
+
+    // Глобальная функция, которая получит ответ от ВК
+    window.vkAuthCallback = function(r) {
+        if (r.response && r.response.length > 0) {
+            const vkUser = r.response[0];
+            
+            // Сохраняем данные профиля
+            if (!userProfile.name) {
+                userProfile.name = vkUser.first_name + ' ' + vkUser.last_name;
+                userProfile.avatar = vkUser.photo_100;
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+            }
+            
+            // Обновляем шапку сайта
+            updateProfileUI();
+            showNotification(`Привет, ${vkUser.first_name}! Вход через ВК выполнен.`, 'success');
+            
+            if (elements.globalAuthModal) {
+                elements.globalAuthModal.classList.remove('active');
+            }
+        }
+    };
+
+    // 2. Вешаем клик на синюю кнопку ВК для старта авторизации
+    const vkBtn = document.getElementById('vkSignInBtn');
+    if (vkBtn) {
+        vkBtn.addEventListener('click', () => {
+            // Формируем правильную, абсолютную ссылку, на которую ВК точно не будет ругаться
+            const vkAuthUrl = `https://oauth.vk.com/authorize?client_id=${VK_APP_ID}&display=page&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&v=5.131`;
+            window.location.href = vkAuthUrl;
+        });
     }
 };
 
