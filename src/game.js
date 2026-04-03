@@ -3021,7 +3021,7 @@ window.onload = function () {
     }
 
     // === АВТОРИЗАЦИЯ ВКОНТАКТЕ ===
-    const VK_APP_ID = 52712345; // ⚠️ ЗАМЕНИТЕ ЭТИ ЦИФРЫ НА СВОЙ ID ПРИЛОЖЕНИЯ!
+    const VK_APP_ID = 54524225; // ⚠️ ЗАМЕНИТЕ ЭТИ ЦИФРЫ НА СВОЙ ID ПРИЛОЖЕНИЯ!
 
     if (typeof VK !== 'undefined') {
         VK.init({ apiId: VK_APP_ID });
