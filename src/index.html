@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Юный эколог - Многопользовательская экологическая игра</title>
-    <link rel="icon" type="image/jpeg" href="favicon.jpg">
+    
+    <link rel="icon" type="image/jpeg" href="/favicon.jpg?v=2">
+    <link rel="shortcut icon" type="image/jpeg" href="/favicon.jpg?v=2">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script src="https://vk.com/js/api/openapi.js?169" type="text/javascript"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <style>
@@ -1174,9 +1176,7 @@
             <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
                 <div id="googleSignInBtn"></div>
                 
-                <button id="vkSignInBtn" class="game-btn" style="background: #0077FF; width: 100%; max-width: 250px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <i class="fab fa-vk" style="font-size: 1.2rem;"></i> Войти через ВКонтакте
-                </button>
+                <div id="VkIdSdkOneTap" style="width: 100%; max-width: 250px; display: flex; justify-content: center;"></div>
             </div>
             
             <button class="game-btn red" id="closeLoginMethodBtn" style="margin-top: 25px; background: transparent; border: 1px solid rgba(255,255,255,0.2); box-shadow: none; width: 100%;">Отмена</button>
