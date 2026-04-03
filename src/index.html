@@ -1176,7 +1176,48 @@
             <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
                 <div id="googleSignInBtn"></div>
                 
-                <div id="VkIdSdkOneTap" style="width: 100%; max-width: 250px; display: flex; justify-content: center;"></div>
+                <div id="VkIdContainer" style="display: flex; justify-content: center; width: 100%; margin-top: 15px;">
+                    <script src="https://unpkg.com/@vkid/sdk@3.0.0/dist-sdk/umd/index.js"></script>
+                    <script type="text/javascript">
+                        // Ждем загрузки страницы
+                        document.addEventListener('DOMContentLoaded', function() {
+                            if ('VKIDSDK' in window) {
+                                const VKID = window.VKIDSDK;
+                                
+                                // Инициализация
+                                VKID.Config.init({
+                                    app: 54524225,
+                                    redirectUrl: 'https://eco-game-dfb0.onrender.com/',
+                                    responseMode: VKID.ConfigResponseMode.Callback,
+                                    source: VKID.ConfigSource.LOWCODE,
+                                    scope: 'vkid.personal_info',
+                                });
+
+                                const oneTap = new VKID.OneTap();
+                                const container = document.getElementById('VkIdContainer');
+
+                                if (container) {
+                                    // Рендерим кнопку
+                                    oneTap.render({
+                                        container: container,
+                                        scheme: VKID.Scheme.DARK,
+                                        showAlternativeLogin: false
+                                    })
+                                    .on(VKID.WidgetEvents.ERROR, function(err) { console.error('Ошибка отрисовки VK:', err); })
+                                    .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+                                        // Меняем код на данные
+                                        VKID.Auth.exchangeCode(payload.code, payload.device_id)
+                                            .then(function(data) {
+                                                // Вызываем функцию из game.js
+                                                if(window.handleVkSuccess) window.handleVkSuccess(data);
+                                            })
+                                            .catch(function(err) { console.error('Ошибка обмена токена:', err); });
+                                    });
+                                }
+                            }
+                        });
+                    </script>
+                </div>
             </div>
             
             <button class="game-btn red" id="closeLoginMethodBtn" style="margin-top: 25px; background: transparent; border: 1px solid rgba(255,255,255,0.2); box-shadow: none; width: 100%;">Отмена</button>
