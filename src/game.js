@@ -166,7 +166,7 @@ const elements = {
     headerLoginBtn: document.getElementById('headerLoginBtn'),
     loginMethodModal: document.getElementById('loginMethodModal'),
     googleSignInBtn: document.getElementById('googleSignInBtn'),
-    vkIdSdkOneTap: document.getElementById('VkIdSdkOneTap') // Новый контейнер для виджета ВК
+    vkIdContainer: document.getElementById('VkIdContainer') // Обновленный контейнер для виджета ВК
 };
 
 // ==================== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ПЛАВНОГО ПЕРЕХОДА ====================
@@ -291,7 +291,7 @@ function updateProfileUI() {
         
         // Скрываем все элементы входа
         if(elements.googleSignInBtn) elements.googleSignInBtn.style.display = 'none';
-        if(elements.vkIdSdkOneTap) elements.vkIdSdkOneTap.style.display = 'none';
+        if(elements.vkIdContainer) elements.vkIdContainer.style.display = 'none';
         if(elements.headerLoginBtn) elements.headerLoginBtn.style.display = 'none';
         if(elements.loginMethodModal) elements.loginMethodModal.classList.remove('active');
         
@@ -2966,82 +2966,40 @@ window.onload = function () {
             google.accounts.id.prompt(); 
         }
     }
+};
 
-    // --- Инициализация ВКонтакте (Low-code VK ID SDK) ---
-    const vkScript = document.createElement('script');
-    vkScript.src = "https://unpkg.com/@vkid/sdk@3.0.0/dist-sdk/umd/index.js";
-    vkScript.onload = function() {
-        if ('VKIDSDK' in window) {
-            const VKID = window.VKIDSDK;
+// --- Глобальная функция обработки успеха от ВКонтакте (Вызывается из index.html) ---
+window.handleVkSuccess = function(data) {
+    console.log('VK Success Data:', data);
+    
+    let userName = 'Игрок VK';
+    let userAvatar = 'https://via.placeholder.com/100?text=VK';
 
-            VKID.Config.init({
-                app: 54524225,
-                redirectUrl: 'https://eco-game-dfb0.onrender.com/', 
-                responseMode: VKID.ConfigResponseMode.Callback,
-                source: VKID.ConfigSource.LOWCODE,
-                scope: 'vkid.personal_info', 
-            });
-
-            const oneTap = new VKID.OneTap();
-            const container = document.getElementById('VkIdSdkOneTap');
-
-            if (container && !userProfile.name) {
-                oneTap.render({
-                    container: container,
-                    scheme: VKID.Scheme.DARK,
-                    showAlternativeLogin: false 
-                })
-                .on(VKID.WidgetEvents.ERROR, vkidOnError)
-                .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
-                    const code = payload.code;
-                    const deviceId = payload.device_id;
-
-                    VKID.Auth.exchangeCode(code, deviceId)
-                        .then(vkidOnSuccess)
-                        .catch(vkidOnError);
-                });
-            }
+    if (data.id_token) {
+        try {
+            const base64Url = data.id_token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
             
-            function vkidOnSuccess(data) {
-                console.log('VK Success Data:', data);
-                
-                let userName = 'Игрок VK';
-                let userAvatar = 'https://via.placeholder.com/100?text=VK';
-
-                if (data.id_token) {
-                    try {
-                        const base64Url = data.id_token.split('.')[1];
-                        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                        }).join(''));
-                        
-                        const payload = JSON.parse(jsonPayload);
-                        userName = (payload.first_name + ' ' + (payload.last_name || '')).trim();
-                        userAvatar = payload.avatar || userAvatar;
-                    } catch (e) {
-                        console.error('Ошибка расшифровки токена VK:', e);
-                    }
-                } else if (data.user) {
-                    userName = (data.user.first_name + ' ' + (data.user.last_name || '')).trim();
-                    userAvatar = data.user.avatar || userAvatar;
-                }
-
-                userProfile.name = userName;
-                userProfile.avatar = userAvatar;
-                
-                localStorage.setItem('userProfile', JSON.stringify(userProfile));
-                updateProfileUI(); 
-                showNotification(`Привет, ${userName}! Вы успешно вошли через ВКонтакте.`, 'success');
-            }
-            
-            function vkidOnError(error) {
-                console.error('VK Error:', error);
-                showNotification('Ошибка авторизации ВКонтакте', 'error');
-            }
+            const payload = JSON.parse(jsonPayload);
+            userName = (payload.first_name + ' ' + (payload.last_name || '')).trim();
+            userAvatar = payload.avatar || userAvatar;
+        } catch (e) {
+            console.error('Ошибка расшифровки токена VK:', e);
         }
-    };
-    document.head.appendChild(vkScript);
+    } else if (data.user) {
+        userName = (data.user.first_name + ' ' + (data.user.last_name || '')).trim();
+        userAvatar = data.user.avatar || userAvatar;
+    }
+
+    userProfile.name = userName;
+    userProfile.avatar = userAvatar;
+    
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+    updateProfileUI(); 
+    showNotification(`Привет, ${userName}! Вы успешно вошли через ВКонтакте.`, 'success');
 };
 
 // Обработчик выхода перенесен в выпадающее меню
@@ -3058,7 +3016,9 @@ if(logoutBtn) {
         
         // Возвращаем UI
         if(elements.googleSignInBtn) elements.googleSignInBtn.style.display = 'block';
-        if(elements.vkIdSdkOneTap) elements.vkIdSdkOneTap.style.display = 'flex';
+        const vkContainer = document.getElementById('VkIdContainer');
+        if(vkContainer) vkContainer.style.display = 'flex';
+        
         if(elements.headerLoginBtn) elements.headerLoginBtn.style.display = 'flex';
         if(elements.userProfileBadge) elements.userProfileBadge.style.display = 'none';
         
