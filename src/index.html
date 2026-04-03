@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Юный эколог - Многопользовательская экологическая игра</title>
-    <link rel="icon" type="image/jpeg" href="favicon.jpg?v=3">
+    <link rel="icon" type="image/jpeg" href="favicon.jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <script src="https://vk.com/js/api/openapi.js?169" type="text/javascript"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://unpkg.com/@vkid/sdk@latest/dist-sdk/umd/index.js"></script>
     
     <style>
         /* ==================== ОСНОВНЫЕ СТИЛИ ==================== */
@@ -175,7 +175,6 @@
 
         .rules-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: stretch; }
         
-        /* ГАЛЕРЕЯ СКРИНШОТОВ */
         .rules-image-box { 
             background: rgba(255, 255, 255, 0.03); 
             border: 1px solid rgba(255, 255, 255, 0.05); 
@@ -188,57 +187,14 @@
         }
         body.light-theme .rules-image-box { background: rgba(0, 0, 0, 0.02); border-color: rgba(0, 0, 0, 0.05); }
         
-        .main-screenshot-container {
-            width: 100%;
-            height: 380px;
-            border-radius: 16px;
-            overflow: hidden;
-            background: #000;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-            position: relative;
-        }
-        .main-screenshot-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: opacity 0.2s ease-in-out;
-        }
-        
-        .thumbnails-container {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            height: 75px;
-        }
-        .thumb-img {
-            width: 130px;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 10px;
-            cursor: pointer;
-            opacity: 0.4;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-        .thumb-img:hover {
-            opacity: 0.8;
-            transform: translateY(-2px);
-        }
-        .thumb-img.active {
-            opacity: 1;
-            border-color: #a29bfe;
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
-        }
-        body.light-theme .thumb-img.active { border-color: var(--secondary); box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4); }
-
         .rules-card { background: linear-gradient(145deg, #4834d4, #6c5ce7); border-radius: 24px; padding: 40px; color: white; box-shadow: 0 20px 50px rgba(108, 92, 231, 0.2); display: flex; flex-direction: column; gap: 30px; }
         .rule-item { display: flex; gap: 20px; align-items: flex-start; }
         .rule-number { font-size: 2rem; font-weight: 900; color: white; opacity: 0.9; min-width: 40px; }
         .rule-text h4 { font-size: 1.3rem; margin-bottom: 8px; font-weight: 700; color: white;}
         .rule-text p { color: rgba(255, 255, 255, 0.85); line-height: 1.6; font-size: 1rem; }
 
-        .socials-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        /* Шаг 2: Изменение сетки соцсетей (4 колонки) */
+        .socials-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; max-width: 1200px; margin: 0 auto; }
         .social-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 40px 25px; text-align: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; align-items: center; backdrop-filter: blur(10px); }
         body.light-theme .social-card { background: rgba(255, 255, 255, 0.6); border-color: rgba(0, 0, 0, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .social-card:hover { transform: translateY(-15px); background: rgba(255, 255, 255, 0.08); }
@@ -247,14 +203,14 @@
         .social-card.discord:hover { border-color: #5865F2; box-shadow: 0 15px 35px rgba(88, 101, 242, 0.2); }
         .social-card.telegram:hover { border-color: #0088cc; box-shadow: 0 15px 35px rgba(0, 136, 204, 0.2); }
         .social-card.youtube:hover { border-color: #FF0000; box-shadow: 0 15px 35px rgba(255, 0, 0, 0.2); }
-        .social-card.vk:hover { border-color: #0077FF; box-shadow: 0 15px 35px rgba(0, 119, 255, 0.2); }
+        .social-card.vkontakte:hover { border-color: #0077FF; box-shadow: 0 15px 35px rgba(0, 119, 255, 0.2); }
 
         .social-icon { font-size: 3.5rem; margin-bottom: 20px; transition: transform 0.3s; }
         .social-card:hover .social-icon { transform: scale(1.1); }
         .social-card.discord .social-icon { color: #5865F2; }
         .social-card.telegram .social-icon { color: #0088cc; }
         .social-card.youtube .social-icon { color: #FF0000; }
-        .social-card.vk .social-icon { color: #0077FF; }
+        .social-card.vkontakte .social-icon { color: #0077FF; }
 
         .social-card h3 { font-size: 1.4rem; margin-bottom: 15px; color: white;}
         body.light-theme .social-card h3 { color: var(--dark-dark); }
@@ -263,10 +219,11 @@
 
         .social-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; color: white; cursor: pointer; background: rgba(255, 255, 255, 0.1); transition: 0.3s; }
         body.light-theme .social-btn { background: rgba(0, 0, 0, 0.05); color: var(--dark-dark); }
+        
         .social-card.discord:hover .social-btn { background: #5865F2; color: white; }
         .social-card.telegram:hover .social-btn { background: #0088cc; color: white; }
         .social-card.youtube:hover .social-btn { background: #FF0000; color: white; }
-        .social-card.vk:hover .social-btn { background: #0077FF; color: white; }
+        .social-card.vkontakte:hover .social-btn { background: #0077FF; color: white; }
 
         /* ==================== ТАБЛИЦЫ (РЕЙТИНГ И КОМНАТЫ) ==================== */
         .leaderboard-modal-content { background: #1a1a2e; border-radius: 20px; padding: 0; max-width: 750px; width: 95%; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s; }
@@ -832,7 +789,7 @@
             
             <button class="theme-toggle-btn" id="headerThemeBtn" title="Сменить тему">🌞</button>
             
-            <button class="nav-btn" id="openAuthModalBtn">
+            <button class="nav-btn" id="headerLoginBtn" style="background: linear-gradient(135deg, #6c5ce7, #4834d4); color: white; border: none;">
                 <i class="fas fa-sign-in-alt"></i> <span>Войти</span>
             </button>
             
@@ -921,10 +878,10 @@
                         <p>Хайлайты геймплея, обучающие ролики и вырезки смешных моментов.</p>
                         <button class="social-btn">Скоро будет</button>
                     </div>
-                    <div class="social-card vk">
+                    <div class="social-card vkontakte">
                         <div class="social-icon"><i class="fab fa-vk"></i></div>
                         <h3>ВКонтакте</h3>
-                        <p>Свежие новости, анонсы обновлений, конкурсы и общение нашего комьюнити.</p>
+                        <p>Официальная группа с новостями, конкурсами и общением комьюнити.</p>
                         <button class="social-btn">Скоро будет</button>
                     </div>
                 </div>
@@ -1209,6 +1166,23 @@
         </button>
     </div>
 
+    <div class="modal" id="loginMethodModal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <h2 style="color: #a29bfe; margin-bottom: 25px;">Вход в аккаунт</h2>
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">Выберите удобный способ авторизации:</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                <div id="googleSignInBtn"></div>
+                
+                <button id="vkSignInBtn" class="game-btn" style="background: #0077FF; width: 100%; max-width: 250px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fab fa-vk" style="font-size: 1.2rem;"></i> Войти через ВКонтакте
+                </button>
+            </div>
+            
+            <button class="game-btn red" id="closeLoginMethodBtn" style="margin-top: 25px; background: transparent; border: 1px solid rgba(255,255,255,0.2); box-shadow: none; width: 100%;">Отмена</button>
+        </div>
+    </div>
+
     <div class="modal" id="roomsListModal">
         <div class="leaderboard-modal-content">
             <div class="leaderboard-header">
@@ -1260,21 +1234,6 @@
     </div>
 
     <div class="notification" id="notification">Уведомление</div>
-
-    <div class="modal" id="globalAuthModal">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <h2 style="color: #a29bfe; margin-bottom: 10px;">Вход в игру</h2>
-            <p style="color: rgba(255,255,255,0.6); margin-bottom: 25px;">Выберите удобный способ входа или регистрации</p>
-            
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <div id="googleSignInWrapper" style="display: flex; justify-content: center;"></div>
-                
-                <div id="VkIdSdkOneTap" style="display: flex; justify-content: center; margin-top: 5px;"></div>
-            </div>
-            
-            <button type="button" class="game-btn red" id="closeAuthModalBtn" style="width: 100%; margin-top: 25px; background: transparent; border: 1px solid rgba(255,255,255,0.2); box-shadow: none;">Отмена</button>
-        </div>
-    </div>
 
     <div class="modal" id="settingsModal">
         <div class="modal-content">
@@ -1487,6 +1446,22 @@
                         buildingsContainer.style.transition = 'box-shadow 0.5s';
                         setTimeout(() => { buildingsContainer.style.boxShadow = 'none'; }, 2000);
                     }
+                });
+            }
+
+            // === ЛОГИКА МОДАЛЬНОГО ОКНА АВТОРИЗАЦИИ ===
+            const loginMethodModal = document.getElementById('loginMethodModal');
+            const headerLoginBtn = document.getElementById('headerLoginBtn');
+            const closeLoginMethodBtn = document.getElementById('closeLoginMethodBtn');
+
+            if(headerLoginBtn) {
+                headerLoginBtn.addEventListener('click', () => {
+                    loginMethodModal.classList.add('active');
+                });
+            }
+            if(closeLoginMethodBtn) {
+                closeLoginMethodBtn.addEventListener('click', () => {
+                    loginMethodModal.classList.remove('active');
                 });
             }
 
