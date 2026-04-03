@@ -43,7 +43,7 @@ const AVAILABLE_COLORS = [
 
 // ==================== ЭЛЕМЕНТЫ DOM ====================
 const elements = {
-    // Новые элементы главной страницы (Лэндинга)
+    // Основные экраны и модалки
     landingPage: document.getElementById('landingPage'),
     startLandingBtn: document.getElementById('startLandingBtn'),
     backToLandingBtn: document.getElementById('backToLandingBtn'),
@@ -75,6 +75,7 @@ const elements = {
     mapCardVolga: document.getElementById('mapCardVolga'),
     cancelMapSelectionBtn: document.getElementById('cancelMapSelectionBtn'),
     
+    // Игровое поле и элементы
     mapContainer: document.getElementById('mapContainer'),
     mapImage: document.getElementById('mapImage'),
     mapOverlay: document.getElementById('mapOverlay'),
@@ -149,7 +150,6 @@ const elements = {
     // Элементы для профиля и настроек
     userProfileBadge: document.getElementById('userProfileBadge'),
     userAvatar: document.getElementById('userAvatar'),
-    googleSignInBtn: document.getElementById('googleSignInBtn'),
     loginUsername: document.getElementById('loginUsername'),
     registerUsername: document.getElementById('registerUsername'),
     settingsForm: document.getElementById('settingsForm'),
@@ -162,32 +162,25 @@ const elements = {
     chipAvatarPreview: document.getElementById('chipAvatarPreview'),
     statsList: document.getElementById('statsList'),
 
-    // Новые элементы для входа ВК и модалки
+    // Элементы новой системы входа (Google + VK)
     headerLoginBtn: document.getElementById('headerLoginBtn'),
     loginMethodModal: document.getElementById('loginMethodModal'),
-    vkSignInBtn: document.getElementById('vkSignInBtn')
+    googleSignInBtn: document.getElementById('googleSignInBtn'),
+    vkIdSdkOneTap: document.getElementById('VkIdSdkOneTap') // Новый контейнер для виджета ВК
 };
 
 // ==================== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ПЛАВНОГО ПЕРЕХОДА ====================
 function switchSectionWithAnimation(hideElem, showElem) {
     if (!hideElem || !showElem) return;
     
-    // Плавное исчезновение
     hideElem.classList.add('hidden-animated');
-    
     setTimeout(() => {
         hideElem.style.display = 'none';
-        
-        // Подготавливаем новый элемент
         showElem.classList.add('hidden-animated');
         showElem.style.display = (showElem.id === 'landingPage') ? 'flex' : 'block';
-        
-        // Форсируем перерисовку, чтобы сработала анимация появления
-        void showElem.offsetWidth;
-        
-        // Плавное появление
+        void showElem.offsetWidth; // Форсируем перерисовку
         showElem.classList.remove('hidden-animated');
-    }, 300); // Время должно совпадать с CSS transition
+    }, 300);
 }
 
 // ==================== ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ ДОСТУПНЫХ КОМНАТ ====================
@@ -203,7 +196,6 @@ window.joinPublicRoom = function(roomId) {
     const closeBtn = document.getElementById('closeRoomsListBtn');
     if (closeBtn) closeBtn.click();
     
-    // Плавный переход к авторизации
     if (elements.landingPage && elements.landingPage.style.display !== 'none') {
         switchSectionWithAnimation(elements.landingPage, elements.authSection);
     } else if (elements.mapSelectionSection && elements.mapSelectionSection.style.display !== 'none') {
@@ -219,14 +211,10 @@ window.joinPublicRoom = function(roomId) {
     if (loginTab && !loginTab.classList.contains('active')) loginTab.click();
     
     const loginRoomInput = document.getElementById('loginRoom');
-    if (loginRoomInput) {
-        loginRoomInput.value = roomId;
-    }
+    if (loginRoomInput) loginRoomInput.value = roomId;
     
     const loginUsernameInput = document.getElementById('loginUsername');
-    if (loginUsernameInput && !loginUsernameInput.value) {
-        loginUsernameInput.focus();
-    }
+    if (loginUsernameInput && !loginUsernameInput.value) loginUsernameInput.focus();
 };
 
 // ==================== КНОПКИ БЫСТРЫХ ДЕЙСТВИЙ ====================
@@ -244,9 +232,7 @@ let recentEmojis = JSON.parse(localStorage.getItem('recentEmojis') || '[]');
 function addRecentEmoji(emoji) {
     if (!recentEmojis.includes(emoji)) {
         recentEmojis.unshift(emoji);
-        if (recentEmojis.length > 10) {
-            recentEmojis = recentEmojis.slice(0, 10);
-        }
+        if (recentEmojis.length > 10) recentEmojis = recentEmojis.slice(0, 10);
         localStorage.setItem('recentEmojis', JSON.stringify(recentEmojis));
         updateRecentEmojisDisplay();
     }
@@ -254,7 +240,6 @@ function addRecentEmoji(emoji) {
 
 function updateRecentEmojisDisplay() {
     if (!elements.recentEmojisContainer) return;
-    
     elements.recentEmojisContainer.innerHTML = '';
     
     if (recentEmojis.length === 0) {
@@ -263,19 +248,16 @@ function updateRecentEmojisDisplay() {
     }
     
     elements.recentEmojisSection.style.display = 'block';
-    
     recentEmojis.forEach(emoji => {
         const emojiItem = document.createElement('div');
         emojiItem.className = 'recent-emoji-item';
         emojiItem.textContent = emoji;
         emojiItem.title = emoji;
-        
         emojiItem.addEventListener('click', () => {
             elements.chatInput.value += emoji;
             elements.chatInput.focus();
             addRecentEmoji(emoji);
         });
-        
         elements.recentEmojisContainer.appendChild(emojiItem);
     });
 }
@@ -283,7 +265,6 @@ function updateRecentEmojisDisplay() {
 // ==================== СВЕТЛАЯ ТЕМА ====================
 function toggleLightTheme() {
     lightThemeEnabled = !lightThemeEnabled;
-    
     if (lightThemeEnabled) {
         document.body.classList.add('light-theme');
         if (elements.headerThemeBtn) elements.headerThemeBtn.innerHTML = '🌙';
@@ -303,17 +284,18 @@ function updateProfileUI() {
     
     if (isUserLoggedIn) {
         if (userProfile.avatar) {
-            elements.userAvatar.src = userProfile.avatar;
+            if(elements.userAvatar) elements.userAvatar.src = userProfile.avatar;
             if(elements.settingsAvatarPreview) elements.settingsAvatarPreview.src = userProfile.avatar;
             if(elements.chipAvatarPreview) elements.chipAvatarPreview.src = userProfile.avatar;
         }
         
-        // Скрываем старую кнопку Google, новую кнопку Войти и закрываем модалку
+        // Скрываем все элементы входа
         if(elements.googleSignInBtn) elements.googleSignInBtn.style.display = 'none';
+        if(elements.vkIdSdkOneTap) elements.vkIdSdkOneTap.style.display = 'none';
         if(elements.headerLoginBtn) elements.headerLoginBtn.style.display = 'none';
         if(elements.loginMethodModal) elements.loginMethodModal.classList.remove('active');
         
-        elements.userProfileBadge.style.display = 'inline-block';
+        if(elements.userProfileBadge) elements.userProfileBadge.style.display = 'inline-block';
     }
     
     if (userProfile.name) {
@@ -390,7 +372,7 @@ function initEmojiPicker() {
     };
     
     let emojiPickerVisible = false;
-    elements.emojiPicker.innerHTML = '';
+    if(elements.emojiPicker) elements.emojiPicker.innerHTML = '';
     
     const recentSection = document.createElement('div');
     recentSection.className = 'recent-emojis-section';
@@ -406,7 +388,7 @@ function initEmojiPicker() {
     recentContainer.id = 'emojiPickerRecentContainer';
     recentSection.appendChild(recentContainer);
     
-    elements.emojiPicker.appendChild(recentSection);
+    if(elements.emojiPicker) elements.emojiPicker.appendChild(recentSection);
     
     function updateEmojiPickerRecent() {
         recentContainer.innerHTML = '';
@@ -453,36 +435,37 @@ function initEmojiPicker() {
                 addRecentEmoji(emoji);
                 updateEmojiPickerRecent();
             });
-            
             emojiList.appendChild(emojiItem);
         });
         
         categoryDiv.appendChild(emojiList);
-        elements.emojiPicker.appendChild(categoryDiv);
+        if(elements.emojiPicker) elements.emojiPicker.appendChild(categoryDiv);
     }
     
     updateEmojiPickerRecent();
     
-    elements.emojiPickerBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        emojiPickerVisible = !emojiPickerVisible;
-        if (emojiPickerVisible) {
-            elements.emojiPicker.classList.add('show');
-            updateEmojiPickerRecent();
-        } else {
-            elements.emojiPicker.classList.remove('show');
-        }
-    });
+    if(elements.emojiPickerBtn) {
+        elements.emojiPickerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiPickerVisible = !emojiPickerVisible;
+            if (emojiPickerVisible) {
+                elements.emojiPicker.classList.add('show');
+                updateEmojiPickerRecent();
+            } else {
+                elements.emojiPicker.classList.remove('show');
+            }
+        });
+    }
     
     document.addEventListener('click', (e) => {
-        if (!elements.emojiPicker.contains(e.target) && !elements.emojiPickerBtn.contains(e.target)) {
+        if (elements.emojiPicker && elements.emojiPickerBtn && !elements.emojiPicker.contains(e.target) && !elements.emojiPickerBtn.contains(e.target)) {
             elements.emojiPicker.classList.remove('show');
             emojiPickerVisible = false;
         }
     });
 }
 
-// ==================== ИГРОВЫЕ ДАННЫЕ (ОБНОВЛЕНО) ====================
+// ==================== ИГРОВЫЕ ДАННЫЕ ====================
 const gameData = {
     cities: {
         tver: { 
@@ -614,11 +597,9 @@ function selectColor(colorOrAvatar) {
 socket.on('connect', () => {
     console.log('✅ Подключено к серверу');
     isConnected = true;
-    
     if (gameState.currentPlayerId && gameState.reconnected) {
         socket.emit('player_reconnected');
     }
-    
     setTimeout(() => { requestAllPlayersPositions(); }, 2000);
 });
 
@@ -707,7 +688,6 @@ socket.on('room-error', (message) => {
     const errorMsg = typeof message === 'object' ? message.message : message;
     showNotification(errorMsg || 'Произошла ошибка при входе в лобби', 'error');
     
-    // Плавный возврат к авторизации
     if (elements.gameContent && elements.gameContent.style.display !== 'none') {
         switchSectionWithAnimation(elements.gameContent, elements.authSection);
     } else if (elements.mapSelectionSection && elements.mapSelectionSection.style.display !== 'none') {
@@ -842,7 +822,6 @@ function requestAllPlayersPositions() {
 
 function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAvatar) {
     let marker = document.getElementById(`marker-${playerId}`);
-    
     let isAvatar = colorOrAvatar && (colorOrAvatar.startsWith('data:image') || colorOrAvatar.startsWith('http'));
     
     if (!marker) {
@@ -884,7 +863,6 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAv
     if (cell) {
         marker.style.left = `${cell.x + cell.width/2}px`;
         marker.style.top = `${cell.y + cell.height/2}px`;
-        
         const tooltip = marker.querySelector('.player-tooltip');
         if (tooltip) tooltip.textContent = `${playerName} (поз. ${position})`;
     }
@@ -918,21 +896,6 @@ function updatePlayerInList(playerId, position, playerName) {
     });
     if (!found) updatePlayersList();
 }
-
-socket.on('player_position_update', (data) => {
-    const { playerId, playerName, position, city, color } = data;
-    if (playerId !== socket.id) {
-        updateOtherPlayerMarker(playerId, playerName, position, city, color);
-    }
-});
-
-socket.on('all_players_positions', (data) => {
-    const { players } = data;
-    for (const playerId in players) {
-        const player = players[playerId];
-        updateOtherPlayerMarker(playerId, player.name, player.position, player.city, player.color);
-    }
-});
 
 // ==================== ОСНОВНЫЕ ФУНКЦИИ ИГРЫ ====================
 function showNotification(message, type = 'info') {
@@ -985,7 +948,6 @@ function initializeGame(playerData) {
         }
     }
     
-    // Плавный переход в игру
     if(elements.authSection && elements.authSection.style.display !== 'none') {
         switchSectionWithAnimation(elements.authSection, elements.gameContent);
     } else if(elements.mapSelectionSection && elements.mapSelectionSection.style.display !== 'none') {
@@ -1543,7 +1505,6 @@ function checkGameCompletion() {
         if(elements.moveBtn) elements.moveBtn.disabled = true;
         if(elements.completeTaskBtn) elements.completeTaskBtn.disabled = true;
 
-        // Сохраняем статистику
         let stats = JSON.parse(localStorage.getItem('gameStats')) || [];
         stats.unshift({
             date: new Date().toLocaleDateString(),
@@ -2704,7 +2665,7 @@ if (elements.headerThemeBtn) {
 
 if (elements.openLeaderboardBtn) {
     elements.openLeaderboardBtn.addEventListener('click', () => {
-        renderLeaderboard();
+        if(typeof renderLeaderboard === 'function') renderLeaderboard();
         if (elements.leaderboardModal) elements.leaderboardModal.classList.add('active');
     });
 }
@@ -2730,10 +2691,7 @@ if(elements.loginTab) {
             elements.registerForm.classList.remove('active');
             elements.loginForm.classList.add('active');
             elements.loginForm.style.opacity = '0';
-            
-            // Форсируем перерисовку
             void elements.loginForm.offsetWidth;
-            
             elements.loginForm.style.transition = 'opacity 0.2s';
             elements.loginForm.style.opacity = '1';
         }, 200);
@@ -2754,10 +2712,7 @@ if(elements.registerTab) {
             elements.loginForm.classList.remove('active');
             elements.registerForm.classList.add('active');
             elements.registerForm.style.opacity = '0';
-            
-            // Форсируем перерисовку
             void elements.registerForm.offsetWidth;
-            
             elements.registerForm.style.transition = 'opacity 0.2s';
             elements.registerForm.style.opacity = '1';
         }, 200);
@@ -2783,9 +2738,7 @@ if(elements.registerForm) {
         const password = (isPrivate && document.getElementById('registerPassword')) ? document.getElementById('registerPassword').value : '';
         
         if (username && roomId) {
-            // Сохраняем данные (включая пароль) и показываем выбор карты
             pendingRoomData = { username, roomId, isPrivate, password };
-            
             if (elements.mapSelectionSection) {
                 switchSectionWithAnimation(elements.authSection, elements.mapSelectionSection);
             } else {
@@ -2795,13 +2748,10 @@ if(elements.registerForm) {
     });
 }
 
-// Обработка клика по карте "Волга"
 if (elements.mapCardVolga) {
     elements.mapCardVolga.addEventListener('click', () => {
         if (pendingRoomData) {
             const mapId = elements.mapCardVolga.dataset.mapId || 'volga';
-            
-            // Заходим в игру, передавая выбранную карту и настройки приватности
             joinGame(
                 pendingRoomData.username, 
                 pendingRoomData.roomId, 
@@ -2815,7 +2765,6 @@ if (elements.mapCardVolga) {
     });
 }
 
-// Кнопка отмены выбора карты
 if (elements.cancelMapSelectionBtn) {
     elements.cancelMapSelectionBtn.addEventListener('click', () => {
         pendingRoomData = null;
@@ -2989,7 +2938,6 @@ function handleCredentialResponse(response) {
     const userName = responsePayload.given_name || responsePayload.name;
     const userPicture = responsePayload.picture;
     
-    // Если профиль был пустым, берем данные из Google
     if (!userProfile.name) {
         userProfile.name = userName;
         userProfile.avatar = userPicture;
@@ -3004,70 +2952,113 @@ window.onload = function () {
     // --- Инициализация Google ---
     const GOOGLE_CLIENT_ID = "921001738618-bmaal1s4a6e2ubfbrjc3ullvnov0igjn.apps.googleusercontent.com"; 
     
-    google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse
-    });
-    
-    // Если аватар уже установлен, Google кнопку не рендерим (обрабатывается в updateProfileUI)
-    if (!userProfile.avatar && document.getElementById("googleSignInBtn")) {
-        google.accounts.id.renderButton(
-            document.getElementById("googleSignInBtn"),
-            { theme: "outline", size: "large", shape: "pill", width: "250" }
-        );
-        google.accounts.id.prompt(); 
-    }
-
-    // --- Инициализация ВКонтакте ---
-    if (typeof VK !== 'undefined') {
-        // ВАЖНО: Замени 12345678 на свой реальный ID приложения ВКонтакте!
-        VK.init({ apiId: 54524225 }); 
-    } else {
-        console.warn('VK SDK не загружен. Проверьте подключение к интернету или блокировщики рекламы.');
-    }
-};
-
-// Обработчик входа через ВК
-if (elements.vkSignInBtn) {
-    elements.vkSignInBtn.addEventListener('click', () => {
-        if (typeof VK === 'undefined') {
-            showNotification('VK SDK не загружен. Отключите блокировщик рекламы.', 'error');
-            return;
-        }
-
-        VK.Auth.login(function(response) {
-            if (response.session) {
-                // Запрашиваем данные пользователя (имя и аватарку)
-                VK.Api.call('users.get', { fields: 'photo_100', v: "5.131" }, function(r) {
-                    if (r.response && r.response.length > 0) {
-                        const user = r.response[0];
-                        userProfile.name = user.first_name + ' ' + user.last_name;
-                        userProfile.avatar = user.photo_100;
-                        
-                        localStorage.setItem('userProfile', JSON.stringify(userProfile));
-                        updateProfileUI();
-                        showNotification(`Привет, ${user.first_name}! Вы успешно вошли через ВКонтакте.`, 'success');
-                    }
-                });
-            } else {
-                showNotification('Авторизация ВКонтакте отменена', 'warning');
-            }
+    if (typeof google !== 'undefined' && google.accounts) {
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleCredentialResponse
         });
-    });
-}
+        
+        if (!userProfile.avatar && document.getElementById("googleSignInBtn")) {
+            google.accounts.id.renderButton(
+                document.getElementById("googleSignInBtn"),
+                { theme: "outline", size: "large", shape: "pill", width: "250" }
+            );
+            google.accounts.id.prompt(); 
+        }
+    }
+
+    // --- Инициализация ВКонтакте (Low-code VK ID SDK) ---
+    const vkScript = document.createElement('script');
+    vkScript.src = "https://unpkg.com/@vkid/sdk@3.0.0/dist-sdk/umd/index.js";
+    vkScript.onload = function() {
+        if ('VKIDSDK' in window) {
+            const VKID = window.VKIDSDK;
+
+            VKID.Config.init({
+                app: 54524225,
+                redirectUrl: 'https://eco-game-dfb0.onrender.com/', 
+                responseMode: VKID.ConfigResponseMode.Callback,
+                source: VKID.ConfigSource.LOWCODE,
+                scope: 'vkid.personal_info', 
+            });
+
+            const oneTap = new VKID.OneTap();
+            const container = document.getElementById('VkIdSdkOneTap');
+
+            if (container && !userProfile.name) {
+                oneTap.render({
+                    container: container,
+                    scheme: VKID.Scheme.DARK,
+                    showAlternativeLogin: false 
+                })
+                .on(VKID.WidgetEvents.ERROR, vkidOnError)
+                .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+                    const code = payload.code;
+                    const deviceId = payload.device_id;
+
+                    VKID.Auth.exchangeCode(code, deviceId)
+                        .then(vkidOnSuccess)
+                        .catch(vkidOnError);
+                });
+            }
+            
+            function vkidOnSuccess(data) {
+                console.log('VK Success Data:', data);
+                
+                let userName = 'Игрок VK';
+                let userAvatar = 'https://via.placeholder.com/100?text=VK';
+
+                if (data.id_token) {
+                    try {
+                        const base64Url = data.id_token.split('.')[1];
+                        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                        }).join(''));
+                        
+                        const payload = JSON.parse(jsonPayload);
+                        userName = (payload.first_name + ' ' + (payload.last_name || '')).trim();
+                        userAvatar = payload.avatar || userAvatar;
+                    } catch (e) {
+                        console.error('Ошибка расшифровки токена VK:', e);
+                    }
+                } else if (data.user) {
+                    userName = (data.user.first_name + ' ' + (data.user.last_name || '')).trim();
+                    userAvatar = data.user.avatar || userAvatar;
+                }
+
+                userProfile.name = userName;
+                userProfile.avatar = userAvatar;
+                
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                updateProfileUI(); 
+                showNotification(`Привет, ${userName}! Вы успешно вошли через ВКонтакте.`, 'success');
+            }
+            
+            function vkidOnError(error) {
+                console.error('VK Error:', error);
+                showNotification('Ошибка авторизации ВКонтакте', 'error');
+            }
+        }
+    };
+    document.head.appendChild(vkScript);
+};
 
 // Обработчик выхода перенесен в выпадающее меню
 const logoutBtn = document.getElementById('logoutBtn');
 if(logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-        google.accounts.id.disableAutoSelect();
+        if (typeof google !== 'undefined' && google.accounts) {
+            google.accounts.id.disableAutoSelect();
+        }
         
         // Очищаем профиль
         userProfile = { name: '', avatar: '', birthDate: '', gender: 'not_set' };
         localStorage.removeItem('userProfile');
         
-        // Возвращаем UI для входа
+        // Возвращаем UI
         if(elements.googleSignInBtn) elements.googleSignInBtn.style.display = 'block';
+        if(elements.vkIdSdkOneTap) elements.vkIdSdkOneTap.style.display = 'flex';
         if(elements.headerLoginBtn) elements.headerLoginBtn.style.display = 'flex';
         if(elements.userProfileBadge) elements.userProfileBadge.style.display = 'none';
         
@@ -3079,7 +3070,7 @@ if(logoutBtn) {
         if(profileDropdown) profileDropdown.classList.remove('active');
         
         // Рендерим кнопку Google заново
-        if(document.getElementById("googleSignInBtn")) {
+        if(document.getElementById("googleSignInBtn") && typeof google !== 'undefined' && google.accounts) {
             google.accounts.id.renderButton(
                 document.getElementById("googleSignInBtn"),
                 { theme: "outline", size: "large", shape: "pill", width: "250" }
