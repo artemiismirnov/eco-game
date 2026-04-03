@@ -146,10 +146,13 @@ const elements = {
     colorModal: document.getElementById('colorModal'),
     colorGrid: document.getElementById('colorGrid'),
     
-    // Элементы для профиля и настроек
+    // Элементы для профиля и настроек (ОБНОВЛЕНО для модального окна входа)
     userProfileBadge: document.getElementById('userProfileBadge'),
     userAvatar: document.getElementById('userAvatar'),
-    googleSignInBtn: document.getElementById('googleSignInBtn'),
+    openAuthModalBtn: document.getElementById('openAuthModalBtn'),
+    globalAuthModal: document.getElementById('globalAuthModal'),
+    closeAuthModalBtn: document.getElementById('closeAuthModalBtn'),
+    googleSignInWrapper: document.getElementById('googleSignInWrapper'),
     loginUsername: document.getElementById('loginUsername'),
     registerUsername: document.getElementById('registerUsername'),
     settingsForm: document.getElementById('settingsForm'),
@@ -299,7 +302,7 @@ function updateProfileUI() {
         if(elements.settingsAvatarPreview) elements.settingsAvatarPreview.src = userProfile.avatar;
         if(elements.chipAvatarPreview) elements.chipAvatarPreview.src = userProfile.avatar;
         
-        elements.googleSignInBtn.style.display = 'none';
+        if (elements.openAuthModalBtn) elements.openAuthModalBtn.style.display = 'none';
         elements.userProfileBadge.style.display = 'inline-block';
     }
     if (userProfile.name) {
@@ -2943,6 +2946,18 @@ if(elements.difficultyBtns) {
     });
 }
 
+// Слушатели для модального окна входа
+if (elements.openAuthModalBtn) {
+    elements.openAuthModalBtn.addEventListener('click', () => {
+        if (elements.globalAuthModal) elements.globalAuthModal.classList.add('active');
+    });
+}
+if (elements.closeAuthModalBtn) {
+    elements.closeAuthModalBtn.addEventListener('click', () => {
+        if (elements.globalAuthModal) elements.globalAuthModal.classList.remove('active');
+    });
+}
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Игра "Юный эколог" запущена!');
@@ -2981,6 +2996,11 @@ function handleCredentialResponse(response) {
     
     updateProfileUI();
     showNotification(`Привет, ${userName}! Вы успешно вошли через Google.`, 'success');
+    
+    // Закрываем модальное окно после успешного входа
+    if (elements.globalAuthModal) {
+        elements.globalAuthModal.classList.remove('active');
+    }
 }
 
 window.onload = function () {
@@ -2992,10 +3012,10 @@ window.onload = function () {
     });
     
     // Если аватар уже установлен, Google кнопку не рендерим (обрабатывается в updateProfileUI)
-    if (!userProfile.avatar && document.getElementById("googleSignInBtn")) {
+    if (!userProfile.avatar && elements.googleSignInWrapper) {
         google.accounts.id.renderButton(
-            document.getElementById("googleSignInBtn"),
-            { theme: "outline", size: "large", shape: "pill" }
+            elements.googleSignInWrapper,
+            { theme: "outline", size: "large", shape: "pill", width: "100%" }
         );
         google.accounts.id.prompt(); 
     }
@@ -3012,7 +3032,7 @@ if(logoutBtn) {
         localStorage.removeItem('userProfile');
         
         // Возвращаем UI
-        if(elements.googleSignInBtn) elements.googleSignInBtn.style.display = 'block';
+        if(elements.openAuthModalBtn) elements.openAuthModalBtn.style.display = 'flex';
         if(elements.userProfileBadge) elements.userProfileBadge.style.display = 'none';
         
         if(elements.loginUsername) elements.loginUsername.value = '';
@@ -3023,10 +3043,10 @@ if(logoutBtn) {
         if(profileDropdown) profileDropdown.classList.remove('active');
         
         // Рендерим кнопку Google заново
-        if(document.getElementById("googleSignInBtn")) {
+        if(elements.googleSignInWrapper) {
             google.accounts.id.renderButton(
-                document.getElementById("googleSignInBtn"),
-                { theme: "outline", size: "large", shape: "pill" }
+                elements.googleSignInWrapper,
+                { theme: "outline", size: "large", shape: "pill", width: "100%" }
             );
         }
         
