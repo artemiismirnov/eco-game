@@ -820,6 +820,16 @@ function requestAllPlayersPositions() {
     if (socket.connected) socket.emit('request_all_positions');
 }
 
+// --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВЫЧИСЛЕНИЯ БАЗОВОГО РАЗМЕРА ---
+function getMapBaseDimensions() {
+    const img = document.getElementById('mapImage');
+    const BASE_W = 800; // Ширина, на которой расставлялись точки в редакторе
+    
+    // Пропорция помогает не ломать высоту (Y), если реальная картинка не квадратная
+    const ratio = (img && img.naturalWidth > 0) ? (img.naturalHeight / img.naturalWidth) : 1;
+    return { w: BASE_W, h: BASE_W * ratio };
+}
+
 function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAvatar) {
     let marker = document.getElementById(`marker-${playerId}`);
     let isAvatar = colorOrAvatar && (colorOrAvatar.startsWith('data:image') || colorOrAvatar.startsWith('http'));
@@ -831,6 +841,9 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAv
         marker.setAttribute('data-player', playerName);
         marker.style.border = '2px solid white';
         marker.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.7)';
+        
+        // Гарантируем центрирование фишки на координатах
+        marker.style.transform = 'translate(-50%, -50%)';
         
         const tooltip = document.createElement('div');
         tooltip.className = 'player-tooltip';
@@ -861,12 +874,20 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAv
     
     const cell = mapData.cells.find(c => c.number === position);
     if (cell) {
-        // Просто центрируем фишку строго по координатам клетки
+        // === ИДЕАЛЬНАЯ КООРДИНАТНАЯ ЛОГИКА ===
+        const base = getMapBaseDimensions();
+        
+        // Находим центр клетки (по старым координатам)
         const centerX = cell.x + (cell.width / 2);
         const centerY = cell.y + (cell.height / 2);
-
-        marker.style.left = `${centerX}px`;
-        marker.style.top = `${centerY}px`;
+        
+        // Переводим центр клетки в проценты, отталкиваясь от базовых 800px
+        const pctX = (centerX / base.w) * 100;
+        const pctY = (centerY / base.h) * 100;
+        
+        marker.style.left = `${pctX}%`;
+        marker.style.top = `${pctY}%`;
+        // ======================================
         
         const tooltip = marker.querySelector('.player-tooltip');
         if (tooltip) tooltip.textContent = `${playerName} (поз. ${position})`;
@@ -1103,15 +1124,44 @@ function sendChatMessage(message) {
 
 // ==================== ФУНКЦИИ ДЛЯ КАРТЫ ====================
 function loadMap() {
+    // === АВТОМАТИЧЕСКОЕ ИСПРАВЛЕНИЕ HTML-РАЗМЕТКИ ДЛЯ КАРТЫ ===
+    const mapContainer = document.getElementById('mapContainer');
+    const mapImage = document.getElementById('mapImage');
+    const mapOverlay = document.getElementById('mapOverlay');
+    
+    if (mapContainer && mapImage && mapOverlay && !document.getElementById('mapWrapper')) {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'mapWrapper';
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'inline-block'; 
+        wrapper.style.maxWidth = '100%';
+        
+        mapContainer.insertBefore(wrapper, mapImage);
+        wrapper.appendChild(mapImage);
+        wrapper.appendChild(mapOverlay);
+        
+        mapContainer.style.display = 'flex';
+        mapContainer.style.alignItems = 'center';
+        mapContainer.style.justifyContent = 'center';
+        
+        mapImage.style.display = 'block';
+        mapImage.style.maxWidth = '100%';
+        mapImage.style.height = 'auto';
+        
+        mapOverlay.style.position = 'absolute';
+        mapOverlay.style.top = '0';
+        mapOverlay.style.left = '0';
+        mapOverlay.style.width = '100%';
+        mapOverlay.style.height = '100%';
+    }
+    // ========================================================
+
     if (window.mapData && window.mapData.imageUrl) {
         if(elements.mapImage) {
             elements.mapImage.src = window.mapData.imageUrl;
             elements.mapImage.onload = function() {
                 mapData.imageLoaded = true;
                 loadSavedMap();
-                
-                // ДОБАВИТЬ ВОТ ЭТУ СТРОЧКУ СЮДА:
-                setTimeout(updateMapScale, 100); 
             };
             elements.mapImage.onerror = function() {
                 mapData.imageLoaded = false;
@@ -1180,11 +1230,19 @@ function createCellElement(cell) {
     cellElement.dataset.cellType = cell.type;
     cellElement.dataset.city = cell.city || '';
     
-    // ВЕРНУЛИ ПИКСЕЛИ! Убираем проценты и лишние вычисления.
-    cellElement.style.left = `${cell.x}px`;
-    cellElement.style.top = `${cell.y}px`;
-    cellElement.style.width = `${cell.width}px`;
-    cellElement.style.height = `${cell.height}px`;
+    // === ИДЕАЛЬНАЯ КООРДИНАТНАЯ ЛОГИКА ===
+    const base = getMapBaseDimensions();
+    
+    const pctX = (cell.x / base.w) * 100;
+    const pctY = (cell.y / base.h) * 100;
+    const pctW = (cell.width / base.w) * 100;
+    const pctH = (cell.height / base.h) * 100;
+    
+    cellElement.style.left = `${pctX}%`;
+    cellElement.style.top = `${pctY}%`;
+    cellElement.style.width = `${pctW}%`;
+    cellElement.style.height = `${pctH}%`;
+    // ======================================
 
     if (cell.type === 'start') cellElement.classList.add('start');
     else if (cell.type === 'finish') cellElement.classList.add('finish');
@@ -3087,28 +3145,3 @@ if(logoutBtn) {
         showNotification('Вы вышли из профиля', 'info');
     });
 }
-
-// === ФУНКЦИЯ ИДЕАЛЬНОГО МАСШТАБИРОВАНИЯ ===
-function updateMapScale() {
-    const overlay = document.getElementById('mapOverlay');
-    const img = document.getElementById('mapImage');
-    
-    if (!overlay || !img || img.offsetWidth === 0) return;
-
-    // ВАЖНО: 800 — это ширина окна, при которой ты изначально ставил точки.
-    // 🛠 ЕСЛИ ФИШКИ СТОЯТ ЧУТЬ ЛЕВЕЕ ИЛИ ПРАВЕЕ — просто поменяй это число!
-    // Например, попробуй 700, 900 или 1000, пока фишка не встанет идеально в центр.
-    const BASE_WIDTH = 800; 
-
-    // Считаем масштаб (насколько картинка на экране меньше или больше базовой)
-    const scale = img.offsetWidth / BASE_WIDTH;
-    
-    // Применяем масштаб как лупу
-    overlay.style.width = `${BASE_WIDTH}px`;
-    overlay.style.height = `${img.offsetHeight / scale}px`;
-    overlay.style.transform = `scale(${scale})`;
-    overlay.style.transformOrigin = 'top left';
-}
-
-// Запускаем перерасчет при изменении размера окна браузера
-window.addEventListener('resize', updateMapScale);
