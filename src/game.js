@@ -166,7 +166,7 @@ const elements = {
     headerLoginBtn: document.getElementById('headerLoginBtn'),
     loginMethodModal: document.getElementById('loginMethodModal'),
     googleSignInBtn: document.getElementById('googleSignInBtn'),
-    vkIdContainer: document.getElementById('VkIdContainer') // Обновленный контейнер для виджета ВК
+    vkIdContainer: document.getElementById('VkIdContainer')
 };
 
 // ==================== УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ПЛАВНОГО ПЕРЕХОДА ====================
@@ -2975,31 +2975,70 @@ window.handleVkSuccess = function(data) {
     let userName = 'Игрок VK';
     let userAvatar = 'https://via.placeholder.com/100?text=VK';
 
-    if (data.id_token) {
-        try {
-            const base64Url = data.id_token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            
-            const payload = JSON.parse(jsonPayload);
-            userName = (payload.first_name + ' ' + (payload.last_name || '')).trim();
-            userAvatar = payload.avatar || userAvatar;
-        } catch (e) {
-            console.error('Ошибка расшифровки токена VK:', e);
+    // Вспомогательная функция для применения профиля
+    function applyProfile(profileData) {
+        // Универсальное извлечение имени
+        let fName = profileData.first_name || profileData.given_name || '';
+        let lName = profileData.last_name || profileData.family_name || '';
+        
+        let extractedName = (fName + ' ' + lName).trim();
+        
+        // Если имя почему-то лежит просто в поле name (например, по OIDC)
+        if (!extractedName && profileData.name) {
+            extractedName = profileData.name;
         }
-    } else if (data.user) {
-        userName = (data.user.first_name + ' ' + (data.user.last_name || '')).trim();
-        userAvatar = data.user.avatar || userAvatar;
+        
+        if (extractedName && !extractedName.includes('undefined')) {
+            userName = extractedName;
+        }
+
+        // Универсальное извлечение аватарки (разные форматы ВК и Google)
+        userAvatar = profileData.avatar || profileData.picture || profileData.photo_200 || profileData.photo_100 || userAvatar;
+
+        userProfile.name = userName;
+        userProfile.avatar = userAvatar;
+        
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        updateProfileUI(); 
+        showNotification(`Привет, ${userName}! Вы успешно вошли через ВКонтакте.`, 'success');
     }
 
-    userProfile.name = userName;
-    userProfile.avatar = userAvatar;
-    
-    localStorage.setItem('userProfile', JSON.stringify(userProfile));
-    updateProfileUI(); 
-    showNotification(`Привет, ${userName}! Вы успешно вошли через ВКонтакте.`, 'success');
+    // 1 Способ: Получаем профиль через официальный запрос к VK API
+    if (window.VKIDSDK && window.VKIDSDK.Auth && data.access_token) {
+        window.VKIDSDK.Auth.userInfo(data.access_token)
+            .then(function(info) {
+                console.log('VK UserInfo API Result:', info);
+                const userData = info.user || info;
+                applyProfile(userData);
+            })
+            .catch(function(err) {
+                console.error('Ошибка получения профиля VK:', err);
+                fallbackTokenDecode(); // Если не вышло — пытаемся расшифровать токен
+            });
+    } else {
+        fallbackTokenDecode();
+    }
+
+    // 2 Способ (Запасной): Расшифровка JWT-токена
+    function fallbackTokenDecode() {
+        let payloadObj = {};
+        if (data.id_token) {
+            try {
+                const base64Url = data.id_token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                payloadObj = JSON.parse(jsonPayload);
+                console.log('VK JWT Decoded Payload:', payloadObj);
+            } catch (e) {
+                console.error('Ошибка расшифровки токена VK:', e);
+            }
+        } else if (data.user) {
+            payloadObj = data.user;
+        }
+        applyProfile(payloadObj);
+    }
 };
 
 // Обработчик выхода перенесен в выпадающее меню
