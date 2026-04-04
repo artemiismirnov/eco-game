@@ -861,21 +861,12 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAv
     
     const cell = mapData.cells.find(c => c.number === position);
     if (cell) {
-        // === ИСПРАВЛЕНИЕ: Переводим позицию фишки в проценты ===
-        const img = document.getElementById('mapImage');
-        const baseW = img && img.naturalWidth > 0 ? img.naturalWidth : (elements.mapContainer.offsetWidth || 800);
-        const baseH = img && img.naturalHeight > 0 ? img.naturalHeight : (elements.mapContainer.offsetHeight || 800);
+        // Просто центрируем фишку строго по координатам клетки
+        const centerX = cell.x + (cell.width / 2);
+        const centerY = cell.y + (cell.height / 2);
 
-        // Находим центр клетки
-        const centerX = cell.x + cell.width / 2;
-        const centerY = cell.y + cell.height / 2;
-
-        const pctX = (centerX / baseW) * 100;
-        const pctY = (centerY / baseH) * 100;
-
-        marker.style.left = `${pctX}%`;
-        marker.style.top = `${pctY}%`;
-        // ========================================================
+        marker.style.left = `${centerX}px`;
+        marker.style.top = `${centerY}px`;
         
         const tooltip = marker.querySelector('.player-tooltip');
         if (tooltip) tooltip.textContent = `${playerName} (поз. ${position})`;
@@ -1118,7 +1109,9 @@ function loadMap() {
             elements.mapImage.onload = function() {
                 mapData.imageLoaded = true;
                 loadSavedMap();
-                updatePlayerMarkers();
+                
+                // ДОБАВИТЬ ВОТ ЭТУ СТРОЧКУ СЮДА:
+                setTimeout(updateMapScale, 100); 
             };
             elements.mapImage.onerror = function() {
                 mapData.imageLoaded = false;
@@ -1187,23 +1180,12 @@ function createCellElement(cell) {
     cellElement.dataset.cellType = cell.type;
     cellElement.dataset.city = cell.city || '';
     
-    // === ИСПРАВЛЕНИЕ: Переводим пиксели в проценты для адаптивности ===
-    const img = document.getElementById('mapImage');
-    // Берем натуральный размер картинки, на которой расставлялись координаты
-    const baseW = img && img.naturalWidth > 0 ? img.naturalWidth : (elements.mapContainer.offsetWidth || 800);
-    const baseH = img && img.naturalHeight > 0 ? img.naturalHeight : (elements.mapContainer.offsetHeight || 800);
+    // ВЕРНУЛИ ПИКСЕЛИ! Убираем проценты и лишние вычисления.
+    cellElement.style.left = `${cell.x}px`;
+    cellElement.style.top = `${cell.y}px`;
+    cellElement.style.width = `${cell.width}px`;
+    cellElement.style.height = `${cell.height}px`;
 
-    const pctX = (cell.x / baseW) * 100;
-    const pctY = (cell.y / baseH) * 100;
-    const pctW = (cell.width / baseW) * 100;
-    const pctH = (cell.height / baseH) * 100;
-
-    cellElement.style.left = `${pctX}%`;
-    cellElement.style.top = `${pctY}%`;
-    cellElement.style.width = `${pctW}%`;
-    cellElement.style.height = `${pctH}%`;
-    // ==================================================================
-    
     if (cell.type === 'start') cellElement.classList.add('start');
     else if (cell.type === 'finish') cellElement.classList.add('finish');
     else if (cell.type === 'city') cellElement.classList.add('city');
@@ -3105,3 +3087,28 @@ if(logoutBtn) {
         showNotification('Вы вышли из профиля', 'info');
     });
 }
+
+// === ФУНКЦИЯ ИДЕАЛЬНОГО МАСШТАБИРОВАНИЯ ===
+function updateMapScale() {
+    const overlay = document.getElementById('mapOverlay');
+    const img = document.getElementById('mapImage');
+    
+    if (!overlay || !img || img.offsetWidth === 0) return;
+
+    // ВАЖНО: 800 — это ширина окна, при которой ты изначально ставил точки.
+    // 🛠 ЕСЛИ ФИШКИ СТОЯТ ЧУТЬ ЛЕВЕЕ ИЛИ ПРАВЕЕ — просто поменяй это число!
+    // Например, попробуй 700, 900 или 1000, пока фишка не встанет идеально в центр.
+    const BASE_WIDTH = 800; 
+
+    // Считаем масштаб (насколько картинка на экране меньше или больше базовой)
+    const scale = img.offsetWidth / BASE_WIDTH;
+    
+    // Применяем масштаб как лупу
+    overlay.style.width = `${BASE_WIDTH}px`;
+    overlay.style.height = `${img.offsetHeight / scale}px`;
+    overlay.style.transform = `scale(${scale})`;
+    overlay.style.transformOrigin = 'top left';
+}
+
+// Запускаем перерасчет при изменении размера окна браузера
+window.addEventListener('resize', updateMapScale);
