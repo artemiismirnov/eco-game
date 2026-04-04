@@ -861,8 +861,22 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAv
     
     const cell = mapData.cells.find(c => c.number === position);
     if (cell) {
-        marker.style.left = `${cell.x + cell.width/2}px`;
-        marker.style.top = `${cell.y + cell.height/2}px`;
+        // === ИСПРАВЛЕНИЕ: Переводим позицию фишки в проценты ===
+        const img = document.getElementById('mapImage');
+        const baseW = img && img.naturalWidth > 0 ? img.naturalWidth : (elements.mapContainer.offsetWidth || 800);
+        const baseH = img && img.naturalHeight > 0 ? img.naturalHeight : (elements.mapContainer.offsetHeight || 800);
+
+        // Находим центр клетки
+        const centerX = cell.x + cell.width / 2;
+        const centerY = cell.y + cell.height / 2;
+
+        const pctX = (centerX / baseW) * 100;
+        const pctY = (centerY / baseH) * 100;
+
+        marker.style.left = `${pctX}%`;
+        marker.style.top = `${pctY}%`;
+        // ========================================================
+        
         const tooltip = marker.querySelector('.player-tooltip');
         if (tooltip) tooltip.textContent = `${playerName} (поз. ${position})`;
     }
@@ -1173,10 +1187,22 @@ function createCellElement(cell) {
     cellElement.dataset.cellType = cell.type;
     cellElement.dataset.city = cell.city || '';
     
-    cellElement.style.left = `${cell.x}px`;
-    cellElement.style.top = `${cell.y}px`;
-    cellElement.style.width = `${cell.width}px`;
-    cellElement.style.height = `${cell.height}px`;
+    // === ИСПРАВЛЕНИЕ: Переводим пиксели в проценты для адаптивности ===
+    const img = document.getElementById('mapImage');
+    // Берем натуральный размер картинки, на которой расставлялись координаты
+    const baseW = img && img.naturalWidth > 0 ? img.naturalWidth : (elements.mapContainer.offsetWidth || 800);
+    const baseH = img && img.naturalHeight > 0 ? img.naturalHeight : (elements.mapContainer.offsetHeight || 800);
+
+    const pctX = (cell.x / baseW) * 100;
+    const pctY = (cell.y / baseH) * 100;
+    const pctW = (cell.width / baseW) * 100;
+    const pctH = (cell.height / baseH) * 100;
+
+    cellElement.style.left = `${pctX}%`;
+    cellElement.style.top = `${pctY}%`;
+    cellElement.style.width = `${pctW}%`;
+    cellElement.style.height = `${pctH}%`;
+    // ==================================================================
     
     if (cell.type === 'start') cellElement.classList.add('start');
     else if (cell.type === 'finish') cellElement.classList.add('finish');
