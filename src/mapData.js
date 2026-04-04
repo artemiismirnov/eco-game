@@ -1,5 +1,5 @@
 window.mapData = {
-    imageUrl: "https://patient-green-hvtfffpcbv.edgeone.app/photo_2026-03-26_12-51-28.jpg",
+    imageUrl: "https://substantial-bronze-2ulkidtnfg.edgeone.app/photo_2026-04-04_22-24-05.jpg",
     cells: [],
     cellSize: 60, // Немного увеличен размер клетки для лучшей видимости
     nextCellId: 1,
