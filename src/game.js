@@ -1124,38 +1124,6 @@ function sendChatMessage(message) {
 
 // ==================== ФУНКЦИИ ДЛЯ КАРТЫ ====================
 function loadMap() {
-    // === АВТОМАТИЧЕСКОЕ ИСПРАВЛЕНИЕ HTML-РАЗМЕТКИ ДЛЯ КАРТЫ ===
-    const mapContainer = document.getElementById('mapContainer');
-    const mapImage = document.getElementById('mapImage');
-    const mapOverlay = document.getElementById('mapOverlay');
-    
-    if (mapContainer && mapImage && mapOverlay && !document.getElementById('mapWrapper')) {
-        const wrapper = document.createElement('div');
-        wrapper.id = 'mapWrapper';
-        wrapper.style.position = 'relative';
-        wrapper.style.display = 'inline-block'; 
-        wrapper.style.maxWidth = '100%';
-        
-        mapContainer.insertBefore(wrapper, mapImage);
-        wrapper.appendChild(mapImage);
-        wrapper.appendChild(mapOverlay);
-        
-        mapContainer.style.display = 'flex';
-        mapContainer.style.alignItems = 'center';
-        mapContainer.style.justifyContent = 'center';
-        
-        mapImage.style.display = 'block';
-        mapImage.style.maxWidth = '100%';
-        mapImage.style.height = 'auto';
-        
-        mapOverlay.style.position = 'absolute';
-        mapOverlay.style.top = '0';
-        mapOverlay.style.left = '0';
-        mapOverlay.style.width = '100%';
-        mapOverlay.style.height = '100%';
-    }
-    // ========================================================
-
     if (window.mapData && window.mapData.imageUrl) {
         if(elements.mapImage) {
             elements.mapImage.src = window.mapData.imageUrl;
@@ -1231,12 +1199,17 @@ function createCellElement(cell) {
     cellElement.dataset.city = cell.city || '';
     
     // === ИДЕАЛЬНАЯ КООРДИНАТНАЯ ЛОГИКА ===
-    const base = getMapBaseDimensions();
+    const img = document.getElementById('mapImage');
+    const BASE_W = 800; // Ширина холста в твоем редакторе
+    let BASE_H = 800;
+    if (img && img.naturalWidth > 0) {
+        BASE_H = BASE_W * (img.naturalHeight / img.naturalWidth);
+    }
     
-    const pctX = (cell.x / base.w) * 100;
-    const pctY = (cell.y / base.h) * 100;
-    const pctW = (cell.width / base.w) * 100;
-    const pctH = (cell.height / base.h) * 100;
+    const pctX = (cell.x / BASE_W) * 100;
+    const pctY = (cell.y / BASE_H) * 100;
+    const pctW = (cell.width / BASE_W) * 100;
+    const pctH = (cell.height / BASE_H) * 100;
     
     cellElement.style.left = `${pctX}%`;
     cellElement.style.top = `${pctY}%`;
@@ -3016,7 +2989,7 @@ function handleCredentialResponse(response) {
 
 window.onload = function () {
     // --- Инициализация Google ---
-    const GOOGLE_CLIENT_ID = "154850539288-mnckg8gh21v8dn3789o22d5mta51gm6h.apps.googleusercontent.com"; 
+    const GOOGLE_CLIENT_ID = "921001738618-bmaal1s4a6e2ubfbrjc3ullvnov0igjn.apps.googleusercontent.com"; 
     
     if (typeof google !== 'undefined' && google.accounts) {
         google.accounts.id.initialize({
