@@ -820,16 +820,6 @@ function requestAllPlayersPositions() {
     if (socket.connected) socket.emit('request_all_positions');
 }
 
-// --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВЫЧИСЛЕНИЯ БАЗОВОГО РАЗМЕРА ---
-function getMapBaseDimensions() {
-    const img = document.getElementById('mapImage');
-    const BASE_W = 800; // Ширина, на которой расставлялись точки в редакторе
-    
-    // Пропорция помогает не ломать высоту (Y), если реальная картинка не квадратная
-    const ratio = (img && img.naturalWidth > 0) ? (img.naturalHeight / img.naturalWidth) : 1;
-    return { w: BASE_W, h: BASE_W * ratio };
-}
-
 function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAvatar) {
     let marker = document.getElementById(`marker-${playerId}`);
     let isAvatar = colorOrAvatar && (colorOrAvatar.startsWith('data:image') || colorOrAvatar.startsWith('http'));
@@ -841,9 +831,6 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAv
         marker.setAttribute('data-player', playerName);
         marker.style.border = '2px solid white';
         marker.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.7)';
-        
-        // Гарантируем центрирование фишки на координатах
-        marker.style.transform = 'translate(-50%, -50%)';
         
         const tooltip = document.createElement('div');
         tooltip.className = 'player-tooltip';
@@ -874,21 +861,8 @@ function updateOtherPlayerMarker(playerId, playerName, position, city, colorOrAv
     
     const cell = mapData.cells.find(c => c.number === position);
     if (cell) {
-        // === ИДЕАЛЬНАЯ КООРДИНАТНАЯ ЛОГИКА ===
-        const base = getMapBaseDimensions();
-        
-        // Находим центр клетки (по старым координатам)
-        const centerX = cell.x + (cell.width / 2);
-        const centerY = cell.y + (cell.height / 2);
-        
-        // Переводим центр клетки в проценты, отталкиваясь от базовых 800px
-        const pctX = (centerX / base.w) * 100;
-        const pctY = (centerY / base.h) * 100;
-        
-        marker.style.left = `${pctX}%`;
-        marker.style.top = `${pctY}%`;
-        // ======================================
-        
+        marker.style.left = `${cell.x + cell.width/2}px`;
+        marker.style.top = `${cell.y + cell.height/2}px`;
         const tooltip = marker.querySelector('.player-tooltip');
         if (tooltip) tooltip.textContent = `${playerName} (поз. ${position})`;
     }
@@ -1130,6 +1104,7 @@ function loadMap() {
             elements.mapImage.onload = function() {
                 mapData.imageLoaded = true;
                 loadSavedMap();
+                updatePlayerMarkers();
             };
             elements.mapImage.onerror = function() {
                 mapData.imageLoaded = false;
@@ -1198,25 +1173,11 @@ function createCellElement(cell) {
     cellElement.dataset.cellType = cell.type;
     cellElement.dataset.city = cell.city || '';
     
-    // === ИДЕАЛЬНАЯ КООРДИНАТНАЯ ЛОГИКА ===
-    const img = document.getElementById('mapImage');
-    const BASE_W = 800; // Ширина холста в твоем редакторе
-    let BASE_H = 800;
-    if (img && img.naturalWidth > 0) {
-        BASE_H = BASE_W * (img.naturalHeight / img.naturalWidth);
-    }
+    cellElement.style.left = `${cell.x}px`;
+    cellElement.style.top = `${cell.y}px`;
+    cellElement.style.width = `${cell.width}px`;
+    cellElement.style.height = `${cell.height}px`;
     
-    const pctX = (cell.x / BASE_W) * 100;
-    const pctY = (cell.y / BASE_H) * 100;
-    const pctW = (cell.width / BASE_W) * 100;
-    const pctH = (cell.height / BASE_H) * 100;
-    
-    cellElement.style.left = `${pctX}%`;
-    cellElement.style.top = `${pctY}%`;
-    cellElement.style.width = `${pctW}%`;
-    cellElement.style.height = `${pctH}%`;
-    // ======================================
-
     if (cell.type === 'start') cellElement.classList.add('start');
     else if (cell.type === 'finish') cellElement.classList.add('finish');
     else if (cell.type === 'city') cellElement.classList.add('city');
