@@ -3016,7 +3016,7 @@ function handleCredentialResponse(response) {
 
 window.onload = function () {
     // --- Инициализация Google ---
-    const GOOGLE_CLIENT_ID = "154850539288-mnckg8gh21v8dn3789o22d5mta51gm6h.apps.googleusercontent.com"; 
+    const GOOGLE_CLIENT_ID = "921001738618-bmaal1s4a6e2ubfbrjc3ullvnov0igjn.apps.googleusercontent.com"; 
     
     if (typeof google !== 'undefined' && google.accounts) {
         google.accounts.id.initialize({
